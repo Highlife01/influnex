@@ -58,7 +58,10 @@ export async function POST(req: Request) {
       actorUid: guard.actorUid,
       actorRole: guard.actorRole,
       action: "CREATE_CAMPAIGN",
-      metadata: { campaignId: created.id, budgetMinorUnits: created.budgetMinorUnits },
+      metadata: {
+        campaignId: created.id,
+        budgetMinorUnits: created.budgetMinorUnits,
+      },
     });
 
     return NextResponse.json(created, { status: 201 });

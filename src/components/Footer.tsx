@@ -1,15 +1,21 @@
 import Link from "next/link";
+import { BookOpen, BriefcaseBusiness, LogIn, Search, Workflow } from "lucide-react";
 import type { SupportedLocale } from "@/lib/types/domain";
 import { INITIAL_CATEGORIES, INITIAL_CITIES } from "@/lib/data/catalog";
 import { LEGAL_DOCUMENTS } from "@/lib/data/blogAndLegal";
 import { DICTIONARY } from "@/lib/i18n/dictionary";
+import { localizedPath } from "@/lib/i18n/paths";
 
 export function Footer({ locale }: { locale: SupportedLocale }) {
   const t = DICTIONARY[locale];
   const baseCreatorPath = locale === "tr" ? "/tr/influencer" : "/en/creators";
+  const campaignsPath = localizedPath(locale, "campaigns");
+  const howItWorksPath = localizedPath(locale, "howItWorks");
+  const blogPath = localizedPath(locale, "blog");
+  const loginPath = localizedPath(locale, "login");
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 pb-20 pt-14 text-slate-600 md:pb-12">
+    <footer className="border-t border-slate-200 bg-slate-50 pb-20 pt-14 text-slate-600 lg:pb-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
@@ -17,30 +23,28 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               href={`/${locale}`}
               className="flex items-center gap-2.5 text-xl font-bold text-slate-900"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-950 text-xs font-extrabold text-white">
+              <span className="flex h-8 w-8 -rotate-6 items-center justify-center rounded-full border-2 border-[#171a15] bg-[#c9ff5b] text-xs font-extrabold text-[#171a15]">
                 IN
               </span>
-              <span>
-                Influ<span className="text-indigo-600">Nex</span>
-              </span>
+              <span>influnex</span>
             </Link>
-            <p className="mt-2 text-sm font-semibold text-indigo-700">
+            <p className="mt-2 text-sm font-semibold text-[#5c7525]">
               {t.slogan}
             </p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-600">
               {locale === "tr"
-                ? "Reklamveren ve influencer üyeliği tamamen ücretsizdir. Abonelik, jeton veya gizli ücret yoktur; yalnızca başarıyla tamamlanan iş birliklerinden %15 komisyon alınır."
-                : "Free membership for both advertisers and creators. No subscriptions, tokens, or hidden fees — only a 15% commission on completed collaborations."}
+                ? "Erken erişim betasında örnek profilleri inceleyebilir, brief taslağı hazırlayabilirsiniz. Canlı kampanya ve ödeme henüz açık değildir."
+                : "Explore sample profiles and prepare a campaign brief in the early-access beta. Live campaigns and payments are not open yet."}
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
                 %0 Üyelik Ücreti
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                %15 Sabit Komisyon (1500 BPS)
+                Planlanan %15 Komisyon
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                %85 Influencer Hakedişi
+                Planlanan %85 Üretici Payı
               </span>
             </div>
           </div>
@@ -80,7 +84,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               ))}
               <li>
                 <Link
-                  href="/tr/influencer/adana/otomotiv"
+                  href={`${baseCreatorPath}/adana/otomotiv`}
                   className="hover:text-indigo-600"
                 >
                   Adana Otomotiv Influencer
@@ -88,7 +92,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               </li>
               <li>
                 <Link
-                  href="/tr/influencer/istanbul/moda"
+                  href={`${baseCreatorPath}/istanbul/moda`}
                   className="hover:text-indigo-600"
                 >
                   İstanbul Moda Influencer
@@ -104,29 +108,26 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             <ul className="mt-3 space-y-2 text-sm">
               <li>
                 <Link
-                  href="/tr/nasil-calisir"
+                  href={localizedPath(locale, "howItWorks")}
                   className="hover:text-indigo-600"
                 >
                   Nasıl Çalışır?
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/tr/influencer-reklam-fiyatlari"
-                  className="hover:text-indigo-600"
-                >
-                  Influencer Reklam Fiyatları
-                </Link>
-              </li>
-              <li>
-                <Link href="/tr/admin" className="hover:text-indigo-600">
-                  Yönetici & SEO Merkezi
-                </Link>
-              </li>
+              {locale === "tr" ? (
+                <li>
+                  <Link
+                    href={localizedPath(locale, "pricing")}
+                    className="hover:text-indigo-600"
+                  >
+                    Influencer Reklam Fiyatları
+                  </Link>
+                </li>
+              ) : null}
               {LEGAL_DOCUMENTS.map((doc) => (
                 <li key={doc.slug}>
                   <Link
-                    href={`/tr/hukuki/${doc.slug}`}
+                    href={`/${locale}/hukuki/${doc.slug}`}
                     className="hover:text-indigo-600"
                   >
                     {locale === "tr" ? doc.titleTr : doc.titleEn}
@@ -162,40 +163,46 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation Bar (PWA Native Feel - Section 35) */}
+      {/* Keep the mobile bar focused on public site destinations. */}
       <nav
-        aria-label="Mobil Alt Menü"
-        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-slate-200 bg-white py-2.5 text-xs font-medium text-slate-600 shadow-lg md:hidden"
+        aria-label={locale === "tr" ? "Mobil ana menü" : "Mobile main navigation"}
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around border-t border-slate-200 bg-white px-1 pt-2 text-[10px] font-medium text-slate-600 shadow-[0_-4px_16px_rgb(15_23_42_/_0.08)] lg:hidden"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <Link
           href={baseCreatorPath}
-          className="flex flex-col items-center gap-0.5 hover:text-indigo-600"
+          className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg hover:text-[#5c7525] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5c7525]"
         >
+          <Search size={18} aria-hidden="true" />
           <span>{t.mobileNav.explore}</span>
         </Link>
         <Link
-          href={locale === "tr" ? "/tr/kampanyalar" : "/en/campaigns"}
-          className="flex flex-col items-center gap-0.5 hover:text-indigo-600"
+          href={campaignsPath}
+          className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg hover:text-[#5c7525] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5c7525]"
         >
+          <BriefcaseBusiness size={18} aria-hidden="true" />
           <span>{t.mobileNav.campaigns}</span>
         </Link>
         <Link
-          href="/tr/panel?tab=messages"
-          className="flex flex-col items-center gap-0.5 hover:text-indigo-600"
+          href={howItWorksPath}
+          className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg hover:text-[#5c7525] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5c7525]"
         >
-          <span>{t.mobileNav.messages}</span>
+          <Workflow size={18} aria-hidden="true" />
+          <span>{t.nav.howItWorks}</span>
         </Link>
         <Link
-          href="/tr/panel?tab=orders"
-          className="flex flex-col items-center gap-0.5 hover:text-indigo-600"
+          href={blogPath}
+          className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg hover:text-[#5c7525] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5c7525]"
         >
-          <span>{t.mobileNav.orders}</span>
+          <BookOpen size={18} aria-hidden="true" />
+          <span>{t.nav.blog}</span>
         </Link>
         <Link
-          href="/tr/panel"
-          className="flex flex-col items-center gap-0.5 hover:text-indigo-600"
+          href={loginPath}
+          className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg hover:text-[#5c7525] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5c7525]"
         >
-          <span>{t.mobileNav.profile}</span>
+          <LogIn size={18} aria-hidden="true" />
+          <span>{t.nav.login}</span>
         </Link>
       </nav>
     </footer>

@@ -26,8 +26,8 @@ const brandSteps = [
   },
   {
     icon: BadgeCheck,
-    title: "Birlikte üret",
-    text: "Sipariş başladığında fiyat, %15 komisyon, revizyon hakkı ve kullanım şartları snapshot olarak sabitlenir.",
+    title: "İş birliğini netleştir",
+    text: "Canlı iş akışı açıldığında fiyat, revizyon hakkı ve kullanım koşulları sipariş öncesinde birlikte onaylanır.",
   },
 ];
 const creatorSteps = [
@@ -44,7 +44,7 @@ const creatorSteps = [
   {
     icon: Handshake,
     title: "Markayla ortaklaş",
-    text: "Brief’i değerlendir, kapsamı netleştir ve onaylanan işi #reklam etiketiyle teslim et. Vergi/stopaj öncesi brüt payın %85.",
+    text: "Brief’i değerlendir, kapsamı netleştir ve yayına hazır içeriği teslim et. Planlanan üretici payı vergi/stopaj öncesi %85’tir.",
   },
 ];
 

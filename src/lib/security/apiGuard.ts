@@ -1,7 +1,7 @@
 /**
- * API MUTATION SECURITY GUARD (Audit P1 Item 5)
- * Enforces Role-Based Access Control (RBAC), Origin/CSRF verification,
- * sliding-window rate limiting, and append-only audit logging on /api/v1/* mutations.
+ * API MUTATION SECURITY GUARD (Audit P0-1 & P1-5)
+ * Enforces Role-Based Access Control (RBAC) via verified Firebase ID Tokens,
+ * Origin/CSRF verification, sliding-window rate limiting, and append-only audit logging.
  */
 
 import type { UserRole } from "../types/domain";
@@ -22,18 +22,7 @@ export interface ApiMutationAuditRecord {
   metadata: Record<string, unknown>;
 }
 
-const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
-const mutationAuditTrail: ApiMutationAuditRecord[] = [];
-
-export async function verifyApiMutationRequest(
-  req: Request,
-  options: {
-    endpoint: string;
-    action: string;
-    allowedRoles: UserRole[];
-    maxRequestsPerMinute?: number;
-  }
-): Promise<
+export type ApiMutationVerification =
   | {
       allowed: true;
       actorUid: string;
@@ -43,8 +32,24 @@ export async function verifyApiMutationRequest(
       allowed: false;
       status: number;
       error: string;
-    }
-> {
+    };
+
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+const mutationAuditTrail: ApiMutationAuditRecord[] = [];
+
+export function resetApiRateLimitBuckets(): void {
+  rateLimitBuckets.clear();
+}
+
+export async function verifyApiMutationRequest(
+  req: Request,
+  options: {
+    endpoint: string;
+    action: string;
+    allowedRoles: UserRole[];
+    maxRequestsPerMinute?: number;
+  }
+): Promise<ApiMutationVerification> {
   // 1. Origin / CSRF header check when Origin is present
   const origin = req.headers.get("origin");
   if (origin) {
@@ -85,6 +90,7 @@ export async function verifyApiMutationRequest(
     }
   }
 
+  // 3. Require signed Firebase ID token (Never trust unverified x-actor-uid headers)
   const authorization = req.headers.get("authorization") || "";
   const idToken = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()

@@ -1,28 +1,81 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
+
+const pageLinks = [
+  { href: "/tr/influencer", label: "İçerik üreticileri" },
+  { href: "/tr/kampanyalar", label: "Kampanyalar" },
+  { href: "/tr/nasil-calisir", label: "Nasıl çalışır?" },
+  { href: "/tr/influencer-reklam-fiyatlari", label: "Fiyatlar" },
+];
 
 export function Navigation() {
   const [open, setOpen] = useState(false);
+
   return (
     <header className="site-header">
       <nav className="nav shell" aria-label="Ana navigasyon">
-        <a className="brand" href="/tr" aria-label="InfluNex ana sayfa"><span className="brand-mark">IN</span>influnex<span className="beta-label">ÖN İZLEME</span></a>
+        <Link className="brand" href="/tr" aria-label="InfluNex ana sayfa">
+          <span className="brand-mark">IN</span>
+          <span>influnex</span>
+          <span className="beta-label">BETA</span>
+        </Link>
+
         <div className="nav-links">
-          <a href="/tr/influencer">İçerik üreticisi bul</a>
-          <a href="/tr/kampanyalar">Kampanyalar</a>
-          <a href="/tr/nasil-calisir">Nasıl çalışır?</a>
-          <a href="/tr/influencer-reklam-fiyatlari">Fiyatlar</a>
-          <a href="/tr/kayit?role=CREATOR">Yayıncı ol</a>
+          {pageLinks.map((item) => (
+            <Link href={item.href} key={item.href}>
+              {item.label}
+            </Link>
+          ))}
+          <Link href="/tr/kayit?role=CREATOR">Yayıncı ol</Link>
         </div>
+
         <div className="nav-actions">
-          <a className="nav-login" href="/tr/giris">Giriş yap</a>
-          <a className="primary-button nav-cta" href="/tr/kayit?role=ADVERTISER">Ücretsiz katıl</a>
+          <Link className="nav-login" href="/tr/giris">
+            Giriş yap
+          </Link>
+          <Link className="primary-button nav-cta" href="/tr/kayit?role=ADVERTISER">
+            Ücretsiz katıl
+          </Link>
         </div>
-        <button className="mobile-menu icon-button" type="button" aria-label={open ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
+
+        <button
+          className="mobile-menu icon-button"
+          type="button"
+          aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
+          onClick={() => setOpen((isOpen) => !isOpen)}
+        >
+          {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+        </button>
       </nav>
-      {open ? <div className="mobile-navigation shell" id="mobile-navigation" onClick={() => setOpen(false)}><a href="/tr/influencer">İçerik üreticisi bul</a><a href="/tr/kampanyalar">Kampanyalar</a><a href="/tr/nasil-calisir">Nasıl çalışır?</a><a href="/tr/influencer-reklam-fiyatlari">Fiyatlar</a><a href="/tr/giris">Giriş yap</a><a href="/tr/kayit?role=ADVERTISER">Reklamveren olarak katıl</a><a href="/tr/kayit?role=CREATOR">Yayıncı olarak katıl</a></div> : null}
+
+      {open ? (
+        <div className="mobile-navigation shell" id="mobile-navigation">
+          <nav aria-label="Sayfalar">
+            {pageLinks.map((item) => (
+              <Link href={item.href} key={item.href} onClick={() => setOpen(false)}>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mobile-account-links">
+            <span>Hesap türünü seç</span>
+            <Link href="/tr/giris" onClick={() => setOpen(false)}>
+              Giriş yap
+            </Link>
+            <Link href="/tr/kayit?role=ADVERTISER" onClick={() => setOpen(false)}>
+              Reklamveren olarak katıl
+            </Link>
+            <Link href="/tr/kayit?role=CREATOR" onClick={() => setOpen(false)}>
+              Yayıncı olarak katıl
+            </Link>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

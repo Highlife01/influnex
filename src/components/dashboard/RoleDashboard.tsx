@@ -41,7 +41,8 @@ const roleContent: Record<
 > = {
   ADVERTISER: {
     title: "Reklamveren paneli",
-    subtitle: "Kampanyalarını ve içerik üreticileriyle iş birliklerini yönet.",
+    subtitle:
+      "Örnek üreticileri keşfet ve brief taslağı hazırla. Canlı kampanya ve sipariş yönetimi henüz açık değil.",
     links: [
       { label: "Genel bakış", href: "#genel-bakis", icon: LayoutDashboard },
       { label: "İçerik üreticileri", href: "/tr/influencers", icon: Compass },
@@ -49,18 +50,20 @@ const roleContent: Record<
       { label: "Siparişlerim", href: "#siparisler", icon: ClipboardList },
     ],
     cards: [
-      { label: "Aktif kampanyalar", value: "—", detail: "Henüz kampanya yok", icon: BriefcaseBusiness },
-      { label: "Devam eden siparişler", value: "—", detail: "Yeni iş birlikleri burada görünür", icon: ClipboardList },
-      { label: "Toplam harcama", value: "—", detail: "Onaylanan ödemeler", icon: CreditCard },
+      { label: "Aktif kampanyalar", value: "—", detail: "Canlı kampanyalar henüz açılmadı", icon: BriefcaseBusiness },
+      { label: "Devam eden siparişler", value: "—", detail: "Canlı sipariş akışı henüz açık değil", icon: ClipboardList },
+      { label: "Toplam harcama", value: "—", detail: "Canlı ödeme özelliği henüz etkin değil", icon: CreditCard },
     ],
-    emptyTitle: "İlk kampanyanı başlat",
-    emptyText: "Sana uygun içerik üreticilerini keşfet ve iş birliği detaylarını oluştur.",
+    emptyTitle: "İlk brief taslağını hazırla",
+    emptyText:
+      "Örnek içerik üreticilerini keşfet ve iş birliği detaylarını planla. Taslak kampanya yayınlamaz veya teklif toplamaz.",
     action: "İçerik üreticilerini keşfet",
     actionHref: "/tr/influencers",
   },
   CREATOR: {
     title: "Yayıncı paneli",
-    subtitle: "Profilini tamamla, kampanyaları keşfet ve iş birliklerini takip et.",
+    subtitle:
+      "Örnek kampanyaları incele ve profilini planla. Canlı iş birliği ve ödeme akışı henüz açık değil.",
     links: [
       { label: "Genel bakış", href: "#genel-bakis", icon: LayoutDashboard },
       { label: "Kampanyaları keşfet", href: "/tr/kampanyalar", icon: Compass },
@@ -68,9 +71,9 @@ const roleContent: Record<
       { label: "Kazançlarım", href: "#kazanc", icon: CreditCard },
     ],
     cards: [
-      { label: "Yeni kampanyalar", value: "—", detail: "Sana uygun fırsatlar", icon: Sparkles },
-      { label: "Aktif iş birlikleri", value: "—", detail: "Devam eden siparişler", icon: ClipboardList },
-      { label: "Ödenecek hakediş", value: "—", detail: "%85 yayıncı payı", icon: CreditCard },
+      { label: "Yeni kampanyalar", value: "—", detail: "Canlı kampanya yayını henüz açık değil", icon: Sparkles },
+      { label: "Aktif iş birlikleri", value: "—", detail: "Canlı sipariş akışı henüz açık değil", icon: ClipboardList },
+      { label: "Ödenecek hakediş", value: "—", detail: "Canlı ödeme özelliği henüz etkin değil", icon: CreditCard },
     ],
     emptyTitle: "Profilini oluştur",
     emptyText: "Sosyal medya hesaplarını, içerik örneklerini ve hizmet fiyatlarını ekleyerek markaların seni bulmasını sağla.",
@@ -79,7 +82,7 @@ const roleContent: Record<
   },
   ADMIN: {
     title: "Süperadmin paneli",
-    subtitle: "Platformun temel operasyonlarını ve kullanıcıları yönet.",
+    subtitle: "Platformun yönetim alanı önizlemesi.",
     links: [
       { label: "Genel bakış", href: "#genel-bakis", icon: LayoutDashboard },
       { label: "Kullanıcılar", href: "#kullanicilar", icon: Users },
@@ -87,9 +90,9 @@ const roleContent: Record<
       { label: "Güvenlik", href: "#guvenlik", icon: ShieldCheck },
     ],
     cards: [
-      { label: "Kullanıcı yönetimi", value: "Hazır", detail: "Yönetim görünümü", icon: Users },
-      { label: "Manuel ödeme onayı", value: "Hazır", detail: "Havale / EFT / FAST", icon: CreditCard },
-      { label: "Platform komisyonu", value: "%15", detail: "Tamamlanan iş birliklerinden", icon: ShieldCheck },
+      { label: "Kullanıcı yönetimi", value: "Önizleme", detail: "Yönetim görünümü", icon: Users },
+      { label: "Manuel ödeme onayı", value: "Kapalı", detail: "Canlı ödeme doğrulaması henüz etkin değil", icon: CreditCard },
+      { label: "Planlanan platform komisyonu", value: "%15", detail: "Canlı iş akışı henüz açılmadı", icon: ShieldCheck },
     ],
     emptyTitle: "Yönetim alanı hazır",
     emptyText: "Operasyonel veriler ve yönetim işlemleri ilgili servisler bağlandığında burada görünecek.",

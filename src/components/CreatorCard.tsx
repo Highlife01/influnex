@@ -32,7 +32,7 @@ export function CreatorCard({
         : "bg-amber-50 text-amber-800 border-amber-200";
 
   return (
-    <article className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-indigo-300 hover:shadow-md">
+    <article className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-[border-color,box-shadow] hover:border-indigo-300 hover:shadow-md">
       <div>
         {/* Explicit Demo / Showcase Transparency Banner (Audit P0 Item 3) */}
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -58,7 +58,12 @@ export function CreatorCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-indigo-600">
-                <Link href={profileHref}>{creator.displayName}</Link>
+                <Link
+                  href={profileHref}
+                  className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                >
+                  {creator.displayName}
+                </Link>
               </h3>
               {/* Never show "Kimlik Onaylı" if metrics are USER_DECLARED to avoid misleading trust signals */}
               {creator.verificationBadges.identityVerified &&
@@ -159,7 +164,7 @@ export function CreatorCard({
 
         <Link
           href={profileHref}
-          className="rounded-xl bg-indigo-950 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
+          className="rounded-xl bg-indigo-950 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
         >
           {locale === "tr" ? "Profili & Paketleri Gör" : "View Profile"}
         </Link>

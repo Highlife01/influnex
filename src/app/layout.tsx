@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | InfluNex",
   },
   description:
-    "Markanız için doğru Instagram, TikTok, YouTube influencer'ını ve UGC içerik üreticisini bulun. Ücretsiz üyelik, yalnızca tamamlanan iş birliklerinden %15 komisyon.",
+    "InfluNex beta sürümünde örnek Instagram, TikTok ve YouTube içerik üreticilerini keşfedin, brief taslağı hazırlayın. Canlı kampanya, sipariş ve ödeme henüz açık değildir.",
   applicationName: "InfluNex",
   manifest: "/manifest.webmanifest",
 };
@@ -33,6 +34,7 @@ export default async function RootLayout({
     <html lang={locale} dir="ltr">
       <body className="min-h-screen bg-white text-slate-900 antialiased">
         {children}
+        <WhatsAppButton />
       </body>
     </html>
   );
