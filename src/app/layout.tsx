@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://influnex.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.influnex.com.tr"
   ),
   title: {
     default: "InfluNex | Markalar, Influencer ve UGC İçerik Üreticileri Pazaryeri",

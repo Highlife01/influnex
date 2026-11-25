@@ -1,0 +1,45 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: "build"
+    args:
+      - "build"
+      - "-t"
+      - "${_IMAGE}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_SITE_URL=${_NEXT_PUBLIC_SITE_URL}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIREBASE_API_KEY=${_NEXT_PUBLIC_FIREBASE_API_KEY}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_FIRESTORE_DATABASE_ID=influnex-db"
+      - "."
+  - name: "gcr.io/cloud-builders/docker"
+    id: "push"
+    args: ["push", "${_IMAGE}"]
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
+    id: "deploy-cloud-run"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "influnex-web"
+      - "--project=${PROJECT_ID}"
+      - "--region=us-central1"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+      - "--image=${_IMAGE}"
+      - "--port=8080"
+      - "--cpu=1"
+      - "--memory=512Mi"
+      - "--concurrency=80"
+      - "--min-instances=0"
+      - "--max-instances=10"
+      - "--update-env-vars=NODE_ENV=production,NEXT_PUBLIC_SITE_URL=${_NEXT_PUBLIC_SITE_URL},FIRESTORE_DATABASE_ID=influnex-db,NEXT_PUBLIC_FIRESTORE_DATABASE_ID=influnex-db"
+      - "--quiet"
+images:
+  - "${_IMAGE}"
+substitutions:
+  _IMAGE: "us-central1-docker.pkg.dev/${PROJECT_ID}/influnex/influnex-web:${BUILD_ID}"
+  _NEXT_PUBLIC_SITE_URL: "https://www.influnex.com.tr"
+  _NEXT_PUBLIC_FIREBASE_API_KEY: "AIzaSyBQ7jDW4uvq1O-NHR_UIfKkGnYi7TG5Ug0"
+options:
+  dynamicSubstitutions: true

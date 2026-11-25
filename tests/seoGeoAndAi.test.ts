@@ -66,11 +66,11 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
 
   it("generates self-referencing canonicals, pagination canonicals, and reciprocal tr-TR/en/x-default hreflang tags", () => {
     expect(buildCanonicalUrl("/tr/influencer/adana/")).toBe(
-      "https://influnex.com/tr/influencer/adana"
+      "https://www.influnex.com.tr/tr/influencer/adana"
     );
     // Page 2 is never canonicalized to page 1
     expect(buildCanonicalUrl("/tr/influencer/adana", 2)).toBe(
-      "https://influnex.com/tr/influencer/adana?page=2"
+      "https://www.influnex.com.tr/tr/influencer/adana?page=2"
     );
 
     const alternates = buildHreflangAlternates(
@@ -79,16 +79,16 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
       "tr"
     );
     expect(alternates.canonical).toBe(
-      "https://influnex.com/tr/influencer/istanbul"
+      "https://www.influnex.com.tr/tr/influencer/istanbul"
     );
     expect(alternates.languages["tr-TR"]).toBe(
-      "https://influnex.com/tr/influencer/istanbul"
+      "https://www.influnex.com.tr/tr/influencer/istanbul"
     );
     expect(alternates.languages.en).toBe(
-      "https://influnex.com/en/creators/istanbul"
+      "https://www.influnex.com.tr/en/creators/istanbul"
     );
     expect(alternates.languages["x-default"]).toBe(
-      "https://influnex.com/tr/influencer/istanbul"
+      "https://www.influnex.com.tr/tr/influencer/istanbul"
     );
   });
 

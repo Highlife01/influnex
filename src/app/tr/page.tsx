@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   description:
     "Influencer ve UGC içerik üreticilerini keşfet, örnek profilleri karşılaştır ve kampanya brief’ini hazırla. InfluNex: ücretsiz üyelik, tamamlanan işte %15 komisyon modeli.",
   alternates: {
-    canonical: "https://influnex.com/tr",
+    canonical: "https://www.influnex.com.tr/tr",
     languages: {
-      "tr-TR": "https://influnex.com/tr",
-      en: "https://influnex.com/en",
-      "x-default": "https://influnex.com/tr",
+      "tr-TR": "https://www.influnex.com.tr/tr",
+      en: "https://www.influnex.com.tr/en",
+      "x-default": "https://www.influnex.com.tr/tr",
     },
   },
   openGraph: {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       "Doğru içerik üreticisini keşfet, bir sonraki iş birliğini planla.",
     locale: "tr_TR",
     type: "website",
-    url: "https://influnex.com/tr",
+    url: "https://www.influnex.com.tr/tr",
   },
 };
 

@@ -1,24 +1,52 @@
-FROM node:22-bookworm-slim AS dependencies
+# syntax=docker.io/docker/dockerfile:1
+FROM node:22-alpine AS base
+RUN apk add --no-cache libc6-compat
+
+FROM base AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:22-bookworm-slim AS builder
-WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
+
+ARG NEXT_PUBLIC_SITE_URL=https://www.influnex.com.tr
+ARG NEXT_PUBLIC_FIREBASE_API_KEY=""
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=karacateknik-b202f.firebaseapp.com
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID=karacateknik-b202f
+ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=gs://influnex-b202f
+ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=637491972242
+ARG NEXT_PUBLIC_FIREBASE_APP_ID=1:637491972242:web:eba0aaa81a9f5dc339fe4b
+ARG NEXT_PUBLIC_FIRESTORE_DATABASE_ID=influnex-db
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
+ENV NEXT_PUBLIC_FIRESTORE_DATABASE_ID=${NEXT_PUBLIC_FIRESTORE_DATABASE_ID}
+ENV FIRESTORE_DATABASE_ID=${NEXT_PUBLIC_FIRESTORE_DATABASE_ID}
+
 RUN npm run build
 
-FROM node:22-bookworm-slim AS runner
+FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
-    PORT=8080 \
-    HOSTNAME=0.0.0.0
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
-USER node
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
+ENV FIRESTORE_DATABASE_ID=influnex-db
+ENV NEXT_PUBLIC_SITE_URL=https://www.influnex.com.tr
+
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
 EXPOSE 8080
+
 CMD ["node", "server.js"]

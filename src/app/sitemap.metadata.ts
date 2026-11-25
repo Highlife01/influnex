@@ -4,14 +4,14 @@ import type { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://influnex.com/tr",
+      url: "https://www.influnex.com.tr/tr",
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
       alternates: {
         languages: {
-          tr: "https://influnex.com/tr",
-          en: "https://influnex.com/en",
+          tr: "https://www.influnex.com.tr/tr",
+          en: "https://www.influnex.com.tr/en",
         },
       },
     },

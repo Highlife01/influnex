@@ -21,7 +21,7 @@ import {
 import { marketplaceStore } from "../data/marketplaceStore";
 
 export const SITE_BASE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://influnex.com"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.influnex.com.tr"
 ).replace(/\/+$/, "");
 
 export type ResolvedSlugTarget =

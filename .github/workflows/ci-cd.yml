@@ -39,7 +39,7 @@ jobs:
       - name: Production Build Verification
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_SITE_URL: https://influnex.com
+          NEXT_PUBLIC_SITE_URL: https://www.influnex.com.tr
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: karacateknik-b202f
           FIRESTORE_DATABASE_ID: influnex-db
         run: npm run build

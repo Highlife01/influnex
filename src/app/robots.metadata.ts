@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/yonetim/", "/siparisler/", "/mesajlar/"],
       },
     ],
-    sitemap: "https://influnex.com/sitemap.xml",
+    sitemap: "https://www.influnex.com.tr/sitemap.xml",
   };
 }
