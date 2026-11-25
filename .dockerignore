@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+.next
+.next-*
+.firebase
+.env
+.env.*
+coverage
+test-results
+playwright-report
+*.log
+*.tsbuildinfo

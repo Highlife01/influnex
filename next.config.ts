@@ -42,6 +42,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // Allows independent previews/builds without sharing Next.js cache files.
   distDir: process.env.INFLUNEX_BUILD_DIR || ".next",
   reactStrictMode: true,

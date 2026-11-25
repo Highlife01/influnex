@@ -9,6 +9,17 @@
 - **Cloud Run Servisi:** `influnex-web` (`us-central1`)
 - **GitHub Deposu:** `https://github.com/Highlife01/influnex`
 
+### Next.js sunucu dağıtımı
+
+`Dockerfile`, Node.js 22 üzerinde üretim derlemesi yapar ve Next.js `standalone` çıktısını ayrıcalıksız kullanıcıyla, `PORT=8080` üzerinde çalıştırır. `.gcloudignore` ve `.dockerignore` yerel ortam dosyalarını, bağımlılıkları ve derleme önbelleklerini kaynak yüklemesinden çıkarır.
+
+```powershell
+gcloud run deploy influnex-web --source . --project karacateknik-b202f --region us-central1 --allow-unauthenticated --port 8080 --memory 512Mi --cpu 1 --min-instances 0 --max-instances 3
+firebase deploy --only hosting --project karacateknik-b202f
+```
+
+Hosting yapılandırması yalnızca `influnex` sitesini ve `influnex-web` servisini hedefler. Bu dağıtım Firestore/Storage kurallarını dağıtmaz ve ödeme özelliklerini etkinleştirmez. Gerçek ödeme ve yetkilendirme için aşağıdaki üretim koşulları ayrıca tamamlanmalıdır.
+
 ## 2. Son 5 Deploy Kuralı (Deploy Retention Rule)
 
 Her Firebase Hosting dağıtımı sonrasında `firebase.json` içerisindeki `postdeploy` kancası (`node scripts/cleanup-hosting-versions.mjs`) otomatik olarak çalışır ve `influnex` sitesinde yalnızca **son 5 FINALIZED sürümü** koruyarak eski sürümleri temizler.
