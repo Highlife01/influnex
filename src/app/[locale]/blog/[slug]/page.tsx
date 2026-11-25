@@ -2,23 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EDITORIAL_BLOG_POSTS } from "@/lib/data/blogAndLegal";
+import { normalizeLocale } from "@/lib/i18n/dictionary";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/jsonLd";
-import { buildCanonicalUrl, SITE_BASE_URL } from "@/lib/seo/routeRegistry";
+import { buildHreflangAlternates, SITE_BASE_URL } from "@/lib/seo/routeRegistry";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale: rawLocale, slug } = await params;
+  const locale = normalizeLocale(rawLocale);
   const post = EDITORIAL_BLOG_POSTS.find((p) => p.slug === slug);
   if (!post) {
     return { title: "Yazı Bulunamadı", robots: { index: false, follow: false } };
   }
   return {
-    title: post.titleTr,
-    description: post.summaryTr,
-    alternates: { canonical: buildCanonicalUrl(`/tr/blog/${post.slug}`) },
+    title: locale === "tr" ? post.titleTr : post.titleEn,
+    description: locale === "tr" ? post.summaryTr : post.summaryEn,
+    alternates: buildHreflangAlternates(
+      `/tr/blog/${post.slug}`,
+      `/en/blog/${post.slug}`,
+      locale
+    ),
   };
 }
 
@@ -27,16 +33,17 @@ export default async function BlogPostDetailPage({
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale: rawLocale, slug } = await params;
+  const locale = normalizeLocale(rawLocale);
   const post = EDITORIAL_BLOG_POSTS.find((p) => p.slug === slug);
   if (!post) notFound();
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "@id": `${SITE_BASE_URL}/tr/blog/${post.slug}#article`,
-    headline: post.titleTr,
-    description: post.summaryTr,
+    "@id": `${SITE_BASE_URL}/${locale}/blog/${post.slug}#article`,
+    headline: locale === "tr" ? post.titleTr : post.titleEn,
+    description: locale === "tr" ? post.summaryTr : post.summaryEn,
     datePublished: post.publishedAt,
     dateModified: post.updatedAt,
     author: {
@@ -48,9 +55,12 @@ export default async function BlogPostDetailPage({
   };
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: "InfluNex", path: "/tr" },
-    { name: "Blog", path: "/tr/blog" },
-    { name: post.titleTr, path: `/tr/blog/${post.slug}` },
+    { name: "InfluNex", path: `/${locale}` },
+    { name: "Blog", path: `/${locale}/blog` },
+    {
+      name: locale === "tr" ? post.titleTr : post.titleEn,
+      path: `/${locale}/blog/${post.slug}`,
+    },
   ]);
 
   return (
@@ -65,18 +75,21 @@ export default async function BlogPostDetailPage({
       />
 
       <nav aria-label="Breadcrumb" className="text-xs text-slate-500">
-        <Link href="/tr" className="hover:text-indigo-600">
+        <Link href={`/${locale}`} className="hover:text-indigo-600">
           InfluNex
         </Link>{" "}
         /{" "}
-        <Link href="/tr/blog" className="hover:text-indigo-600">
+        <Link href={`/${locale}/blog`} className="hover:text-indigo-600">
           Blog
         </Link>{" "}
-        / <span className="font-semibold text-slate-800">{post.titleTr}</span>
+        /{" "}
+        <span className="font-semibold text-slate-800">
+          {locale === "tr" ? post.titleTr : post.titleEn}
+        </span>
       </nav>
 
       <h1 className="mt-4 text-3xl font-extrabold text-slate-900">
-        {post.titleTr}
+        {locale === "tr" ? post.titleTr : post.titleEn}
       </h1>
       <p className="mt-2 text-xs text-slate-500">
         Yazar: {post.authorName} • Son Güncelleme:{" "}

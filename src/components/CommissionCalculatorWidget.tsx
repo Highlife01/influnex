@@ -1,39 +1,41 @@
 "use client";
 
 import { useState } from "react";
+import type { SupportedLocale } from "@/lib/types/domain";
 import {
   calculateCommissionBreakdown,
   formatMinorUnits,
 } from "@/lib/finance/commission";
 
-interface CommissionCalculatorWidgetProps {
-  locale?: "tr" | "en";
-}
-
 export function CommissionCalculatorWidget({
   locale = "tr",
-}: CommissionCalculatorWidgetProps) {
+}: {
+  locale?: SupportedLocale;
+}) {
   const [priceTl, setPriceTl] = useState<number>(5000);
-  const isTurkish = locale === "tr";
 
-  const safeTl = Number.isFinite(priceTl) && priceTl >= 100 ? Math.min(priceTl, 1000000) : 100;
-  const breakdown = calculateCommissionBreakdown(Math.round(safeTl * 100), "TRY");
-  const formatAmount = (amount: number) =>
-    formatMinorUnits(amount, "TRY", locale);
+  const safeTl =
+    Number.isFinite(priceTl) && priceTl >= 100
+      ? Math.min(priceTl, 1000000)
+      : 100;
+  const breakdown = calculateCommissionBreakdown(
+    Math.round(safeTl * 100),
+    "TRY"
+  );
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-            {isTurkish
-              ? "Planlanan %15 Komisyon • %85 Üretici Payı"
-              : "Planned 15% Commission • 85% Creator Share"}
+            {locale === "tr"
+              ? "%15 Sabit Komisyon (1500 BPS) • %85 Üretici Brüt Payı"
+              : "15% Fixed Commission (1500 BPS) • 85% Creator Gross Share"}
           </span>
           <h3 className="mt-2 text-lg font-bold text-slate-900">
-            {isTurkish
-              ? "Örnek Komisyon Hesaplayıcı"
-              : "Sample Commission Calculator"}
+            {locale === "tr"
+              ? "Şeffaf Influencer Kazanç ve Hakediş Hesaplayıcı"
+              : "Transparent Creator Earnings & Commission Calculator"}
           </h3>
         </div>
       </div>
@@ -43,7 +45,9 @@ export function CommissionCalculatorWidget({
           htmlFor="service-price-input"
           className="block text-xs font-semibold uppercase tracking-wide text-slate-600"
         >
-          {isTurkish ? "Örnek Hizmet Bedeli (TL)" : "Sample Service Amount (TRY)"}
+          {locale === "tr"
+            ? "Brüt Hizmet / Sipariş Tutarı (TL)"
+            : "Gross Service / Order Price (TRY)"}
         </label>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <input
@@ -69,65 +73,70 @@ export function CommissionCalculatorWidget({
                   : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
               }`}
             >
-              {preset.toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}{" "}
-              {isTurkish ? "TL" : "TRY"}
+              {preset.toLocaleString("tr-TR")} TL
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div
+        className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"
+        aria-live="polite"
+      >
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
           <span className="text-xs font-medium text-slate-500">
-            {isTurkish
-              ? "Örnek Hizmet Bedeli (Brüt)"
-              : "Sample Service Amount (Gross)"}
+            {locale === "tr"
+              ? "Toplam Hizmet Bedeli (Brüt)"
+              : "Total Gross Service Price"}
           </span>
           <p className="mt-1 text-xl font-extrabold text-slate-900">
-            {formatAmount(breakdown.grossAmountMinorUnits)}
+            {formatMinorUnits(breakdown.grossAmountMinorUnits, "TRY", locale)}
           </p>
           <span className="mt-0.5 block text-[11px] text-slate-500">
-            {isTurkish ? "Ek hizmet bedeli yok" : "No additional service fee"}
+            {locale === "tr" ? "Ek hizmet bedeli yok" : "Zero extra fees"}
           </span>
         </div>
 
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4">
           <span className="text-xs font-medium text-indigo-800">
-            {isTurkish
-              ? "Planlanan Platform Komisyonu (%15)"
-              : "Planned Platform Commission (15%)"}
+            {locale === "tr"
+              ? "Platform Komisyonu (%15)"
+              : "Platform Commission (15%)"}
           </span>
           <p className="mt-1 text-xl font-extrabold text-indigo-900">
-            {formatAmount(breakdown.platformCommissionMinorUnits)}
+            {formatMinorUnits(
+              breakdown.platformCommissionMinorUnits,
+              "TRY",
+              locale
+            )}
           </p>
           <span className="mt-0.5 block text-[11px] text-indigo-700">
-            {isTurkish
-              ? "Canlı iş akışı açıldığında"
-              : "Once the live workflow launches"}
+            {locale === "tr"
+              ? "Yalnızca işlem tamamlandığında"
+              : "Only on completed orders"}
           </span>
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
           <span className="text-xs font-medium text-emerald-800">
-            {isTurkish
-              ? "Planlanan Üretici Payı (%85)"
-              : "Planned Creator Share (85%)"}
+            {locale === "tr"
+              ? "Üretici Brüt Payı (%85)"
+              : "Creator Gross Share (85%)"}
           </span>
           <p className="mt-1 text-xl font-extrabold text-emerald-900">
-            {formatAmount(breakdown.creatorNetPayoutMinorUnits)}
+            {formatMinorUnits(
+              breakdown.creatorNetPayoutMinorUnits,
+              "TRY",
+              locale
+            )}
           </p>
           <span className="mt-0.5 block text-[11px] text-emerald-700">
-            {isTurkish
-              ? "Vergi ve yasal kesintiler öncesi"
-              : "Before taxes and statutory deductions"}
+            {locale === "tr"
+              ? "Vergi ve stopaj yükümlülükleri öncesi"
+              : "Before statutory taxes"}
           </span>
         </div>
       </div>
-      <p className="mt-4 text-xs leading-5 text-slate-500">
-        {isTurkish
-          ? "Bu tutarlar planlanan model için örnektir; şu anda sipariş veya ödeme alınmamaktadır."
-          : "These amounts illustrate the planned model; orders and payments are not currently processed."}
-      </p>
     </div>
   );
 }

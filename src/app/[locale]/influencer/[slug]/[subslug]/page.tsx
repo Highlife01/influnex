@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/catalog";
 import { marketplaceStore } from "@/lib/data/marketplaceStore";
 import { normalizeLocale } from "@/lib/i18n/dictionary";
+import { localizedPath } from "@/lib/i18n/paths";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
@@ -73,6 +74,7 @@ export default async function CityAndCategoryCombinationPage({
 }) {
   const { locale: rawLocale, slug, subslug } = await params;
   const locale = normalizeLocale(rawLocale);
+  const basePath = localizedPath(locale, "creators");
 
   const city = INITIAL_CITIES.find((c) => c.slug === slug.toLowerCase());
   const category = INITIAL_CATEGORIES.find(
@@ -92,7 +94,9 @@ export default async function CityAndCategoryCombinationPage({
   }
 
   const subTitle = category
-    ? category.nameTr
+    ? locale === "tr"
+      ? category.nameTr
+      : category.nameEn
     : PLATFORM_LABELS[platformKey!].nameTr;
 
   const { items: creators } = marketplaceStore.searchCreators({
@@ -102,9 +106,9 @@ export default async function CityAndCategoryCombinationPage({
   });
 
   const heading = `${city.nameTr} ${subTitle} Influencer ve İçerik Üreticileri`;
-  const description = `${city.nameTr} ilinde ${subTitle.toLowerCase()} alanında içerik üreten onaylı influencer ve UGC profilleri. Tüm hizmet fiyatları ve veri doğrulama kaynakları şeffafça listelenmektedir.`;
+  const description = `${city.nameTr} ilinde ${subTitle.toLowerCase()} alanında içerik üreten örnek vitrin influencer ve UGC profilleri. Tüm hizmet fiyatları ve veri doğrulama kaynakları şeffafça listelenmektedir.`;
 
-  const pagePath = `/tr/influencer/${city.slug}/${subslug}`;
+  const pagePath = `${basePath}/${city.slug}/${subslug}`;
   const gate = evaluateIndexQualityGate({
     path: pagePath,
     approvedCreatorCount: creators.length,
@@ -122,8 +126,11 @@ export default async function CityAndCategoryCombinationPage({
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: "InfluNex", path: `/${locale}` },
-    { name: "Influencer", path: "/tr/influencer" },
-    { name: city.nameTr, path: `/tr/influencer/${city.slug}` },
+    {
+      name: locale === "tr" ? "Influencer Keşfet" : "Explore Creators",
+      path: basePath,
+    },
+    { name: city.nameTr, path: `${basePath}/${city.slug}` },
     { name: subTitle, path: pagePath },
   ]);
 
@@ -144,12 +151,12 @@ export default async function CityAndCategoryCombinationPage({
             InfluNex
           </Link>{" "}
           /{" "}
-          <Link href="/tr/influencer" className="hover:text-indigo-600">
-            Influencer
+          <Link href={basePath} className="hover:text-indigo-600">
+            {locale === "tr" ? "Influencer Keşfet" : "Explore Creators"}
           </Link>{" "}
           /{" "}
           <Link
-            href={`/tr/influencer/${city.slug}`}
+            href={`${basePath}/${city.slug}`}
             className="hover:text-indigo-600"
           >
             {city.nameTr}
@@ -164,8 +171,8 @@ export default async function CityAndCategoryCombinationPage({
               : "bg-amber-50 text-amber-800"
           }`}
         >
-          Index Quality Gate: {gate.robotsDirective} ({creators.length} Onaylı
-          Profil)
+          Index Quality Gate: {gate.robotsDirective} ({creators.length} Örnek
+          Vitrin Profili)
         </span>
       </div>
 
@@ -203,10 +210,10 @@ export default async function CityAndCategoryCombinationPage({
           {INITIAL_CITIES.filter((c) => c.slug !== city.slug).map((other) => (
             <Link
               key={other.id}
-              href={`/tr/influencer/${other.slug}/${subslug}`}
+              href={`${basePath}/${other.slug}/${subslug}`}
               className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
             >
-              {other.nameTr} {subTitle}
+              {other.nameTr} {subTitle} Influencer&apos;ları
             </Link>
           ))}
         </div>

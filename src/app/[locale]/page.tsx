@@ -46,8 +46,8 @@ export async function generateMetadata({
   return {
     title:
       locale === "tr"
-        ? "InfluNex | Influencer ve UGC İçerik Üretici Pazaryeri"
-        : "InfluNex | Global Influencer & UGC Creator Marketplace",
+        ? "Influencer ve UGC İçerik Üretici Pazaryeri"
+        : "Global Influencer & UGC Creator Marketplace",
     description:
       locale === "tr"
         ? "Markanız için doğru Instagram, TikTok, YouTube influencer'ını ve UGC içerik üreticisini bulun. Ücretsiz katılın, yalnızca tamamlanan iş birliklerinden %15 komisyon ödeyin."
