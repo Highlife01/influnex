@@ -143,6 +143,12 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             saklıdır.
           </p>
           <div className="flex flex-wrap gap-4">
+            <a
+              href="mailto:info@influnex.com.tr"
+              className="hover:text-indigo-600"
+            >
+              info@influnex.com.tr
+            </a>
             <Link href="/sitemap.xml" className="hover:text-indigo-600">
               Sitemap Index
             </Link>

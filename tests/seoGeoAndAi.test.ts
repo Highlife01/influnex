@@ -12,6 +12,7 @@ import { evaluateIndexQualityGate } from "@/lib/seo/qualityGate";
 import {
   buildCanonicalUrl,
   buildHreflangAlternates,
+  getCategoryNameBySlug,
   resolveDiscoverySlug,
 } from "@/lib/seo/routeRegistry";
 
@@ -48,11 +49,15 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
     expect(failingGate.robotsDirective).toBe("noindex, follow");
   });
 
-  it("resolves platforms, cities, categories, creator profiles, and 301 old username redirects without collision", () => {
+  it("resolves platforms, cities, categories, creator profiles, human-readable category labels, and 301 old username redirects without collision", () => {
     expect(resolveDiscoverySlug("instagram").kind).toBe("PLATFORM");
     expect(resolveDiscoverySlug("adana").kind).toBe("CITY");
     expect(resolveDiscoverySlug("otomotiv").kind).toBe("CATEGORY");
     expect(resolveDiscoverySlug("emre-toros-oto").kind).toBe("CREATOR_PROFILE");
+    expect(getCategoryNameBySlug("teknoloji", "tr")).toBe("Teknoloji");
+    expect(getCategoryNameBySlug("yemek-ve-gastronomi", "tr")).toBe(
+      "Yemek ve Gastronomi"
+    );
 
     // Old username triggers permanent 301 redirect
     const redirectRes = resolveDiscoverySlug("emretorosauto", "tr");

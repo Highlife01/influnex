@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { marketplaceStore } from "@/lib/data/marketplaceStore";
 import { INFLUNEX_TENANT_ID } from "@/lib/firebase/isolation";
+import {
+  appendApiMutationAuditLog,
+  verifyApiMutationRequest,
+} from "@/lib/security/apiGuard";
 import { CampaignCreateInputSchema } from "@/lib/validators/schemas";
 
 export async function GET() {
@@ -13,9 +17,23 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const guard = await verifyApiMutationRequest(req, {
+    endpoint: "/api/v1/campaigns",
+    action: "CREATE_CAMPAIGN",
+    allowedRoles: ["ADVERTISER", "ADMIN"],
+    maxRequestsPerMinute: 15,
+  });
+
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.error }, { status: guard.status });
+  }
+
   try {
     const body = await req.json();
-    const parsed = CampaignCreateInputSchema.safeParse(body);
+    const parsed = CampaignCreateInputSchema.safeParse({
+      ...body,
+      advertiserId: guard.actorUid,
+    });
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -35,11 +53,16 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     });
 
+    appendApiMutationAuditLog({
+      endpoint: "/api/v1/campaigns",
+      actorUid: guard.actorUid,
+      actorRole: guard.actorRole,
+      action: "CREATE_CAMPAIGN",
+      metadata: { campaignId: created.id, budgetMinorUnits: created.budgetMinorUnits },
+    });
+
     return NextResponse.json(created, { status: 201 });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "INTERNAL_ERROR" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 }

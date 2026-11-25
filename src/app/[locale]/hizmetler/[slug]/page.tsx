@@ -22,7 +22,7 @@ export async function generateMetadata({
   }
   return {
     title: `${tpl.nameTr} Reklam Hizmeti ve Fiyatları`,
-    description: `${tpl.nameTr}: ${tpl.descriptionTr} Onaylı influencer tekliflerini karşılaştırın ve %15 şeffaf komisyonla sipariş oluşturun.`,
+    description: `${tpl.nameTr}: ${tpl.descriptionTr} Örnek influencer hizmet paketlerini karşılaştırın ve %15 şeffaf komisyon yapısını inceleyin.`,
     alternates: {
       canonical: buildCanonicalUrl(`/tr/hizmetler/${tpl.slug}`),
     },
@@ -54,7 +54,7 @@ export default async function ServiceDetailPage({
       />
 
       <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-800">
-        {tpl.platform} Hizmet Kategorisi
+        {tpl.platform} Hizmet Kategorisi • Örnek Vitrin Paketleri
       </span>
       <h1 className="mt-3 text-3xl font-extrabold text-slate-900">
         {tpl.nameTr} Reklam Hizmetleri ve Fiyatları
@@ -79,7 +79,7 @@ export default async function ServiceDetailPage({
                   href={`/tr/influencer/${srv.creatorUsername}`}
                   className="font-bold text-indigo-600 hover:underline"
                 >
-                  @{srv.creatorUsername}
+                  @{srv.creatorUsername} (Örnek Profil)
                 </Link>
                 <span className="text-slate-500">
                   Teslim: {srv.deliveryDays} Gün • {srv.revisionCount} Revizyon
@@ -91,21 +91,46 @@ export default async function ServiceDetailPage({
               <p className="mt-1.5 text-xs text-slate-600">
                 {srv.descriptionTr}
               </p>
-              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+
+              {/* Fixed Unambiguous 3-Column Financial Breakdown (Audit P0 Item 4) */}
+              <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
                 <div>
-                  <span className="text-lg font-extrabold text-slate-900">
-                    {formatMinorUnits(srv.priceMinorUnits)}
+                  <span className="block text-[11px] font-medium text-slate-500">
+                    Toplam Hizmet Bedeli (Brüt)
                   </span>
-                  <span className="block text-[11px] text-slate-500">
-                    %85 Influencer Hakedişi:{" "}
-                    {formatMinorUnits(breakdown.creatorNetPayoutMinorUnits)}
-                  </span>
+                  <strong className="mt-0.5 block text-sm font-extrabold text-slate-900">
+                    {formatMinorUnits(breakdown.grossAmountMinorUnits)}
+                  </strong>
                 </div>
+                <div>
+                  <span className="block text-[11px] font-medium text-indigo-700">
+                    Platform Komisyonu (%15)
+                  </span>
+                  <strong className="mt-0.5 block text-sm font-bold text-indigo-900">
+                    {formatMinorUnits(
+                      breakdown.platformCommissionMinorUnits
+                    )}
+                  </strong>
+                </div>
+                <div>
+                  <span className="block text-[11px] font-medium text-emerald-700">
+                    Üretici Brüt Payı (%85)
+                  </span>
+                  <strong className="mt-0.5 block text-sm font-extrabold text-emerald-800">
+                    {formatMinorUnits(breakdown.creatorNetPayoutMinorUnits)}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                <span className="text-[11px] text-slate-500">
+                  Vergi/stopaj öncesi örnek brüt hakediş dökümü
+                </span>
                 <Link
                   href={`/tr/influencer/${srv.creatorUsername}`}
                   className="rounded-xl bg-indigo-950 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700"
                 >
-                  Influencer Profiline Git →
+                  Profili ve Kullanım Haklarını Gör →
                 </Link>
               </div>
             </article>

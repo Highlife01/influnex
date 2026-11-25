@@ -4,6 +4,7 @@
 
 - **Firebase Projesi:** `karacateknik-b202f`
 - **Firebase Hosting Sitesi:** `influnex` (`https://console.firebase.google.com/project/karacateknik-b202f/hosting/sites/influnex`)
+- **Kanonik alan adı:** `https://www.influnex.com.tr`
 - **İzole Firestore Veritabanı:** `influnex-db`
 - **İzole Cloud Storage Kovası:** `gs://influnex-b202f`
 - **Cloud Run Servisi:** `influnex-web` (`us-central1`)
@@ -30,7 +31,7 @@ Her Firebase Hosting dağıtımı sonrasında `firebase.json` içerisindeki `pos
 2. `LEGAL_TERMS_APPROVED`: Hukuk müşaviri tarafından KVKK, Mesafeli Hizmet/Reklamveren ve Influencer sözleşmeleri onaylandıktan sonra `true` yapılmalıdır.
 3. `influnex-db`: Firebase Console üzerinde `influnex-db` Firestore veritabanı oluşturulmalı ve `firebase deploy --only firestore` ile kurallar yüklenmelidir.
 4. Firebase Authentication'da Google sağlayıcısını etkinleştirin ve yerel/üretim alan adlarını yetkili alan adlarına ekleyin.
-5. `FIREBASE_CLIENT_EMAIL` ve `FIREBASE_PRIVATE_KEY` değerlerini sunucu ortamında Secret Manager üzerinden tanımlayın. Bunlar olmadan `/api/auth/profile` özel yetki ataması yapmaz.
+5. Cloud Run, Firebase Admin işlemleri için bağlı hizmet hesabının Application Default Credentials bilgisini kullanır. Yerel geliştirmede ADC yoksa `FIREBASE_CLIENT_EMAIL` ve `FIREBASE_PRIVATE_KEY` değerlerini `.env.local` içinde tanımlayın; özel anahtarı Git'e eklemeyin.
 6. `SUPERADMIN_EMAIL` varsayılan olarak `cebrailkara@gmail.com` olarak tanımlıdır. E-posta adresi Google tarafından doğrulanmış olmalı; `ADMIN` rolü yalnızca sunucu tarafından özel claim olarak atanır. Bu hesabın erişimini korumak için Google hesabında MFA kullanın.
 
 ## 4. Hesap Rolleri ve Giriş
@@ -39,3 +40,4 @@ Her Firebase Hosting dağıtımı sonrasında `firebase.json` içerisindeki `pos
 - `/tr/kayit?role=CREATOR`: ücretsiz yayıncı/içerik üreticisi hesabı açar ve `/tr/yayinci/panel` adresine yönlendirir.
 - `/tr/yonetim`: yalnızca süperadmin özel claim'iyle açılır.
 - Google kimliği Firebase Admin SDK ile doğrulanır; ilk hesap rolü sunucuda kaydedilir ve sonraki girişlerde değiştirilemez. Süperadmin rolü istemci isteğinden seçilemez.
+- `influnex.web.app` ve Cloud Run'ın `run.app` adresleri `X-Robots-Tag: noindex, nofollow` ile arama indeksinden çıkarılır; bu adreslerdeki `robots.txt` tüm taramayı engeller.

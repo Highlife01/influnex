@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { PublicCreatorProfile, SupportedLocale } from "@/lib/types/domain";
-import { formatMinorUnits } from "@/lib/finance/commission";
+import {
+  calculateCommissionBreakdown,
+  formatMinorUnits,
+} from "@/lib/finance/commission";
 import { DICTIONARY } from "@/lib/i18n/dictionary";
 
 export function CreatorCard({
@@ -16,6 +19,11 @@ export function CreatorCard({
       ? `/tr/influencer/${creator.username}`
       : `/en/creators/${creator.username}`;
 
+  const breakdown = calculateCommissionBreakdown(
+    creator.startingPriceMinorUnits,
+    creator.currency
+  );
+
   const sourceBadgeStyle =
     creator.metricVerificationSource === "API_VERIFIED"
       ? "bg-emerald-50 text-emerald-800 border-emerald-200"
@@ -26,6 +34,18 @@ export function CreatorCard({
   return (
     <article className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-indigo-300 hover:shadow-md">
       <div>
+        {/* Explicit Demo / Showcase Transparency Banner (Audit P0 Item 3) */}
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+            {locale === "tr"
+              ? "Örnek Vitrin Profili (Demo Veri)"
+              : "Sample Showcase Profile (Demo Data)"}
+          </span>
+          <span className="text-[11px] text-slate-500">
+            Güncelleme: {creator.updatedAt.slice(0, 10)}
+          </span>
+        </div>
+
         <div className="flex items-start gap-4">
           <img
             src={creator.avatarUrl}
@@ -40,16 +60,18 @@ export function CreatorCard({
               <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-indigo-600">
                 <Link href={profileHref}>{creator.displayName}</Link>
               </h3>
-              {creator.verificationBadges.identityVerified ? (
+              {/* Never show "Kimlik Onaylı" if metrics are USER_DECLARED to avoid misleading trust signals */}
+              {creator.verificationBadges.identityVerified &&
+              creator.metricVerificationSource !== "USER_DECLARED" ? (
                 <span
                   title={
                     locale === "tr"
-                      ? "Kimliği Doğrulanmış Üretici"
-                      : "Identity Verified Creator"
+                      ? "Kimliği Doğrulanmış Üretici (Örnek)"
+                      : "Identity Verified Creator (Sample)"
                   }
                   className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-800"
                 >
-                  Kimlik Onaylı
+                  Kimlik Doğrulamalı
                 </span>
               ) : null}
             </div>
@@ -62,12 +84,12 @@ export function CreatorCard({
           </div>
         </div>
 
-        {/* Strict Metric Source Attribution Badge (Section 8) */}
+        {/* Strict Metric Source Attribution Badge (Section 8 & Audit P1) */}
         <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
           <span
             className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${sourceBadgeStyle}`}
           >
-            {t.metricSource[creator.metricVerificationSource]}
+            Metrik Kaynağı: {t.metricSource[creator.metricVerificationSource]}
           </span>
           {creator.offersUgc ? (
             <span className="inline-flex items-center rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
@@ -88,7 +110,7 @@ export function CreatorCard({
         <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
           <div>
             <dt className="text-[11px] text-slate-500">
-              {locale === "tr" ? "Takipçi" : "Followers"}
+              {locale === "tr" ? "Takipçi (Örnek)" : "Followers"}
             </dt>
             <dd className="text-sm font-bold text-slate-900">
               {Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
@@ -106,10 +128,10 @@ export function CreatorCard({
           </div>
           <div>
             <dt className="text-[11px] text-slate-500">
-              {locale === "tr" ? "Tamamlanan" : "Orders"}
+              {locale === "tr" ? "Ort. Teslim" : "Delivery"}
             </dt>
             <dd className="text-sm font-bold text-slate-900">
-              {creator.completedOrdersCount}
+              {creator.averageDeliveryDays} Gün
             </dd>
           </div>
         </dl>
@@ -118,10 +140,20 @@ export function CreatorCard({
       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5">
         <div>
           <span className="block text-[11px] text-slate-500">
-            {locale === "tr" ? "Başlangıç Hizmet Fiyatı" : "Starting at"}
+            {locale === "tr"
+              ? "Toplam Hizmet Bedeli (Brüt Başlangıç)"
+              : "Total Gross Service Price"}
           </span>
           <span className="text-base font-extrabold text-slate-900">
             {formatMinorUnits(creator.startingPriceMinorUnits, "TRY", locale)}
+          </span>
+          <span className="block text-[11px] text-emerald-700">
+            Üretici Payı (%85):{" "}
+            {formatMinorUnits(
+              breakdown.creatorNetPayoutMinorUnits,
+              "TRY",
+              locale
+            )}
           </span>
         </div>
 
@@ -129,7 +161,7 @@ export function CreatorCard({
           href={profileHref}
           className="rounded-xl bg-indigo-950 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
         >
-          {locale === "tr" ? "Profili & Hizmetleri Gör" : "View Profile"}
+          {locale === "tr" ? "Profili & Paketleri Gör" : "View Profile"}
         </Link>
       </div>
     </article>

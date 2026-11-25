@@ -1,4 +1,5 @@
 import {
+  applicationDefault,
   cert,
   getApp,
   getApps,
@@ -16,7 +17,7 @@ const ADMIN_APP_NAME = "influnex-server";
 
 export class FirebaseAdminConfigurationError extends Error {
   constructor() {
-    super("Firebase Admin credentials are not configured.");
+    super("Firebase Admin credential configuration is incomplete.");
     this.name = "FirebaseAdminConfigurationError";
   }
 }
@@ -30,13 +31,16 @@ function getAdminApp(): App {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-  if (!clientEmail || !privateKey) {
+  if (Boolean(clientEmail) !== Boolean(privateKey)) {
     throw new FirebaseAdminConfigurationError();
   }
 
   return initializeApp(
     {
-      credential: cert({ projectId, clientEmail, privateKey }),
+      credential:
+        clientEmail && privateKey
+          ? cert({ projectId, clientEmail, privateKey })
+          : applicationDefault(),
       projectId,
     },
     ADMIN_APP_NAME,

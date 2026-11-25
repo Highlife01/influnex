@@ -12,24 +12,24 @@ import {
 import { Navigation } from "@/components/home/navigation";
 import { Marketplace } from "@/components/home/marketplace";
 import { Workflow, EarningsCalculator } from "@/components/home/workflow";
-import { AiNaturalLanguageSearchBox } from "@/components/AiNaturalLanguageSearchBox";
 import { faqs } from "@/lib/marketplace/content";
 import { INITIAL_CATEGORIES, INITIAL_CITIES } from "@/lib/data/catalog";
 import {
   buildFaqJsonLd,
   buildOrganizationAndWebsiteJsonLd,
 } from "@/lib/seo/jsonLd";
+import { SITE_BASE_URL } from "@/lib/seo/routeRegistry";
 
 export const metadata: Metadata = {
   title: "Influencer keşfet, iş birliğini planla | InfluNex",
   description:
     "Influencer ve UGC içerik üreticilerini keşfet, örnek profilleri karşılaştır ve kampanya brief’ini hazırla. InfluNex: ücretsiz üyelik, tamamlanan işte %15 komisyon modeli.",
   alternates: {
-    canonical: "https://www.influnex.com.tr/tr",
+    canonical: `${SITE_BASE_URL}/tr`,
     languages: {
-      "tr-TR": "https://www.influnex.com.tr/tr",
-      en: "https://www.influnex.com.tr/en",
-      "x-default": "https://www.influnex.com.tr/tr",
+      "tr-TR": `${SITE_BASE_URL}/tr`,
+      en: `${SITE_BASE_URL}/en`,
+      "x-default": `${SITE_BASE_URL}/tr`,
     },
   },
   openGraph: {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       "Doğru içerik üreticisini keşfet, bir sonraki iş birliğini planla.",
     locale: "tr_TR",
     type: "website",
-    url: "https://www.influnex.com.tr/tr",
+    url: `${SITE_BASE_URL}/tr`,
   },
 };
 
@@ -61,6 +61,19 @@ export default function TurkishHomePage() {
         İçeriğe geç
       </a>
       <Navigation />
+
+      {/* Single Unified Platform Status Banner (Audit Section 2 Fix - No contradictory or repeated status messages) */}
+      <div
+        role="status"
+        className="border-b border-amber-200 bg-amber-50/90 px-4 py-2.5 text-center text-xs font-medium text-amber-950"
+      >
+        <strong>Erken Erişim Beta & Örnek Vitrin Modu:</strong> Keşif, yan yana
+        karşılaştırma, brief planlama, 15 durumlu örnek sipariş simülasyonu ve
+        Google ile beta ön kaydı açıktır. Vitrin profilleri örnek veridir; canlı
+        banka transferi tahsilatı hukuki sözleşme aktivasyonu sonrasında
+        başlatılacaktır.
+      </div>
+
       <main id="main">
         <section className="hero shell">
           <div className="hero-text">
@@ -125,7 +138,7 @@ export default function TurkishHomePage() {
               <span className="portrait-label">Bir fikirle başlar.</span>
             </div>
             <div className="commission-card">
-              <small>Üreticinin payı</small>
+              <small>Üreticinin brüt payı</small>
               <strong>
                 %85<span>senin.</span>
               </strong>
@@ -142,153 +155,99 @@ export default function TurkishHomePage() {
             </span>
             <span>
               <FileText size={19} />
-              Bir brief, net beklentiler
+              6 Boyutlu Kullanım Hakkı & Sabit Snapshot
             </span>
             <span>
               <ShieldCheck size={19} />
-              Açık koşullar, şeffaf model
+              Vergi Hariç Brüt Tutar Üzerinden %15 Komisyon
             </span>
           </div>
         </div>
-
-        {/* AI Natural Language Search Box (Section 18) */}
-        <section className="shell py-8" aria-label="Yapay Zekâ Influencer Arama">
-          <AiNaturalLanguageSearchBox />
-        </section>
 
         <Marketplace />
         <Workflow />
         <EarningsCalculator />
 
-        {/* 3 Collaboration Methods & UGC vs Influencer Matrix (Inspired by Collabstr, Markast, CreatorTR & Influs) */}
-        <section className="shell py-12" aria-labelledby="collab-models-heading">
+        {/* Programmatic SEO Internal Link Matrix (Human-readable names with spaces) */}
+        <section className="shell py-10" aria-labelledby="seo-hub-heading">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              ESNEK İŞ BİRLİĞİ VE GÜVENLİ SİPARİŞ MİMARİSİ
-            </span>
             <h2
-              id="collab-models-heading"
-              className="mt-2 text-2xl font-extrabold text-slate-900"
+              id="seo-hub-heading"
+              className="text-lg font-extrabold text-slate-900"
             >
-              3 Farklı İş Birliği Yöntemi & Influencer / UGC Ayrımı
+              Şehir, Kategori ve Hizmet Rehberleri
             </h2>
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <span className="text-xs font-bold text-indigo-700">
-                  Yöntem 1 • Hazır Paketler
-                </span>
-                <h3 className="mt-1 text-base font-bold text-slate-900">
-                  Sabit Fiyatlı Hizmet Satın Al
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                  Influencer profilindeki hazır paketlerden (1 Instagram Reels,
-                  3 Kare Story, YouTube İnceleme veya UGC Reklam Videosu)
-                  birini seçerek anında sipariş başlatın.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <span className="text-xs font-bold text-indigo-700">
-                  Yöntem 2 • Açık İlan & Brief
-                </span>
-                <h3 className="mt-1 text-base font-bold text-slate-900">
-                  Ücretsiz Kampanya Aç, Teklif Topla
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                  Bütçenizi ve ürün beklentinizi yayınlayın; kriterlerinize uyan
-                  onaylı içerik üreticilerinden fiyat ve teslim süresi teklifleri
-                  alarak karşılaştırın.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <span className="text-xs font-bold text-indigo-700">
-                  Yöntem 3 • Sabitlenen Sipariş Özeti
-                </span>
-                <h3 className="mt-1 text-base font-bold text-slate-900">
-                  Değiştirilemez Snapshot & #reklam Kontrolü
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                  Sipariş başladığında fiyat, %15 komisyon, revizyon hakkı ve
-                  ücretli reklam kullanım izinleri değiştirilemez şekilde
-                  sabitlenir.
-                </p>
-              </div>
-            </div>
-
-            {/* Programmatic SEO Internal Link Hub (Section 20, 21 & 26) */}
-            <div className="mt-8 border-t border-slate-200 pt-6">
-              <h3 className="text-sm font-bold text-slate-900">
-                Şehir, Kategori ve Hizmet Rehberleri (Programatik SEO Keşif Ağı)
-              </h3>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <p className="mt-1 text-xs text-slate-600">
+              İlgili şehir ve sektörlerdeki örnek vitrin profillerini, hizmet
+              paketlerini ve editoryal rehberleri inceleyin.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+              <Link
+                href="/tr/influencer"
+                className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-bold text-indigo-800 hover:bg-indigo-100"
+              >
+                Influencer Keşfet
+              </Link>
+              <Link
+                href="/tr/ugc"
+                className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 font-bold text-violet-800 hover:bg-violet-100"
+              >
+                UGC İçerik Üreticileri
+              </Link>
+              <Link
+                href="/tr/kampanyalar"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                Örnek Kampanyalar
+              </Link>
+              <Link
+                href="/tr/influencer/adana/otomotiv"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                Adana Otomotiv Influencer&apos;ları
+              </Link>
+              <Link
+                href="/tr/influencer/istanbul/moda"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                İstanbul Moda Influencer&apos;ları
+              </Link>
+              <Link
+                href="/tr/hizmetler/instagram-reels"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                Instagram Reels Paketleri
+              </Link>
+              <Link
+                href="/tr/influencer-reklam-fiyatlari"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                %15 Komisyon & Hakediş Tablosu
+              </Link>
+              <Link
+                href="/tr/blog"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
+              >
+                Rehber & Blog
+              </Link>
+              {INITIAL_CITIES.slice(0, 6).map((city) => (
                 <Link
-                  href="/tr/influencer"
-                  className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-bold text-indigo-800 hover:bg-indigo-100"
+                  key={city.id}
+                  href={`/tr/influencer/${city.slug}`}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 hover:border-indigo-400"
                 >
-                  Tüm Onaylı Influencer&apos;lar
+                  {city.nameTr} Influencer&apos;ları
                 </Link>
+              ))}
+              {INITIAL_CATEGORIES.slice(0, 6).map((cat) => (
                 <Link
-                  href="/tr/ugc"
-                  className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 font-bold text-violet-800 hover:bg-violet-100"
+                  key={cat.id}
+                  href={`/tr/influencer/${cat.slugTr}`}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 hover:border-indigo-400"
                 >
-                  UGC İçerik Üreticileri
+                  {cat.nameTr} Influencer&apos;ları
                 </Link>
-                <Link
-                  href="/tr/kampanyalar"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  Açık Kampanyalar
-                </Link>
-                <Link
-                  href="/tr/influencer/adana/otomotiv"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  Adana Otomotiv Influencer
-                </Link>
-                <Link
-                  href="/tr/influencer/istanbul/moda"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  İstanbul Moda Influencer
-                </Link>
-                <Link
-                  href="/tr/hizmetler/instagram-reels"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  Instagram Reels Fiyatları
-                </Link>
-                <Link
-                  href="/tr/influencer-reklam-fiyatlari"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  %15 Komisyon & Fiyat Hesaplama
-                </Link>
-                <Link
-                  href="/tr/blog"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:border-indigo-400"
-                >
-                  Influencer Pazarlama Blogu
-                </Link>
-                {INITIAL_CITIES.slice(0, 6).map((city) => (
-                  <Link
-                    key={city.id}
-                    href={`/tr/influencer/${city.slug}`}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 hover:border-indigo-400"
-                  >
-                    {city.nameTr}
-                  </Link>
-                ))}
-                {INITIAL_CATEGORIES.slice(0, 6).map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/tr/influencer/${cat.slugTr}`}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 hover:border-indigo-400"
-                  >
-                    {cat.nameTr}
-                  </Link>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -316,8 +275,8 @@ export default function TurkishHomePage() {
             </h2>
             <p>
               İster ilk portföyünü oluştur, ister yeni markalarla çalışmaya
-              hazırlan. InfluNex’in ücretsiz üyelik ve %85 üretici payı modelini
-              keşfet.
+              hazırlan. InfluNex’in ücretsiz üyelik ve vergi öncesi %85 brüt
+              üretici payı modelini keşfet.
             </p>
             <a className="primary-button" href="/tr/kayit?role=CREATOR">
               Yayıncı olarak ücretsiz katıl
@@ -385,10 +344,6 @@ export default function TurkishHomePage() {
             <Link href="/sitemap.xml">Sitemap</Link>
           </div>
         </div>
-        <p className="shell footer-note">
-          Keşif ve brief planlama ön izlemesi · Örnek katalog · Henüz üyelik ve
-          ödeme alınmıyor.
-        </p>
       </footer>
     </div>
   );

@@ -8,6 +8,7 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   Check,
+  Info,
   LoaderCircle,
   ShieldCheck,
   Sparkles,
@@ -40,7 +41,7 @@ const roleOptions: {
     id: "ADVERTISER",
     title: "Reklamverenim (Marka / İşletme)",
     description:
-      "Markam için onaylı influencer bulacağım, UGC reklam videosu sipariş edeceğim veya ücretsiz kampanya açacağım.",
+      "Markam için influencer ve UGC üreticileri keşfedeceğim, brief hazırlayacağım veya kampanya açacağım.",
     badge: "%0 Üyelik & İlan Ücreti",
     icon: BriefcaseBusiness,
   },
@@ -48,8 +49,8 @@ const roleOptions: {
     id: "CREATOR",
     title: "Yayıncı / Influencer & UGC Üreticisiyim",
     description:
-      "Hizmet paketlerimi listeleyeceğim, kampanyalara ücretsiz teklif vereceğim ve tamamlanan işlerden %85 hakediş kazanacağım.",
-    badge: "%85 Net Hakediş • 18+ Yaş",
+      "Hizmet paketlerimi tanımlayacağım ve tamamlanan iş birliklerinden vergi öncesi %85 brüt pay kazanacağım.",
+    badge: "%85 Brüt Üretici Payı • 18+ Yaş",
     icon: Sparkles,
   },
 ];
@@ -58,7 +59,7 @@ const CREATOR_ONBOARDING_STEPS = [
   { step: 1, label: "Rol & Temel Bilgiler" },
   { step: 2, label: "Platform & UGC Tercihi" },
   { step: 3, label: "Kategori & Şehir" },
-  { step: 4, label: "Doğrulama & Panel" },
+  { step: 4, label: "Beta Panel Önizlemesi" },
 ] as const;
 
 function firebaseErrorMessage(error: unknown): string {
@@ -90,7 +91,6 @@ export function GoogleRoleAuth({
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Guided onboarding state (inspired by CreatorTR /kayit & Collabstr onboarding, strictly keeping initial signup lightweight)
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [citySlug, setCitySlug] = useState("istanbul");
@@ -166,7 +166,7 @@ export function GoogleRoleAuth({
       displayName,
       role,
       birthYear: role === "CREATOR" ? Number(birthYear) : undefined,
-      acceptedTermsVersion: "v1.0-DRAFT",
+      acceptedTermsVersion: "v1.1-PRE-LAUNCH-DRAFT",
     });
 
     if (!parsed.success) {
@@ -182,34 +182,49 @@ export function GoogleRoleAuth({
 
   return (
     <section className="mx-auto w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
+      {/* Unified Beta & Legal Pre-Launch Notice (Audit P0 Item 2 & 5) */}
+      <div
+        role="note"
+        className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950"
+      >
+        <strong className="block font-bold">
+          Erken Erişim Beta & Ön Kayıt Bilgilendirmesi:
+        </strong>
+        InfluNex şu anda erken erişim beta aşamasındadır. Bu ekrandan Google
+        hesabınızla beta panel önizlemesine giriş yapabilir veya ön kayıt
+        simülasyonunu tamamlayabilirsiniz. Hukuki sözleşmelerin nihai onayı
+        tamamlanana kadar bağlayıcı ticari sözleşme kurulmaz ve canlı ödeme/tahsilat
+        alınmaz.
+      </div>
+
       <div className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-indigo-600">
-            {mode === "register" ? "Ücretsiz Katıl" : "Giriş Yap"}
+            {mode === "register" ? "Ücretsiz Beta Ön Kaydı" : "Beta Girişi"}
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
             <ShieldCheck size={14} />
-            Abonelik Yok • Yalnızca Tamamlanan İşte %15 Komisyon
+            Abonelik Yok • Tamamlanan İşte %15 Komisyon
           </span>
         </div>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
           {mode === "register"
-            ? "Markalar ve İçerik Üreticileri Ağına Katıl"
+            ? "Erken Erişim Hesabını Hazırla"
             : "Tekrar hoş geldin"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Üyelik, profil listeleme, kampanya açma ve teklif verme tamamen
-          ücretsizdir.
+          Üyelik, profil listeleme, kampanya hazırlama ve teklif simülasyonu
+          tamamen ücretsizdir.
         </p>
       </div>
 
-      {/* Step Indicator & Profile Completion Meter (Section 7) */}
+      {/* Step Indicator & Profile Completion Meter */}
       {mode === "register" ? (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-            <span>Hızlı Onboarding Adımları</span>
+            <span>Onboarding Adımları (Simülasyon)</span>
             <span className="text-indigo-700">
-              Profil Hazırlık Oranı: %{completionPercentage}
+              Form Tamamlama Oranı: %{completionPercentage}
             </span>
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
@@ -235,7 +250,7 @@ export function GoogleRoleAuth({
       ) : null}
 
       {/* Role Selector Cards */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2">
         {roleOptions.map(({ id, title, description, badge, icon: Icon }) => {
           const selected = role === id;
           return (
@@ -274,6 +289,21 @@ export function GoogleRoleAuth({
         })}
       </div>
 
+      {/* Role Switch & Google Data Transparency Note (Audit Section 2 Fix) */}
+      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-600">
+        <p className="flex items-start gap-2">
+          <Info size={15} className="mt-0.5 shrink-0 text-indigo-600" />
+          <span>
+            <strong>Veri & Rol Şeffaflığı:</strong> Google ile girişte yalnızca
+            doğrulanmış e-posta adresiniz, adınız ve profil fotoğrafınız alınır;
+            sosyal medya şifreniz asla istenmez. Yanlış rol seçerseniz giriş
+            sonrasında bu ekrandan veya panelinizden{" "}
+            <strong>Reklamveren ⇄ İçerik Üreticisi</strong> rolünüzü
+            güncelleyebilirsiniz.
+          </span>
+        </p>
+      </div>
+
       {/* Primary Option 1: One-Click Google OAuth */}
       <button
         type="button"
@@ -286,18 +316,18 @@ export function GoogleRoleAuth({
         ) : (
           <GoogleAuthProviderIcon />
         )}
-        {busy ? "Google hesabı doğrulanıyor…" : "Google ile hızlı devam et"}
+        {busy ? "Google hesabı doğrulanıyor…" : "Google ile devam et"}
         {!busy ? <ArrowRight size={17} /> : null}
       </button>
 
-      {/* Option 2: Guided Lightweight Form (E-posta & Rol Odaklı Kayıt) */}
+      {/* Option 2: Guided Lightweight Pre-Registration Form */}
       {mode === "register" ? (
         <form
           onSubmit={handleQuickEmailOnboarding}
           className="mt-6 space-y-4 border-t border-slate-200 pt-6"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Veya E-Posta ile Hızlı Başvuru & Profil Oluşturma
+            Veya E-Posta ile Beta Ön Kayıt Simülasyonu
           </p>
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -451,8 +481,8 @@ export function GoogleRoleAuth({
           >
             <Video size={17} />
             {role === "ADVERTISER"
-              ? "Reklamveren Hesabımı Oluştur"
-              : "Influencer / UGC Başvurumu Oluştur"}
+              ? "Reklamveren Beta Ön Kaydını Tamamla"
+              : "Influencer / UGC Beta Ön Kaydını Tamamla"}
           </button>
         </form>
       ) : null}
@@ -463,16 +493,16 @@ export function GoogleRoleAuth({
           className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-950"
         >
           <strong className="block text-sm font-bold">
-            Ön Kaydınız Başarıyla Tamamlandı!
+            Beta Ön Kayıt Simülasyonu Tamamlandı!
           </strong>
           <p className="mt-1">
-            Şifre istemeden resmi sosyal medya doğrulamanızı yapmak, hizmet
-            paketlerinizi belirlemek veya sipariş oluşturmak için{" "}
+            15 durumlu örnek sipariş akışını, dekont doğrulama adımlarını ve AI
+            kampanya hazırlama aracını incelemek için{" "}
             <Link
               href={`/${locale}/panel`}
               className="font-bold text-indigo-700 underline"
             >
-              İşlem Paneline Geçin →
+              Örnek İşlem Paneline Geçin →
             </Link>
           </p>
         </div>
@@ -488,21 +518,20 @@ export function GoogleRoleAuth({
       ) : null}
 
       <p className="mt-5 text-center text-xs leading-5 text-slate-500">
-        Devam ederek{" "}
+        Hukuki metinlerin ön lansman inceleme sürümlerini görüntülemek için:{" "}
         <Link
           href={`/${locale}/hukuki/kullanim-kosullari`}
           className="underline hover:text-indigo-600"
         >
-          Kullanım Koşulları
+          Kullanım Koşulları (Ön Lansman Taslağı)
         </Link>{" "}
-        ve{" "}
+        •{" "}
         <Link
           href={`/${locale}/hukuki/kvkk-aydinlatma-metni`}
           className="underline hover:text-indigo-600"
         >
-          KVKK Aydınlatma Metni
-        </Link>{" "}
-        taslaklarını kabul etmiş olursunuz.
+          KVKK Aydınlatma Metni (Ön Lansman Taslağı)
+        </Link>
       </p>
     </section>
   );

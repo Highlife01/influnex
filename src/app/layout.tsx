@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,13 +22,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = (await headers()).get("x-influnex-locale") === "en" ? "en" : "tr";
+
   return (
-    <html lang="tr" dir="ltr">
+    <html lang={locale} dir="ltr">
       <body className="min-h-screen bg-white text-slate-900 antialiased">
         {children}
       </body>

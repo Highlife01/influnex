@@ -18,12 +18,12 @@ export async function generateMetadata({
   return {
     title:
       locale === "tr"
-        ? "Açık Influencer ve UGC Reklam Kampanyaları"
-        : "Open Influencer & UGC Advertising Campaigns",
+        ? "Örnek Influencer ve UGC Reklam Kampanyaları"
+        : "Sample Influencer & UGC Advertising Campaigns",
     description:
       locale === "tr"
-        ? "Markaların yayınladığı açık reklam kampanyalarını inceleyin, ücretsiz teklif verin veya markanız için ücretsiz kampanya ilanı oluşturun."
-        : "Browse open brand campaigns, submit free creator proposals, or launch a campaign for your brand for free.",
+        ? "Markaların yayınladığı örnek reklam kampanyalarını, kapsam ve kullanım haklarını inceleyin; ücretsiz brief hazırlayın veya erken erişim ön kaydı oluşturun."
+        : "Browse sample brand campaigns, usage rights, and commission breakdowns, or pre-register for free.",
     alternates: buildHreflangAlternates(
       "/tr/kampanyalar",
       "/en/campaigns",
@@ -37,21 +37,34 @@ export default async function CampaignsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div
+        role="note"
+        className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950"
+      >
+        <strong className="font-bold">
+          Erken Erişim Beta & Örnek Kampanya Vitrini:
+        </strong>{" "}
+        Aşağıdaki kampanya ilanları; bütçe, kullanım hakları, %15 komisyon / %85
+        üretici payı ve teklif akışını göstermek amacıyla hazırlanmış örnek
+        ilanlardır.
+      </div>
+
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900">
-            Açık Reklam Kampanyaları
+            Örnek Reklam Kampanyaları ve Brief Yapısı
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            Kampanya oluşturmak ve teklif vermek tamamen ücretsizdir. Teklif
-            kabul edildiğinde otomatik olarak güvenli sipariş oluşturulur.
+            Kampanya oluşturmak ve teklif vermek tamamen ücretsizdir. %15
+            platform komisyonu yalnızca tamamlanan siparişin vergi hariç brüt
+            tutarı üzerinden hesaplanır.
           </p>
         </div>
         <Link
-          href="/tr/panel?tab=campaigns"
+          href="/tr/kayit?role=ADVERTISER"
           className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-xs hover:bg-indigo-700"
         >
-          + Ücretsiz Kampanya Oluştur
+          + Marka Olarak Beta Ön Kaydı Oluştur
         </Link>
       </div>
 
@@ -68,11 +81,11 @@ export default async function CampaignsPage() {
             >
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="font-bold text-indigo-700">
-                    {cmp.brandName}
+                  <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 font-bold text-amber-900">
+                    Örnek Kampanya • {cmp.brandName}
                   </span>
-                  <span className="rounded-md bg-emerald-50 px-2.5 py-1 font-bold text-emerald-800">
-                    Bütçe: {formatMinorUnits(cmp.budgetMinorUnits)}
+                  <span className="rounded-md bg-slate-100 px-2.5 py-1 font-bold text-slate-900">
+                    Brüt Bütçe: {formatMinorUnits(cmp.budgetMinorUnits)}
                   </span>
                 </div>
                 <h2 className="mt-2.5 text-lg font-bold text-slate-900">
@@ -95,9 +108,19 @@ export default async function CampaignsPage() {
                     <dt className="inline font-semibold">Kullanım Hakları: </dt>
                     <dd className="inline">{cmp.usageRights}</dd>
                   </div>
+                  <div className="border-t border-slate-200 pt-1.5">
+                    <dt className="inline font-semibold">
+                      %15 Platform Komisyonu:{" "}
+                    </dt>
+                    <dd className="inline font-bold text-indigo-800">
+                      {formatMinorUnits(
+                        breakdown.platformCommissionMinorUnits
+                      )}
+                    </dd>
+                  </div>
                   <div>
                     <dt className="inline font-semibold">
-                      Tahmini Influencer Hakedişi (%85):{" "}
+                      %85 Üretici Brüt Payı (Vergi/Stopaj Öncesi):{" "}
                     </dt>
                     <dd className="inline font-bold text-emerald-800">
                       {formatMinorUnits(breakdown.creatorNetPayoutMinorUnits)}
@@ -108,13 +131,13 @@ export default async function CampaignsPage() {
 
               <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
                 <span className="text-slate-500">
-                  Teslim: {cmp.deliveryDeadline} • {cmp.proposalsCount} Teklif
+                  Hedef Teslim: {cmp.deliveryDeadline}
                 </span>
                 <Link
-                  href={`/tr/panel?tab=proposals&campaignId=${cmp.id}`}
+                  href={`/tr/kayit?role=CREATOR&campaignId=${cmp.id}`}
                   className="rounded-xl bg-indigo-950 px-4 py-2 font-bold text-white hover:bg-indigo-700"
                 >
-                  Teklif Ver
+                  Üretici Ön Kaydı ile Başvur
                 </Link>
               </div>
             </article>

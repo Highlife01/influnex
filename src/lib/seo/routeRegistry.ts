@@ -24,6 +24,23 @@ export const SITE_BASE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.influnex.com.tr"
 ).replace(/\/+$/, "");
 
+export function getCategoryNameBySlug(
+  slug: string,
+  locale: SupportedLocale = "tr"
+): string {
+  const clean = slug.trim().toLowerCase();
+  const found = INITIAL_CATEGORIES.find(
+    (c) => c.slugTr === clean || c.slugEn === clean
+  );
+  if (found) {
+    return locale === "tr" ? found.nameTr : found.nameEn;
+  }
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export type ResolvedSlugTarget =
   | { kind: "PLATFORM"; platform: SupportedPlatform; slug: string }
   | { kind: "CITY"; city: CityRecord }

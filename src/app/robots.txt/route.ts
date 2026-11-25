@@ -1,7 +1,22 @@
 import { NextResponse } from "next/server";
 import { SITE_BASE_URL } from "@/lib/seo/routeRegistry";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const hostname = request.headers
+    .get("host")
+    ?.split(":")[0]
+    ?.toLowerCase();
+  const canonicalHostname = new URL(SITE_BASE_URL).hostname.toLowerCase();
+  if (hostname && hostname !== canonicalHostname) {
+    return new NextResponse("User-agent: *\nDisallow: /\n", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  }
+
   const allowAiSearchBots = process.env.ALLOW_AI_SEARCH_BOTS !== "false";
   const allowAiTrainingBots = process.env.ALLOW_AI_TRAINING_BOTS === "true";
 
@@ -13,6 +28,14 @@ export async function GET() {
     "Disallow: /en/panel",
     "Disallow: /tr/giris",
     "Disallow: /en/giris",
+    "Disallow: /tr/kayit",
+    "Disallow: /en/kayit",
+    "Disallow: /tr/reklamveren/",
+    "Disallow: /en/reklamveren/",
+    "Disallow: /tr/yayinci/",
+    "Disallow: /en/yayinci/",
+    "Disallow: /tr/yonetim",
+    "Disallow: /en/yonetim",
   ];
 
   const lines: string[] = [

@@ -1,4 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const { verifyIdTokenMock } = vi.hoisted(() => ({
+  verifyIdTokenMock: vi.fn(),
+}));
+
+vi.mock("@/lib/firebase/admin", () => ({
+  FirebaseAdminConfigurationError: class FirebaseAdminConfigurationError extends Error {},
+  getInfluNexAdminServices: () => ({
+    auth: { verifyIdToken: verifyIdTokenMock },
+    firestore: {},
+  }),
+}));
 import {
   assertTenantIsolation,
   enforcePublicProfileDataIsolation,
@@ -15,6 +27,11 @@ import {
   assertPrivateProfileAccess,
 } from "@/lib/security/rbac";
 import { validateExternalBrandUrl } from "@/lib/security/ssrfGuard";
+import {
+  appendApiMutationAuditLog,
+  getApiMutationAuditTrail,
+  verifyApiMutationRequest,
+} from "@/lib/security/apiGuard";
 import { UserRegistrationSchema } from "@/lib/validators/schemas";
 
 describe("InfluNex Order State Machine, Data Isolation & Security Controls", () => {
@@ -407,7 +424,7 @@ describe("InfluNex Order State Machine, Data Isolation & Security Controls", () 
     expect(oversizedFile.reason).toBe("FILE_TOO_LARGE_MAX_5MB");
   });
 
-  it("blocks SSRF internal/private IPs and non-HTTPS URLs", () => {
+  it("blocks SSRF internal/private IPs, verifies API mutation identity and role, and records audit logs", async () => {
     expect(validateExternalBrandUrl("http://localhost:3000").valid).toBe(false);
     expect(validateExternalBrandUrl("https://127.0.0.1/admin").valid).toBe(false);
     expect(
@@ -419,5 +436,69 @@ describe("InfluNex Order State Machine, Data Isolation & Security Controls", () 
     expect(
       validateExternalBrandUrl("https://www.firmanex.com.tr").valid
     ).toBe(true);
+
+    const badOriginReq = new Request("https://www.influnex.com.tr/api/v1/campaigns", {
+      method: "POST",
+      headers: {
+        origin: "https://evil-attacker.example.com",
+        "x-actor-uid": "adv_1",
+        "x-actor-role": "ADVERTISER",
+      },
+    });
+    const csrfResult = await verifyApiMutationRequest(badOriginReq, {
+      endpoint: "/api/v1/campaigns",
+      action: "CREATE_CAMPAIGN",
+      allowedRoles: ["ADVERTISER"],
+    });
+    expect(csrfResult.allowed).toBe(false);
+
+    const forgedReq = new Request("https://www.influnex.com.tr/api/v1/campaigns", {
+      method: "POST",
+      headers: {
+        origin: "https://www.influnex.com.tr",
+        "x-actor-uid": "adv_1",
+        "x-actor-role": "ADMIN",
+      },
+    });
+    const forgedResult = await verifyApiMutationRequest(forgedReq, {
+      endpoint: "/api/v1/campaigns",
+      action: "CREATE_CAMPAIGN",
+      allowedRoles: ["ADVERTISER"],
+    });
+    expect(forgedResult).toMatchObject({
+      allowed: false,
+      status: 401,
+      error: "AUTHENTICATION_REQUIRED",
+    });
+
+    verifyIdTokenMock.mockResolvedValueOnce({
+      uid: "adv_1",
+      role: "ADVERTISER",
+      email_verified: true,
+    });
+    const validReq = new Request("https://www.influnex.com.tr/api/v1/campaigns", {
+      method: "POST",
+      headers: {
+        origin: "https://www.influnex.com.tr",
+        authorization: "Bearer signed-firebase-id-token",
+      },
+    });
+    const okResult = await verifyApiMutationRequest(validReq, {
+      endpoint: "/api/v1/campaigns",
+      action: "CREATE_CAMPAIGN",
+      allowedRoles: ["ADVERTISER"],
+    });
+    expect(okResult.allowed).toBe(true);
+
+    appendApiMutationAuditLog({
+      endpoint: "/api/v1/campaigns",
+      actorUid: "adv_1",
+      actorRole: "ADVERTISER",
+      action: "CREATE_CAMPAIGN",
+      metadata: { iban: "TR00112233", campaignId: "cmp_99" },
+    });
+    const trail = getApiMutationAuditTrail();
+    expect(trail.length).toBeGreaterThan(0);
+    expect(trail[trail.length - 1]?.metadata.iban).toBe("[REDACTED]");
   });
 });

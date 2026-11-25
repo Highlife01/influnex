@@ -13,7 +13,9 @@ import {
 } from "./isolation";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  apiKey:
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+    "AIzaSyBQ7jDW4uvq1O-NHR_UIfKkGnYi7TG5Ug0",
   authDomain:
     process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
     `${INFLUNEX_FIREBASE_PROJECT_ID}.firebaseapp.com`,
