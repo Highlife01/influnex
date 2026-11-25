@@ -1,0 +1,305 @@
+rules_version = '2';
+
+// ============================================================================
+// INFLUNEX FIRESTORE SECURITY RULES (Data Isolation: database = influnex-db)
+// Default-deny policy + Tenant isolation (tenantId == "influnex")
+// Physical separation of publicCreatorProfiles and privateCreatorProfiles
+// Zero client-side mutation of orders, payments, payouts, or financialLedger
+// ============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.role == "ADMIN" ||
+        request.auth.token.admin == true
+      );
+    }
+
+    function isInfluNexTenantDoc() {
+      return resource == null || resource.data.tenantId == "influnex";
+    }
+
+    function isWritingInfluNexTenant() {
+      return request.resource.data.tenantId == "influnex";
+    }
+
+    // 1. Users (Private account metadata)
+    match /influnex_users/{userId} {
+      allow read: if (isOwner(userId) || isAdmin()) && isInfluNexTenantDoc();
+      allow create: if isOwner(userId)
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.role in ["ADVERTISER", "CREATOR"]
+                    && request.resource.data.uid == userId;
+      allow update: if isOwner(userId)
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.uid == resource.data.uid;
+      allow delete: if isAdmin();
+    }
+
+    // 2. Public Creator Profiles (Strictly public-safe fields only; no IBAN, phone, TCKN, email)
+    match /influnex_publicCreatorProfiles/{creatorId} {
+      allow read: if (resource.data.status == "APPROVED" && isInfluNexTenantDoc())
+                  || isOwner(creatorId)
+                  || isAdmin();
+      allow create, update: if isOwner(creatorId)
+                            && isWritingInfluNexTenant()
+                            && !request.resource.data.keys().hasAny(["iban", "nationalId", "taxId", "phone", "privateEmail", "bankAccountHolder"])
+                            && (
+                              !request.resource.data.keys().hasAny(["verificationBadges"]) ||
+                              (resource != null && request.resource.data.verificationBadges == resource.data.verificationBadges)
+                            );
+      allow delete: if isAdmin();
+    }
+
+    // 3. Private Creator Profiles (Strictly isolated PII & Bank Payout Info)
+    match /influnex_privateCreatorProfiles/{creatorId} {
+      allow read: if (isOwner(creatorId) || isAdmin()) && isInfluNexTenantDoc();
+      allow create, update: if isOwner(creatorId)
+                            && isWritingInfluNexTenant()
+                            && request.resource.data.creatorId == creatorId
+                            && request.resource.data.isAdultConfirmed == true;
+      allow delete: if isAdmin();
+    }
+
+    // 4. Advertiser Profiles
+    match /influnex_advertiserProfiles/{advertiserId} {
+      allow read: if (isOwner(advertiserId) || isAdmin()) && isInfluNexTenantDoc();
+      allow create, update: if isOwner(advertiserId)
+                            && isWritingInfluNexTenant()
+                            && request.resource.data.advertiserId == advertiserId;
+      allow delete: if isAdmin();
+    }
+
+    // 5. Social Media Accounts (Verification status only mutable by Admin/Backend)
+    match /influnex_socialAccounts/{accountId} {
+      allow read: if isInfluNexTenantDoc();
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.verificationSource == "USER_DECLARED";
+      allow update: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && resource.data.creatorId == request.auth.uid
+                    && request.resource.data.verificationSource == "USER_DECLARED";
+      allow delete: if (isSignedIn() && resource.data.creatorId == request.auth.uid) || isAdmin();
+    }
+
+    // 6. Taxonomies: Categories, Countries, Cities (Public read, Admin write)
+    match /influnex_categories/{categoryId} {
+      allow read: if isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_countries/{countryId} {
+      allow read: if isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_cities/{cityId} {
+      allow read: if isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    // 7. Creator Services
+    match /influnex_services/{serviceId} {
+      allow read: if (resource.data.isActive == true && isInfluNexTenantDoc())
+                  || (isSignedIn() && resource.data.creatorId == request.auth.uid)
+                  || isAdmin();
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.priceMinorUnits is int
+                    && request.resource.data.priceMinorUnits >= 10000;
+      allow update: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && resource.data.creatorId == request.auth.uid
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.priceMinorUnits is int
+                    && request.resource.data.priceMinorUnits >= 10000;
+      allow delete: if (isSignedIn() && resource.data.creatorId == request.auth.uid) || isAdmin();
+    }
+
+    // 8. Campaigns
+    match /influnex_campaigns/{campaignId} {
+      allow read: if (resource.data.status == "OPEN" && isInfluNexTenantDoc())
+                  || (isSignedIn() && resource.data.advertiserId == request.auth.uid)
+                  || isAdmin();
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.advertiserId == request.auth.uid
+                    && request.resource.data.budgetMinorUnits is int
+                    && request.resource.data.budgetMinorUnits > 0;
+      allow update: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && resource.data.advertiserId == request.auth.uid
+                    && request.resource.data.advertiserId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // 9. Proposals (Creator submits, Advertiser of campaign or Creator reads; acceptance via backend API)
+    match /influnex_proposals/{proposalId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.creatorId == request.auth.uid || resource.data.advertiserId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.creatorId == request.auth.uid
+                    && request.resource.data.status == "PENDING"
+                    && request.resource.data.priceMinorUnits is int
+                    && request.resource.data.priceMinorUnits > 0;
+      allow update, delete: if false; // State transitions handled exclusively by backend
+    }
+
+    // 10. Orders & Order Events (Read-only to participants; all mutations via Backend Admin SDK State Machine)
+    match /influnex_orders/{orderId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.advertiserId == request.auth.uid || resource.data.creatorId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /influnex_orderEvents/{eventId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.advertiserId == request.auth.uid || resource.data.creatorId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    // 11. Financial Records (Payments, Payouts, Immutable Ledger - Strictly Backend-Only Writes)
+    match /influnex_paymentRecords/{paymentId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.advertiserId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /influnex_payoutRecords/{payoutId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.creatorId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /influnex_financialLedger/{entryId} {
+      allow read: if isAdmin() && isInfluNexTenantDoc();
+      allow write: if false; // Append-only via Backend Admin SDK transactions
+    }
+
+    // 12. Messaging & Notifications
+    match /influnex_conversations/{conversationId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && request.auth.uid in resource.data.participantIds;
+      allow write: if false; // Managed via rate-limited backend messaging service
+    }
+
+    match /influnex_messages/{messageId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && request.auth.uid in resource.data.participantIds;
+      allow write: if false; // Managed via rate-limited backend messaging service
+    }
+
+    match /influnex_notifications/{notificationId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["isRead", "readAt"]);
+      allow create, delete: if false;
+    }
+
+    // 13. Verified Reviews (Created only after COMPLETED order via backend)
+    match /influnex_reviews/{reviewId} {
+      allow read: if isInfluNexTenantDoc() && resource.data.isPublished == true;
+      allow write: if false;
+    }
+
+    // 14. Disputes, Reports, Documents, Verification Requests, Consents
+    match /influnex_disputes/{disputeId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.advertiserId == request.auth.uid || resource.data.creatorId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /influnex_reports/{reportId} {
+      allow read: if isAdmin() && isInfluNexTenantDoc();
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.reporterId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /influnex_documents/{docId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /influnex_consentRecords/{consentId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Immutable legal consent log
+    }
+
+    match /influnex_verificationRequests/{reqId} {
+      allow read: if isSignedIn()
+                  && isInfluNexTenantDoc()
+                  && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+                    && isWritingInfluNexTenant()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.status == "PENDING";
+      allow update, delete: if isAdmin();
+    }
+
+    // 15. SEO, Blog, Redirects, Platform Settings, Admin Audit Logs
+    match /influnex_seoPages/{pageId} {
+      allow read: if isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_blogPosts/{postId} {
+      allow read: if (resource.data.status == "PUBLISHED" && isInfluNexTenantDoc()) || isAdmin();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_redirects/{redirectId} {
+      allow read: if isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_platformSettings/{settingId} {
+      allow read: if isAdmin() && isInfluNexTenantDoc();
+      allow write: if isAdmin() && isWritingInfluNexTenant();
+    }
+
+    match /influnex_adminAuditLogs/{logId} {
+      allow read: if isAdmin() && isInfluNexTenantDoc();
+      allow write: if false; // Strictly append-only via Backend Admin SDK
+    }
+
+    // Default deny for everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

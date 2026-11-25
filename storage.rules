@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// ============================================================================
+// INFLUNEX CLOUD STORAGE SECURITY RULES (Isolated Bucket & Tenant Path)
+// All paths are isolated under /influnex/... to prevent cross-project access
+// Receipt uploads strictly enforce PDF/JPG/PNG, max 5MB, and participant auth
+// ============================================================================
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.role == "ADMIN" ||
+        request.auth.token.admin == true
+      );
+    }
+
+    // 1. Public Creator Avatars, Covers & Portfolio Assets (Strictly isolated under /influnex/public/)
+    match /influnex/public/creators/{creatorId}/{fileName} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+                            && request.auth.uid == creatorId
+                            && request.resource.size > 0
+                            && request.resource.size <= 5 * 1024 * 1024
+                            && request.resource.contentType.matches('image/(jpeg|png|webp|avif)');
+      allow delete: if (isSignedIn() && request.auth.uid == creatorId) || isAdmin();
+    }
+
+    // 2. Private Bank Transfer Receipts (Dekont) - Strictly isolated & private
+    // Only PDF, JPG, PNG up to 5MB allowed. Immutable once uploaded.
+    match /influnex/private/receipts/{advertiserId}/{orderId}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == advertiserId || isAdmin());
+      allow create: if isSignedIn()
+                    && request.auth.uid == advertiserId
+                    && request.resource.size > 0
+                    && request.resource.size <= 5 * 1024 * 1024
+                    && (
+                      request.resource.contentType == 'application/pdf' ||
+                      request.resource.contentType == 'image/jpeg' ||
+                      request.resource.contentType == 'image/png'
+                    );
+      allow update, delete: if false;
+    }
+
+    // 3. Private Order Deliverables & Campaign Attachments
+    match /influnex/private/deliverables/{creatorId}/{orderId}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == creatorId || isAdmin());
+      allow create: if isSignedIn()
+                    && request.auth.uid == creatorId
+                    && request.resource.size > 0
+                    && request.resource.size <= 25 * 1024 * 1024
+                    && request.resource.contentType.matches('(image/(jpeg|png|webp)|video/mp4|application/pdf)');
+      allow update, delete: if false;
+    }
+
+    // Default deny for all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
