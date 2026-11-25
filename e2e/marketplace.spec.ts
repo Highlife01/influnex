@@ -6,7 +6,7 @@ test.describe("InfluNex E2E Marketplace & SEO Verification", () => {
   }) => {
     await page.goto("/tr");
     await expect(page.locator("h1")).toContainText(
-      "Markalar ve içerik üreticileri burada buluşuyor."
+      "Birlikte kazan."
     );
     const canonical = await page
       .locator('link[rel="canonical"]')
