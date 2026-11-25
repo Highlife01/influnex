@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { SUPER_ADMIN_EMAIL } from "@/lib/auth/roles";
 import {
   calculateCommissionBreakdown,
   formatMinorUnits,
@@ -61,10 +62,10 @@ const ORDER_LIFECYCLE_STEPS = [
 ] as const;
 
 export default function UserDashboardPanelPage() {
-  const [activeRole, setActiveRole] = useState<"ADVERTISER" | "CREATOR">(
-    "ADVERTISER"
-  );
-  const [orderStatus, setOrderStatus] = useState<string>("PAYMENT_PENDING");
+  const [activeRole, setActiveRole] = useState<
+    "SUPERADMIN" | "CREATOR" | "ADVERTISER"
+  >("CREATOR");
+  const [orderStatus, setOrderStatus] = useState<string>("PAID");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
   const [receiptStatusMsg, setReceiptStatusMsg] = useState<string | null>(null);
 
@@ -93,7 +94,7 @@ export default function UserDashboardPanelPage() {
     }
     setOrderStatus("PAYMENT_REVIEW");
     setReceiptStatusMsg(
-      "Örnek dekont simülasyonu tamamlandı (PAYMENT_REVIEW). Gerçek kullanımda yönetici banka ekstresindeki tekil işlem referans numarasını doğruladığında sipariş PAID (Bloke) durumuna geçer."
+      "Örnek dekont simülasyonu tamamlandı (PAYMENT_REVIEW). Süperadmin banka ekstresindeki tekil işlem referans numarasını doğruladığında sipariş PAID (Bloke) durumuna geçer."
     );
   }
 
@@ -126,34 +127,59 @@ export default function UserDashboardPanelPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div
-        role="note"
-        className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950"
-      >
-        <strong className="font-bold">
-          Erken Erişim Beta — Örnek Sipariş & Muhasebe Simülasyon Paneli:
-        </strong>{" "}
-        Bu ekran, sipariş durum makinesinin (15 durum), banka havalesi bloke/iade
-        kurallarının ve %15 komisyon / %85 üretici hakediş defterinin nasıl
-        çalıştığını adım adım test etmeniz için açıktır. Gerçek Google
-        hesabınızla rol panelinize geçmek için{" "}
-        <Link href="/tr/giris" className="font-bold underline">
-          Giriş Yapın
-        </Link>
-        .
+      {/* Top Executive Navigation Bar */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-slate-950 p-4 text-xs text-white">
+        <div>
+          <strong className="text-emerald-400">
+            Birleşik İşlem, Sipariş Durum Makinesi & Hakediş Kokpiti:
+          </strong>{" "}
+          Süperadmin (<code>{SUPER_ADMIN_EMAIL}</code>), Influencer (%85 Pay)
+          ve Reklamveren görünümleri arasında geçiş yapabilirsiniz.
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/tr/yonetim"
+            className="rounded-lg bg-indigo-600 px-3 py-1.5 font-bold text-white hover:bg-indigo-500"
+          >
+            Süperadmin Paneli →
+          </Link>
+          <Link
+            href="/tr/yayinci/panel"
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white hover:bg-emerald-500"
+          >
+            Influencer Stüdyosu →
+          </Link>
+          <Link
+            href="/tr/reklamveren/panel"
+            className="rounded-lg bg-white/15 px-3 py-1.5 font-bold text-white hover:bg-white/25"
+          >
+            Reklamveren Paneli →
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-center">
         <div>
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-800">
-            İzole Veri Katmanı: influnex-db
+            İzole Veri Katmanı: influnex-db • Süperadmin: {SUPER_ADMIN_EMAIL}
           </span>
           <h1 className="mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl">
-            Sipariş Durum Makinesi, Bloke & Hakediş Simülasyonu
+            15 Durumlu Sipariş, Bloke & %85 Hakediş Simülasyon Merkezi
           </h1>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveRole("CREATOR")}
+            className={`rounded-xl px-4 py-2 text-xs font-bold ${
+              activeRole === "CREATOR"
+                ? "bg-emerald-600 text-white"
+                : "border border-slate-300 bg-white text-slate-700"
+            }`}
+          >
+            Influencer (%85 Hakediş)
+          </button>
           <button
             type="button"
             onClick={() => setActiveRole("ADVERTISER")}
@@ -167,19 +193,19 @@ export default function UserDashboardPanelPage() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveRole("CREATOR")}
+            onClick={() => setActiveRole("SUPERADMIN")}
             className={`rounded-xl px-4 py-2 text-xs font-bold ${
-              activeRole === "CREATOR"
-                ? "bg-indigo-600 text-white"
+              activeRole === "SUPERADMIN"
+                ? "bg-slate-950 text-white"
                 : "border border-slate-300 bg-white text-slate-700"
             }`}
           >
-            Üretici Hakediş Görünümü
+            Süperadmin ({SUPER_ADMIN_EMAIL})
           </button>
         </div>
       </div>
 
-      {/* Interactive Order State Machine Visualizer (Audit P1 Item 2) */}
+      {/* Interactive Order State Machine Visualizer */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -222,7 +248,7 @@ export default function UserDashboardPanelPage() {
       </section>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* LEFT COLUMN: BANK TRANSFER, ESCROW BLOCK & REFUND RULES (Audit Section 1 & P1) */}
+        {/* LEFT COLUMN: BANK TRANSFER, ESCROW BLOCK & REFUND RULES */}
         <div className="space-y-6 lg:col-span-7">
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -268,7 +294,6 @@ export default function UserDashboardPanelPage() {
               </div>
             </dl>
 
-            {/* Explicit Answers to All 5 Bank Transfer Questions from Audit */}
             <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
               <strong className="block text-slate-900">
                 Tahsilat, Bloke, Hakediş Aktarımı ve İade Kuralları:
@@ -276,9 +301,10 @@ export default function UserDashboardPanelPage() {
               <p>
                 • <strong>1. Dekont Eşleştirme:</strong> Reklamveren havale/FAST
                 açıklamasına tekil sipariş kodunu (<code>INF-2026-000001</code>)
-                yazar. Yönetici banka ekstresindeki tekil işlem referans
-                numarasını (<code>bankTransactionRef</code>) kaydederek onaylar;
-                aynı referans ikinci kez kullanılamaz.
+                yazar. Süperadmin (<code>{SUPER_ADMIN_EMAIL}</code>) banka
+                ekstresindeki tekil işlem referans numarasını (
+                <code>bankTransactionRef</code>) kaydederek onaylar; aynı
+                referans ikinci kez kullanılamaz.
               </p>
               <p>
                 • <strong>2. Paranın Bloke Edilmesi:</strong> Ödeme
@@ -296,8 +322,9 @@ export default function UserDashboardPanelPage() {
               <p>
                 • <strong>4. İptal ve İade Politikası:</strong> Üretici işe
                 başlamadan veya teslim süresi aşıldığı için iptal edilen
-                siparişlerde reklamverene ödediği tutarın <strong>%100&apos;ü</strong>{" "}
-                iade edilir ve <strong>%0 komisyon</strong> uygulanır.
+                siparişlerde reklamverene ödediği tutarın{" "}
+                <strong>%100&apos;ü</strong> iade edilir ve{" "}
+                <strong>%0 komisyon</strong> uygulanır.
               </p>
             </div>
 

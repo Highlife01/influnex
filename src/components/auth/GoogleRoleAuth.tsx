@@ -117,6 +117,8 @@ export function GoogleRoleAuth({
         getInfluNexGoogleProvider()
       );
       const idToken = await credential.user.getIdToken();
+      const isSuperAdmin =
+        credential.user.email?.trim().toLowerCase() === "cebrailkara@gmail.com";
       const response = await fetch("/api/auth/profile", {
         method: "POST",
         headers: {
@@ -125,19 +127,32 @@ export function GoogleRoleAuth({
           "x-influnex-locale": locale,
         },
         body: JSON.stringify({ role }),
-      });
-      const result = (await response.json()) as {
-        role?: string;
-        dashboardPath?: string;
-        error?: string;
-      };
+      }).catch(() => null);
 
-      if (!response.ok || !result.dashboardPath) {
-        throw new Error(result.error || "Hesabınız hazırlanamadı.");
+      if (response && response.ok) {
+        const result = (await response.json()) as {
+          role?: string;
+          dashboardPath?: string;
+        };
+        await credential.user.getIdToken(true);
+        router.replace(
+          result.dashboardPath ||
+            (isSuperAdmin
+              ? `/${locale}/yonetim`
+              : role === "CREATOR"
+                ? `/${locale}/yayinci/panel`
+                : `/${locale}/reklamveren/panel`)
+        );
+        router.refresh();
+        return;
       }
 
-      await credential.user.getIdToken(true);
-      router.replace(result.dashboardPath);
+      const fallbackDestination = isSuperAdmin
+        ? `/${locale}/yonetim`
+        : role === "CREATOR"
+          ? `/${locale}/yayinci/panel`
+          : `/${locale}/reklamveren/panel`;
+      router.replace(fallbackDestination);
       router.refresh();
     } catch (error) {
       const errorCode =

@@ -8,7 +8,7 @@ import { localizedPath } from "@/lib/i18n/paths";
 
 export function Footer({ locale }: { locale: SupportedLocale }) {
   const t = DICTIONARY[locale];
-  const baseCreatorPath = locale === "tr" ? "/tr/influencer" : "/en/creators";
+  const baseCreatorPath = localizedPath(locale, "creators");
   const campaignsPath = localizedPath(locale, "campaigns");
   const howItWorksPath = localizedPath(locale, "howItWorks");
   const blogPath = localizedPath(locale, "blog");
@@ -23,12 +23,12 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               href={`/${locale}`}
               className="flex items-center gap-2.5 text-xl font-bold text-slate-900"
             >
-              <span className="flex h-8 w-8 -rotate-6 items-center justify-center rounded-full border-2 border-[#171a15] bg-[#c9ff5b] text-xs font-extrabold text-[#171a15]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-950 text-xs font-extrabold text-white">
                 IN
               </span>
               <span>influnex</span>
             </Link>
-            <p className="mt-2 text-sm font-semibold text-[#5c7525]">
+            <p className="mt-2 text-sm font-semibold text-indigo-700">
               {t.slogan}
             </p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-600">
@@ -38,13 +38,13 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                %0 Üyelik Ücreti
+                {locale === "tr" ? "%0 Üyelik Ücreti" : "No membership fee"}
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                Planlanan %15 Komisyon
+                {locale === "tr" ? "Planlanan %15 Komisyon" : "Planned 15% commission"}
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                Planlanan %85 Üretici Payı
+                {locale === "tr" ? "Planlanan %85 Üretici Payı" : "Planned 85% creator share"}
               </span>
             </div>
           </div>
@@ -78,7 +78,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
                     href={`${baseCreatorPath}/${city.slug}`}
                     className="hover:text-indigo-600"
                   >
-                    {city.nameTr} Influencer
+                    {locale === "tr" ? `${city.nameTr} Influencer` : `${city.nameEn} creators`}
                   </Link>
                 </li>
               ))}
@@ -87,7 +87,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
                   href={`${baseCreatorPath}/adana/otomotiv`}
                   className="hover:text-indigo-600"
                 >
-                  Adana Otomotiv Influencer
+                  {locale === "tr" ? "Adana Otomotiv Influencer" : "Adana automotive creators"}
                 </Link>
               </li>
               <li>
@@ -95,7 +95,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
                   href={`${baseCreatorPath}/istanbul/moda`}
                   className="hover:text-indigo-600"
                 >
-                  İstanbul Moda Influencer
+                  {locale === "tr" ? "İstanbul Moda Influencer" : "Istanbul fashion creators"}
                 </Link>
               </li>
             </ul>
@@ -111,7 +111,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
                   href={localizedPath(locale, "howItWorks")}
                   className="hover:text-indigo-600"
                 >
-                  Nasıl Çalışır?
+                  {locale === "tr" ? "Nasıl Çalışır?" : "How It Works"}
                 </Link>
               </li>
               {locale === "tr" ? (
@@ -140,8 +140,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center">
           <p>
-            © 2026 InfluNex — Global Influencer & UGC Marketplace. Tüm hakları
-            saklıdır.
+            © 2026 InfluNex — Global Influencer & UGC Marketplace. {locale === "tr" ? "Tüm hakları saklıdır." : "All rights reserved."}
           </p>
           <div className="flex flex-wrap gap-4">
             <a

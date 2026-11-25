@@ -140,3 +140,24 @@ Ana başarı metrikleri; ziyaretçiden arama başlatmaya geçiş, aramadan creat
 ## Sonuç
 
 InfluNex'in mimari yönü doğru ve ürün kapsamı güçlü. Ancak yeni özellik eklemekten önce derleme zinciri, canonical route, çoklu dil linkleri ve test sözleşmesi temizlenmeli. Bu dört konu düzeltildiğinde erişilebilirlik ve dönüşüm iyileştirmeleri daha güvenilir ölçülebilir; SEO ve ödeme/güven katmanındaki mevcut yatırım da gerçek kullanıcı trafiğine daha sağlıklı taşınabilir.
+
+
+## 26 Kasım 2026 — Uygulama ve yeniden doğrulama notu
+
+Önceki rapordaki P0/P1 bulgularının ilgili kısmı kaynak üzerinde uygulanmıştır:
+
+- `CommissionCalculatorWidget` locale prop'u ve Türkçe/İngilizce metinleri doğrulandı.
+- `src/lib/i18n/paths.ts` içine `platformPath` ve `admin` route anahtarları eklendi.
+- Ana sayfadaki İngilizce locale için kalan sabit Türkçe başlıklar, CTA metinleri, platform özeti, kampanya kartları ve SEO keşif başlıkları locale-aware hale getirildi.
+- Footer logosu Navbar ile aynı indigo görsel dile taşındı; şehir/kategori etiketleri, rozetler, hukuki bağlantı başlığı ve telif metni İngilizce locale için düzeltildi.
+- `/en/influencer-reklam-fiyatlari` sayfası artık İngilizce içerik, locale-aware metadata, canonical ve hreflang üretmektedir.
+- Navbar’ın kullandığı `/tr/admin` ve `/en/admin` yolları ortak route tablosuna eklendi.
+
+Doğrulama sonuçları:
+
+- `npm.cmd run typecheck`: başarılı.
+- `npm.cmd test -- --run`: 6 dosya, 28 test başarılı.
+- `npm.cmd run build`: Next.js 15.5.29 ile başarılı; 17 statik sayfa üretildi ve `.next/server/pages-manifest.json` mevcut.
+- `npm.cmd run test:e2e`: çalıştırılamadı; Playwright Chromium executable'ı cihazda kurulu değil ve test sunucusu başlamadığı için HTTP smoke testi de bağlantı hatası verdi. Kod değişikliği kaynaklı test assertion hatası tespit edilmedi.
+
+Kalan önemli riskler: detail/campaign/panel gibi bazı eski route dosyalarında sabit `/tr` bağlantıları hâlâ bulunuyor; E2E tarayıcı bağımlılığı kurulmadan gerçek kullanıcı akışı doğrulanamıyor; Firebase CLI oturumu/proje erişimi ve `gcloud` CLI deploy için hazır değil. Bu nedenle yayınlama henüz tamamlanmış sayılmamalıdır.

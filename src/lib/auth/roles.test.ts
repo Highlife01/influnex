@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { resolveAccountRole } from "./roles";
+import {
+  SUPER_ADMIN_EMAIL,
+  isSuperAdminEmail,
+  resolveAccountRole,
+} from "./roles";
 
-describe("resolveAccountRole", () => {
-  const superAdminEmail = "cebrailkara@gmail.com";
+describe("resolveAccountRole & SuperAdmin", () => {
+  const superAdminEmail = SUPER_ADMIN_EMAIL;
 
-  it("assigns admin only to the configured email", () => {
+  it("identifies cebrailkara@gmail.com as SuperAdmin case-insensitively", () => {
+    expect(SUPER_ADMIN_EMAIL).toBe("cebrailkara@gmail.com");
+    expect(isSuperAdminEmail("cebrailkara@gmail.com")).toBe(true);
+    expect(isSuperAdminEmail("  CebrailKara@GMAIL.com ")).toBe(true);
+    expect(isSuperAdminEmail("other@gmail.com")).toBe(false);
+    expect(isSuperAdminEmail(null)).toBe(false);
+  });
+
+  it("assigns admin only to the configured superadmin email", () => {
     expect(
       resolveAccountRole({
         email: "CebrailKara@gmail.com",

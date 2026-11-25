@@ -11,6 +11,7 @@ const PUBLIC_PATHS = {
     login: "/tr/giris",
     signup: "/tr/kayit",
     dashboard: "/tr/panel",
+    admin: "/tr/admin",
     legal: "/tr/hukuki",
     services: "/tr/hizmetler",
   },
@@ -24,6 +25,7 @@ const PUBLIC_PATHS = {
     login: "/en/giris",
     signup: "/en/kayit",
     dashboard: "/en/panel",
+    admin: "/en/admin",
     legal: "/en/hukuki",
     services: "/en/hizmetler",
   },
@@ -45,6 +47,13 @@ export function creatorProfilePath(
 }
 
 export function categoryPath(
+  locale: SupportedLocale,
+  slug: string,
+): string {
+  return `${localizedPath(locale, "creators")}/${slug}`;
+}
+
+export function platformPath(
   locale: SupportedLocale,
   slug: string,
 ): string {
