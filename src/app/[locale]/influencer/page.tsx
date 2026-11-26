@@ -163,7 +163,7 @@ export default async function InfluencerDiscoveryPage({
           href={`/${locale}/admin#influencer-eposta-rehberi`}
           className="inline-flex items-center rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-950"
         >
-          1.000 Influencer E-Posta & CRM Rehberi (Süperadmin) →
+          1.000 Influencer Tanıtım & Davet Merkezi (Süperadmin) →
         </Link>
       </div>
 

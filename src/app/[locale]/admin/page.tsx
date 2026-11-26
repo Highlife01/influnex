@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
               {totalApprovedCreators.toLocaleString("tr-TR")}
             </p>
             <span className="mt-1 block text-[10px] text-emerald-300">
-              1.000 Profil & İzole E-Posta
+              1.000 Profil & Tanıtım Merkezi
             </span>
           </div>
 

@@ -17,7 +17,7 @@ import {
 } from "@/lib/seo/routeRegistry";
 
 describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () => {
-  it("provides 1,000 approved public creator profiles and 1,000 isolated outreach email records", () => {
+  it("provides 1,000 approved public creator profiles and 1,000 outreach directory records without fake emails", () => {
     const publicSearch = marketplaceStore.searchCreators({ limit: 1000 });
     expect(publicSearch.total).toBe(1000);
     expect(publicSearch.items).toHaveLength(1000);
@@ -27,9 +27,7 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
     });
     expect(adminContacts.total).toBe(1000);
     expect(adminContacts.items).toHaveLength(1000);
-    expect(adminContacts.items[0]?.contactEmail).toContain(
-      "@creators.influnex.com.tr"
-    );
+    expect("contactEmail" in (adminContacts.items[0] || {})).toBe(false);
   });
 
   it("enforces Programmatic SEO Index Quality Gate (minimum 3 approved creators required)", () => {

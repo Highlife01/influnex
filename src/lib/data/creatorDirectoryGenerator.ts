@@ -23,7 +23,6 @@ export interface CreatorOutreachContactRecord {
   creatorId: string;
   username: string;
   displayName: string;
-  contactEmail: string;
   socialHandle: string;
   citySlug: string;
   cityNameTr: string;
@@ -169,7 +168,6 @@ export function buildThousandCreatorCatalog(
       creatorId: seed.id,
       username: seed.username,
       displayName: seed.displayName,
-      contactEmail: `${seed.username}@creators.influnex.com.tr`,
       socialHandle: `@${seed.username.replace(/-/g, "")}`,
       citySlug: seed.citySlug,
       cityNameTr: seed.cityNameTr,
@@ -342,12 +340,11 @@ export function buildThousandCreatorCatalog(
       updatedAt: "2026-11-25T10:00:00.000Z",
     });
 
-    // Build physical isolated outreach contact record (SuperAdmin CRM only)
+    // Build directory summary record (zero generated emails)
     contacts.push({
       creatorId,
       username,
       displayName,
-      contactEmail: `${baseNameSlug}.${seq}@creators.influnex.com.tr`,
       socialHandle: `@${baseNameSlug.replace(/-/g, "")}${seq}`,
       citySlug: city.slug,
       cityNameTr: city.nameTr,

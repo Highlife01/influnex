@@ -536,7 +536,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <Users size={17} />
-                  1.000 Influencer & Mail CRM
+                  1.000 Influencer & Tanıtım
                 </button>
                 <button
                   type="button"

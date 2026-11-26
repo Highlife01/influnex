@@ -912,7 +912,6 @@ export class IsolatedMarketplaceStore {
       list = list.filter(
         (c) =>
           c.displayName.toLowerCase().includes(q) ||
-          c.contactEmail.toLowerCase().includes(q) ||
           c.socialHandle.toLowerCase().includes(q) ||
           c.cityNameTr.toLowerCase().includes(q) ||
           c.primaryCategoryNameTr.toLowerCase().includes(q)
