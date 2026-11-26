@@ -35,6 +35,7 @@ import {
 } from "@/lib/finance/commission";
 import { getInfluNexAuth } from "@/lib/firebase/client";
 import { INITIAL_CATEGORIES, INITIAL_CITIES } from "@/lib/data/catalog";
+import { ThousandCreatorsCrmSection } from "./ThousandCreatorsCrmSection";
 
 type WorkspaceRole = UserRole;
 
@@ -535,7 +536,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <Users size={17} />
-                  Influencer Doğrulama & Rozet
+                  1.000 Influencer & Mail CRM
                 </button>
                 <button
                   type="button"
@@ -791,6 +792,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   ✓ {adminNotice}
                 </div>
               ) : null}
+
+              {/* SuperAdmin Section A-0: 1,000 Influencer Emails & Profiles CRM Directory */}
+              {(activeTab === "overview" || activeTab === "verifications") && (
+                <ThousandCreatorsCrmSection locale={locale} />
+              )}
 
               {/* SuperAdmin Section A: Order Escrow, Bank Ref Verification & 85% Payout Table */}
               {(activeTab === "overview" || activeTab === "ledger") && (

@@ -15,6 +15,7 @@ import {
   INFLUNEX_STORAGE_BUCKET,
 } from "@/lib/firebase/isolation";
 import { evaluateIndexQualityGate } from "@/lib/seo/qualityGate";
+import { ThousandCreatorsCrmSection } from "@/components/dashboard/ThousandCreatorsCrmSection";
 
 export const metadata: Metadata = {
   title: "Süperadmin, Muhasebe ve SEO & GEO Komuta Merkezi",
@@ -22,9 +23,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminDashboardPage() {
-  const { items: approvedCreators } = marketplaceStore.searchCreators({
-    limit: 48,
-  });
+  const { items: approvedCreators, total: totalApprovedCreators } =
+    marketplaceStore.searchCreators({
+      limit: 1000,
+    });
   const openCampaigns = marketplaceStore.getOpenCampaigns();
 
   const totalOpenBudgetMinor = openCampaigns.reduce(
@@ -117,10 +119,10 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <span className="text-[11px] text-slate-300">Onaylı Influencer</span>
             <p className="mt-1 text-2xl font-black text-white">
-              {approvedCreators.length}
+              {totalApprovedCreators.toLocaleString("tr-TR")}
             </p>
             <span className="mt-1 block text-[10px] text-emerald-300">
-              Vitrinde Yayında
+              1.000 Profil & İzole E-Posta
             </span>
           </div>
 
@@ -170,6 +172,11 @@ export default function AdminDashboardPage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* 1,000 Influencer Emails & Profiles SuperAdmin CRM Section */}
+      <div className="mt-8">
+        <ThousandCreatorsCrmSection locale="tr" />
       </div>
 
       {/* 4-Layer Data Isolation Health Card */}

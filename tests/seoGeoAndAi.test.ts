@@ -17,6 +17,21 @@ import {
 } from "@/lib/seo/routeRegistry";
 
 describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () => {
+  it("provides 1,000 approved public creator profiles and 1,000 isolated outreach email records", () => {
+    const publicSearch = marketplaceStore.searchCreators({ limit: 1000 });
+    expect(publicSearch.total).toBe(1000);
+    expect(publicSearch.items).toHaveLength(1000);
+
+    const adminContacts = marketplaceStore.searchAdminCreatorContacts({
+      limit: 1000,
+    });
+    expect(adminContacts.total).toBe(1000);
+    expect(adminContacts.items).toHaveLength(1000);
+    expect(adminContacts.items[0]?.contactEmail).toContain(
+      "@creators.influnex.com.tr"
+    );
+  });
+
   it("enforces Programmatic SEO Index Quality Gate (minimum 3 approved creators required)", () => {
     // Adana Otomotiv has 3 approved creators -> passes Quality Gate (index, follow)
     const adanaCreators = marketplaceStore.searchCreators({

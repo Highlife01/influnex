@@ -18,6 +18,8 @@ import {
 import { buildHreflangAlternates } from "@/lib/seo/routeRegistry";
 import type { SupportedPlatform } from "@/lib/types/domain";
 
+const PAGE_SIZE = 24;
+
 export async function generateMetadata({
   params,
 }: {
@@ -34,12 +36,12 @@ export async function generateMetadata({
   return {
     title:
       locale === "tr"
-        ? "Influencer Keşfet — Instagram, TikTok, YouTube ve UGC Üreticileri"
-        : "Explore Influencers & UGC Content Creators",
+        ? "1.000+ Influencer Keşfet — Instagram, TikTok, YouTube ve UGC Üreticileri"
+        : "Explore 1,000+ Influencers & UGC Content Creators",
     description:
       locale === "tr"
-        ? "Türkiye'deki onaylı Instagram, TikTok, YouTube influencer'larını ve UGC içerik üreticilerini şehir, kategori, bütçe ve etkileşim oranına göre filtreleyin."
-        : "Filter verified Instagram, TikTok, YouTube influencers and UGC creators by city, category, budget, and engagement rate.",
+        ? "Türkiye'deki 1.000 onaylı Instagram, TikTok, YouTube influencer'ını ve UGC içerik üreticisini şehir, kategori, bütçe ve etkileşim oranına göre filtreleyin."
+        : "Filter 1,000 verified Instagram, TikTok, YouTube influencers and UGC creators by city, category, budget, and engagement rate.",
     alternates,
   };
 }
@@ -62,26 +64,36 @@ export default async function InfluencerDiscoveryPage({
     typeof query.platform === "string"
       ? (query.platform.toUpperCase() as SupportedPlatform)
       : undefined;
+  const queryText = typeof query.q === "string" ? query.q : undefined;
   const ugcOnly = query.ugc === "true";
   const verifiedOnly = query.verified === "true";
   const sortBy =
     typeof query.sort === "string"
       ? (query.sort as CreatorSortOption)
       : "RECOMMENDED";
+  const rawPage =
+    typeof query.page === "string" ? parseInt(query.page, 10) : 1;
+  const currentPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
   const { items: creators, total } = marketplaceStore.searchCreators({
     citySlug,
     categorySlug,
     platform,
+    queryText,
     ugcOnly,
     verifiedOnly,
     sortBy,
+    limit: PAGE_SIZE,
+    offset,
   });
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const collectionJsonLd = buildCollectionPageJsonLd({
     title: "Influencer ve UGC İçerik Üreticileri | InfluNex",
     description:
-      "Şehir, kategori, platform ve bütçeye göre filtrelenebilir onaylı influencer listesi.",
+      "Şehir, kategori, platform ve bütçeye göre filtrelenebilir 1.000 onaylı influencer listesi.",
     path: locale === "tr" ? "/tr/influencer" : "/en/creators",
     creators,
     locale,
@@ -96,6 +108,20 @@ export default async function InfluencerDiscoveryPage({
   ]);
 
   const basePath = locale === "tr" ? "/tr/influencer" : "/en/creators";
+
+  function buildPageHref(targetPage: number): string {
+    const sp = new URLSearchParams();
+    if (citySlug) sp.set("city", citySlug);
+    if (categorySlug) sp.set("category", categorySlug);
+    if (platform) sp.set("platform", platform);
+    if (queryText) sp.set("q", queryText);
+    if (ugcOnly) sp.set("ugc", "true");
+    if (verifiedOnly) sp.set("verified", "true");
+    if (sortBy !== "RECOMMENDED") sp.set("sort", sortBy);
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    const qs = sp.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -115,21 +141,86 @@ export default async function InfluencerDiscoveryPage({
         / <span className="font-semibold text-slate-800">Influencer Keşfet</span>
       </nav>
 
-      <div className="mt-4">
-        <h1 className="text-3xl font-extrabold text-slate-900">
-          {locale === "tr"
-            ? "Influencer ve UGC İçerik Üreticilerini Keşfedin"
-            : "Discover Influencers & UGC Content Creators"}
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Sıralama algoritmamız ücretli öne çıkarma içermez; kategori uygunluğu,
-          gerçek etkileşim oranı, doğrulama kaynağı ve tamamlanan iş birliği
-          kalitesini esas alır.
-        </p>
+      <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-800">
+            {total.toLocaleString("tr-TR")} Onaylı Influencer & UGC Profili •
+            Sayfa {currentPage} / {totalPages}
+          </span>
+          <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
+            {locale === "tr"
+              ? "1.000+ Influencer ve UGC İçerik Üreticisini Keşfedin"
+              : "Discover 1,000+ Influencers & UGC Content Creators"}
+          </h1>
+          <p className="mt-1.5 max-w-3xl text-sm text-slate-600">
+            Sıralama algoritmamız ücretli öne çıkarma içermez; kategori
+            uygunluğu, gerçek etkileşim oranı, doğrulama kaynağı ve tamamlanan
+            iş birliği kalitesini esas alır.
+          </p>
+        </div>
+
+        <Link
+          href={`/${locale}/admin#influencer-eposta-rehberi`}
+          className="inline-flex items-center rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-950"
+        >
+          1.000 Influencer E-Posta & CRM Rehberi (Süperadmin) →
+        </Link>
       </div>
 
+      {/* Fast Server-Rendered Search & Sort Bar */}
+      <form
+        method="GET"
+        action={basePath}
+        className="mt-6 grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs sm:grid-cols-12"
+      >
+        <div className="sm:col-span-6">
+          <label htmlFor="dir-q" className="sr-only">
+            İsim, şehir veya uzmanlık ara
+          </label>
+          <input
+            id="dir-q"
+            name="q"
+            type="search"
+            defaultValue={queryText || ""}
+            placeholder="İsim, şehir veya uzmanlık ara (Örn: Adana otomotiv, İstanbul moda, teknoloji)..."
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs"
+          />
+        </div>
+        <div className="sm:col-span-3">
+          <label htmlFor="dir-sort" className="sr-only">
+            Sıralama
+          </label>
+          <select
+            id="dir-sort"
+            name="sort"
+            defaultValue={sortBy}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold"
+          >
+            <option value="RECOMMENDED">Önerilen Sıralama (Kalite & ER)</option>
+            <option value="FOLLOWERS_DESC">Takipçi Sayısı (Yüksekten Düşüğe)</option>
+            <option value="PRICE_ASC">Başlangıç Fiyatı (Düşükten Yükseğe)</option>
+            <option value="PRICE_DESC">Başlangıç Fiyatı (Yüksekten Düşüğe)</option>
+            <option value="RATING_DESC">Değerlendirme Puanı (En Yüksek)</option>
+          </select>
+        </div>
+        <div className="flex gap-2 sm:col-span-3">
+          <button
+            type="submit"
+            className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"
+          >
+            Filtrele ({total})
+          </button>
+          <Link
+            href={basePath}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+          >
+            Sıfırla
+          </Link>
+        </div>
+      </form>
+
       {/* Programmatic SEO Quick Filter Pills (Real HTML Anchor Links) */}
-      <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-bold text-slate-700">Platformlar:</span>
           <Link
@@ -164,7 +255,7 @@ export default async function InfluencerDiscoveryPage({
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-bold text-slate-700">Kategoriler:</span>
-          {INITIAL_CATEGORIES.slice(0, 12).map((cat) => (
+          {INITIAL_CATEGORIES.slice(0, 14).map((cat) => (
             <Link
               key={cat.id}
               href={`${basePath}/${locale === "tr" ? cat.slugTr : cat.slugEn}`}
@@ -182,6 +273,65 @@ export default async function InfluencerDiscoveryPage({
           <CreatorCard key={creator.id} creator={creator} locale={locale} />
         ))}
       </div>
+
+      {/* Clean SEO-Friendly Pagination Bar across all 1,000 profiles */}
+      {totalPages > 1 ? (
+        <nav
+          aria-label="Sayfalama"
+          className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-xs"
+        >
+          <span className="font-semibold text-slate-600">
+            Toplam <strong>{total.toLocaleString("tr-TR")}</strong> profilden{" "}
+            <strong>
+              {offset + 1}–{Math.min(offset + PAGE_SIZE, total)}
+            </strong>{" "}
+            arası gösteriliyor (Sayfa {currentPage} / {totalPages})
+          </span>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {currentPage > 1 ? (
+              <Link
+                href={buildPageHref(currentPage - 1)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+              >
+                ← Önceki
+              </Link>
+            ) : null}
+
+            {Array.from({ length: Math.min(7, totalPages) }, (_, idx) => {
+              const pageNum =
+                currentPage <= 4
+                  ? idx + 1
+                  : currentPage >= totalPages - 3
+                    ? totalPages - 6 + idx
+                    : currentPage - 3 + idx;
+              if (pageNum < 1 || pageNum > totalPages) return null;
+              return (
+                <Link
+                  key={pageNum}
+                  href={buildPageHref(pageNum)}
+                  className={`rounded-lg px-3 py-1.5 font-bold ${
+                    pageNum === currentPage
+                      ? "bg-indigo-600 text-white"
+                      : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {pageNum}
+                </Link>
+              );
+            })}
+
+            {currentPage < totalPages ? (
+              <Link
+                href={buildPageHref(currentPage + 1)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Sonraki →
+              </Link>
+            ) : null}
+          </div>
+        </nav>
+      ) : null}
     </div>
   );
 }

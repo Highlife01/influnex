@@ -20,6 +20,12 @@ import {
   INFLUNEX_TENANT_ID,
 } from "../firebase/isolation";
 import { INITIAL_CATEGORIES, INITIAL_CITIES } from "./catalog";
+import {
+  buildThousandCreatorCatalog,
+  type CreatorOutreachContactRecord,
+} from "./creatorDirectoryGenerator";
+
+export type { CreatorOutreachContactRecord };
 
 export type CreatorSortOption =
   | "RECOMMENDED"
@@ -844,6 +850,7 @@ const INITIAL_CAMPAIGNS: CampaignRecord[] = [
 export class IsolatedMarketplaceStore {
   private publicCreators = new Map<string, PublicCreatorProfile>();
   private privateCreators = new Map<string, PrivateCreatorProfile>();
+  private outreachContacts = new Map<string, CreatorOutreachContactRecord>();
   private socialAccounts = new Map<string, SocialAccountRecord>();
   private services = new Map<string, CreatorServiceRecord>();
   private campaigns = new Map<string, CampaignRecord>();
@@ -851,18 +858,74 @@ export class IsolatedMarketplaceStore {
   private usernameRedirects = new Map<string, string>(); // oldUsername -> currentUsername
 
   constructor() {
-    for (const creator of VERIFIED_CREATORS) {
+    const { profiles, services, contacts } = buildThousandCreatorCatalog(
+      VERIFIED_CREATORS,
+      INITIAL_SERVICES,
+      1000
+    );
+
+    for (const creator of profiles) {
       this.savePublicCreatorProfile(creator);
       for (const oldName of creator.previousUsernames) {
         this.usernameRedirects.set(oldName.toLowerCase(), creator.username);
       }
     }
-    for (const service of INITIAL_SERVICES) {
+    for (const service of services) {
       this.services.set(service.id, service);
+    }
+    for (const contact of contacts) {
+      this.outreachContacts.set(contact.creatorId, contact);
     }
     for (const campaign of INITIAL_CAMPAIGNS) {
       this.campaigns.set(campaign.id, campaign);
     }
+  }
+
+  public searchAdminCreatorContacts(
+    filters: {
+      queryText?: string;
+      citySlug?: string;
+      categorySlug?: string;
+      platform?: SupportedPlatform;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): {
+    items: CreatorOutreachContactRecord[];
+    total: number;
+  } {
+    let list = Array.from(this.outreachContacts.values());
+
+    if (filters.citySlug) {
+      const city = filters.citySlug.toLowerCase();
+      list = list.filter((c) => c.citySlug === city);
+    }
+    if (filters.categorySlug) {
+      const cat = filters.categorySlug.toLowerCase();
+      list = list.filter((c) => c.primaryCategorySlug === cat);
+    }
+    if (filters.platform) {
+      list = list.filter((c) => c.platforms.includes(filters.platform!));
+    }
+    if (filters.queryText && filters.queryText.trim()) {
+      const q = filters.queryText.trim().toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.displayName.toLowerCase().includes(q) ||
+          c.contactEmail.toLowerCase().includes(q) ||
+          c.socialHandle.toLowerCase().includes(q) ||
+          c.cityNameTr.toLowerCase().includes(q) ||
+          c.primaryCategoryNameTr.toLowerCase().includes(q)
+      );
+    }
+
+    const total = list.length;
+    const offset = filters.offset || 0;
+    const limit = Math.min(filters.limit || 25, 1000);
+    return {
+      items: list.slice(offset, offset + limit),
+      total,
+    };
   }
 
   public savePublicCreatorProfile(profile: PublicCreatorProfile): PublicCreatorProfile {
@@ -1143,7 +1206,7 @@ export class IsolatedMarketplaceStore {
 
     const total = list.length;
     const offset = filters.offset || 0;
-    const limit = Math.min(filters.limit || 24, 48);
+    const limit = Math.min(filters.limit || 24, 1000);
 
     return {
       items: list.slice(offset, offset + limit),

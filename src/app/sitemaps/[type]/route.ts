@@ -36,7 +36,7 @@ export async function GET(
   const entries: SitemapUrlEntry[] = [];
 
   if (type === "profiles-1.xml") {
-    const { items: approved } = marketplaceStore.searchCreators({ limit: 48 });
+    const { items: approved } = marketplaceStore.searchCreators({ limit: 1000 });
     for (const c of approved) {
       if (c.status === "APPROVED" && c.qualityScore >= 70) {
         entries.push({

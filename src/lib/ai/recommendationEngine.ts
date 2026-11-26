@@ -147,8 +147,10 @@ export function recommendCreatorsFromNaturalLanguage(
   const sanitizedQuery = sanitizeForAiPrompt(rawQuery, 500);
   const parsedIntent = parseNaturalLanguageSearchIntent(sanitizedQuery);
 
-  // Query real approved creators from the isolated store
-  const { items: allApproved } = marketplaceStore.searchCreators({ limit: 48 });
+  // Query real approved creators from the isolated store across the full 1,000-profile catalog
+  const { items: allApproved } = marketplaceStore.searchCreators({
+    limit: 1000,
+  });
 
   const scored: CreatorRecommendationItem[] = [];
 
