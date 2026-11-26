@@ -106,7 +106,7 @@ export default async function CityAndCategoryCombinationPage({
   });
 
   const heading = `${city.nameTr} ${subTitle} Influencer ve İçerik Üreticileri`;
-  const description = `${city.nameTr} ilinde ${subTitle.toLowerCase()} alanında içerik üreten örnek vitrin influencer ve UGC profilleri. Tüm hizmet fiyatları ve veri doğrulama kaynakları şeffafça listelenmektedir.`;
+  const description = `${city.nameTr} ilinde ${subTitle.toLowerCase()} alanında içerik üreten onaylı influencer ve UGC profilleri. Tüm hizmet fiyatları ve veri doğrulama kaynakları şeffafça listelenmektedir.`;
 
   const pagePath = `${basePath}/${city.slug}/${subslug}`;
   const gate = evaluateIndexQualityGate({
@@ -171,8 +171,8 @@ export default async function CityAndCategoryCombinationPage({
               : "bg-amber-50 text-amber-800"
           }`}
         >
-          Index Quality Gate: {gate.robotsDirective} ({creators.length} Örnek
-          Vitrin Profili)
+          Index Quality Gate: {gate.robotsDirective} ({creators.length} Onaylı
+          Profil)
         </span>
       </div>
 

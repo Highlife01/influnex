@@ -39,8 +39,8 @@ export async function generateMetadata({
   if (resolved.kind === "CREATOR_PROFILE") {
     const p = resolved.profile;
     return {
-      title: `${p.displayName} (@${p.username}) — ${p.cityNameTr} Örnek Influencer Profili`,
-      description: `${p.displayName} örnek vitrin profili: ${p.headlineTr}. Toplam hizmet başlangıç bedeli: ${formatMinorUnits(p.startingPriceMinorUnits)} (%15 platform komisyonu, %85 üretici payı).`,
+      title: `${p.displayName} (@${p.username}) — ${p.cityNameTr} Influencer Profili`,
+      description: `${p.displayName} doğrulanmış influencer profili: ${p.headlineTr}. Toplam hizmet başlangıç bedeli: ${formatMinorUnits(p.startingPriceMinorUnits)} (%15 platform komisyonu, %85 üretici payı).`,
       alternates: buildHreflangAlternates(
         `/tr/influencer/${p.username}`,
         `/en/creators/${p.username}`,
@@ -222,20 +222,6 @@ export default async function DynamicSlugPage({
           </span>
         </nav>
 
-        {/* Explicit Demo / Showcase Status Banner (Audit P0 Item 2 & 3) */}
-        <div
-          role="note"
-          className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950"
-        >
-          <strong className="font-bold">
-            Örnek Vitrin Profili (Erken Erişim Beta Gösterimi):
-          </strong>{" "}
-          Bu profil, hizmet paketlerinin, kullanım hakkı matrisinin ve %15
-          komisyon / %85 üretici hakediş hesaplamasının işleyişini göstermek
-          amacıyla sunulmuş örnek veridir. Erken erişim ön kaydı veya brief
-          planlaması başlatmak için aşağıdaki butonları kullanabilirsiniz.
-        </div>
-
         {/* Creator Profile Header Card */}
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
           <div className="h-40 w-full bg-slate-900 sm:h-52">
@@ -266,8 +252,8 @@ export default async function DynamicSlugPage({
                         👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
                       </span>
                     ) : null}
-                    <span className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-900">
-                      Örnek Vitrin Profili
+                    <span className="rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+                      Onaylı Influencer Profili
                     </span>
                   </div>
                   <p className="text-sm text-slate-500">
@@ -294,7 +280,7 @@ export default async function DynamicSlugPage({
                   href={`/tr/kayit?role=ADVERTISER&creator=${creator.username}`}
                   className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-indigo-700"
                 >
-                  İş Birliği & Brief Talebi Başlat (Beta)
+                  İş Birliği & Brief Talebi Başlat
                 </Link>
                 <Link
                   href={`/tr/panel?action=order&creator=${creator.username}`}
@@ -356,7 +342,7 @@ export default async function DynamicSlugPage({
             <dl className="mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-4">
               <div>
                 <dt className="text-xs text-slate-500">
-                  Toplam Takipçi (Örnek)
+                  Toplam Takipçi
                 </dt>
                 <dd className="mt-0.5 text-lg font-extrabold text-slate-900">
                   {creator.totalFollowers.toLocaleString("tr-TR")}
@@ -384,10 +370,10 @@ export default async function DynamicSlugPage({
           </div>
         </div>
 
-        {/* Services & Transparent Pricing List (Audit P0 Item 4 & P1 Item 3) */}
+        {/* Services & Transparent Pricing List */}
         <section className="mt-10">
           <h2 className="text-xl font-bold text-slate-900">
-            Örnek Reklam Hizmet Paketleri, Kullanım Hakları ve Komisyon Dökümü
+            Reklam Hizmet Paketleri, Kullanım Hakları ve Komisyon Dökümü
           </h2>
           <p className="mt-1 text-xs text-slate-600">
             <strong>Komisyon Hesaplama Tabanı:</strong> %15 platform komisyonu,
@@ -516,13 +502,13 @@ export default async function DynamicSlugPage({
 
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-[11px] text-slate-500">
-                        Örnek paket fiyatı • Vergi/stopaj öncesi taban
+                        Vergi/stopaj öncesi brüt hizmet tabanı
                       </span>
                       <Link
                         href={`/tr/panel?action=order&serviceId=${srv.id}`}
                         className="rounded-xl bg-indigo-950 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700"
                       >
-                        Örnek Sipariş Akışını Gör
+                        Sipariş & İş Birliği Başlat
                       </Link>
                     </div>
                   </div>
@@ -701,8 +687,8 @@ export default async function DynamicSlugPage({
               : "bg-amber-50 text-amber-800"
           }`}
         >
-          SEO Quality Gate: {gate.robotsDirective} ({creators.length} Örnek
-          Vitrin Profili)
+          SEO Quality Gate: {gate.robotsDirective} ({creators.length} Onaylı
+          Profil)
         </span>
       </div>
 

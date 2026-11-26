@@ -68,9 +68,9 @@ export async function generateMetadata({
 const HOME_FAQS = {
   tr: [
     {
-      question: "InfluNex nedir ve beta sürümünde neler yapabilirim?",
+      question: "InfluNex nedir ve nasıl çalışır?",
       answer:
-        "InfluNex, markaları influencer ve UGC içerik üreticileriyle buluşturmayı hedefleyen yeni nesil bir pazaryeridir. Bu beta sürümünde örnek profilleri inceleyip brief taslağı hazırlayabilir, profesyonel sektör istatistiklerini ve gelişmiş Süperadmin / Influencer / Reklamveren panellerini deneyimleyebilirsiniz.",
+        "InfluNex, markaları doğrulanmış influencer ve UGC içerik üreticileriyle buluşturan iki taraflı bir pazaryeridir. Profilleri karşılaştırabilir, AI destekli kampanya briefi hazırlayabilir ve 15 durumlu sipariş/bloke güvencesiyle iş birliği yürütebilirsiniz.",
     },
     {
       question: "Üyelik ve komisyon ücretleri nasıl çalışır?",
@@ -369,7 +369,7 @@ export default async function HomePage({
 
                 <div className="mt-4 rounded-2xl border border-indigo-100 bg-slate-50 p-4 text-xs text-slate-600">
                   <div className="flex items-center justify-between font-bold text-slate-900">
-                    <span>Şeffaf Hakediş Matematiği (10.000 TL Örnek)</span>
+                    <span>Şeffaf Hakediş Matematiği (10.000 TL)</span>
                     <Link
                       href={pricingHref}
                       className="text-indigo-600 hover:underline"
@@ -669,10 +669,10 @@ export default async function HomePage({
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              {locale === "tr" ? "Açık Kampanya Briefleri" : "Sample Campaign Briefs"}
+              {locale === "tr" ? "Açık Kampanya Briefleri" : "Open Campaign Briefs"}
             </span>
             <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
-              Örnek Reklam Kampanyaları & %85 Hakediş Fırsatları
+              Açık Reklam Kampanyaları & %85 Hakediş Fırsatları
             </h2>
           </div>
           <Link

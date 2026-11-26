@@ -22,7 +22,7 @@ export async function generateMetadata({
   }
   return {
     title: `${tpl.nameTr} Reklam Hizmeti ve Fiyatları`,
-    description: `${tpl.nameTr}: ${tpl.descriptionTr} Örnek influencer hizmet paketlerini karşılaştırın ve %15 şeffaf komisyon yapısını inceleyin.`,
+    description: `${tpl.nameTr}: ${tpl.descriptionTr} Onaylı influencer hizmet paketlerini karşılaştırın ve %15 şeffaf komisyon yapısını inceleyin.`,
     alternates: {
       canonical: buildCanonicalUrl(`/tr/hizmetler/${tpl.slug}`),
     },
@@ -54,7 +54,7 @@ export default async function ServiceDetailPage({
       />
 
       <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-800">
-        {tpl.platform} Hizmet Kategorisi • Örnek Vitrin Paketleri
+        {tpl.platform} Hizmet Kategorisi • Onaylı Hizmet Paketleri
       </span>
       <h1 className="mt-3 text-3xl font-extrabold text-slate-900">
         {tpl.nameTr} Reklam Hizmetleri ve Fiyatları
@@ -79,7 +79,7 @@ export default async function ServiceDetailPage({
                   href={`/tr/influencer/${srv.creatorUsername}`}
                   className="font-bold text-indigo-600 hover:underline"
                 >
-                  @{srv.creatorUsername} (Örnek Profil)
+                  @{srv.creatorUsername}
                 </Link>
                 <span className="text-slate-500">
                   Teslim: {srv.deliveryDays} Gün • {srv.revisionCount} Revizyon
@@ -124,7 +124,7 @@ export default async function ServiceDetailPage({
 
               <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                 <span className="text-[11px] text-slate-500">
-                  Vergi/stopaj öncesi örnek brüt hakediş dökümü
+                  Vergi/stopaj öncesi brüt hakediş dökümü
                 </span>
                 <Link
                   href={`/tr/influencer/${srv.creatorUsername}`}

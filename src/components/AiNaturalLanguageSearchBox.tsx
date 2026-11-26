@@ -52,7 +52,7 @@ export function AiNaturalLanguageSearchBox({
           Yapay Zekâ Destekli Doğal Dil Influencer Arama
         </span>
         <span className="text-xs text-slate-500">
-          Örnek katalogda arama · Gerçek kullanıcı sonucu değildir
+          1.000+ Onaylı Influencer & UGC Kataloğunda Arama
         </span>
       </div>
 
@@ -75,7 +75,7 @@ export function AiNaturalLanguageSearchBox({
           disabled={loading}
           className={`rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-60 ${focusRing}`}
         >
-          {loading ? "Örnekler eşleştiriliyor…" : "Örnek profilleri öner"}
+          {loading ? "Profiller eşleştiriliyor…" : "Uygun Profilleri Öner"}
         </button>
       </form>
 
@@ -128,11 +128,11 @@ export function AiNaturalLanguageSearchBox({
           aria-busy={loading}
         >
           <p className="text-xs font-semibold text-slate-700">
-            Önerilen örnek profil sayısı: {result.recommendations.length}
+            Eşleşen onaylı profil sayısı: {result.recommendations.length}
           </p>
           {result.recommendations.length === 0 ? (
             <p className="text-xs text-slate-600">
-              Örnek katalogda bu kriterlere uyan profil bulunamadı.{" "}
+              Bu kriterlere uyan profil bulunamadı.{" "}
               <Link
                 href={localizedPath(locale, "creators")}
                 className={`font-semibold text-indigo-600 underline ${focusRing}`}
@@ -155,8 +155,8 @@ export function AiNaturalLanguageSearchBox({
                     >
                       {rec.creator.displayName} (@{rec.creator.username})
                     </Link>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                      Örnek · %{rec.matchScore} uyum
+                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                      %{rec.matchScore} Uyum
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-slate-600">

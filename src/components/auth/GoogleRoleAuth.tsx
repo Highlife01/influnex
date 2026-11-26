@@ -59,7 +59,7 @@ const CREATOR_ONBOARDING_STEPS = [
   { step: 1, label: "Rol & Temel Bilgiler" },
   { step: 2, label: "Platform & UGC Tercihi" },
   { step: 3, label: "Kategori & Şehir" },
-  { step: 4, label: "Beta Panel Önizlemesi" },
+  { step: 4, label: "Hesap Paneli" },
 ] as const;
 
 function firebaseErrorMessage(error: unknown): string {
@@ -197,25 +197,10 @@ export function GoogleRoleAuth({
 
   return (
     <section className="mx-auto w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
-      {/* Unified Beta & Legal Pre-Launch Notice (Audit P0 Item 2 & 5) */}
-      <div
-        role="note"
-        className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950"
-      >
-        <strong className="block font-bold">
-          Erken Erişim Beta & Ön Kayıt Bilgilendirmesi:
-        </strong>
-        InfluNex şu anda erken erişim beta aşamasındadır. Bu ekrandan Google
-        hesabınızla beta panel önizlemesine giriş yapabilir veya ön kayıt
-        simülasyonunu tamamlayabilirsiniz. Hukuki sözleşmelerin nihai onayı
-        tamamlanana kadar bağlayıcı ticari sözleşme kurulmaz ve canlı ödeme/tahsilat
-        alınmaz.
-      </div>
-
       <div className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-indigo-600">
-            {mode === "register" ? "Ücretsiz Beta Ön Kaydı" : "Beta Girişi"}
+            {mode === "register" ? "Ücretsiz Hesap Oluştur" : "Hesap Girişi"}
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
             <ShieldCheck size={14} />
@@ -224,11 +209,11 @@ export function GoogleRoleAuth({
         </div>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
           {mode === "register"
-            ? "Erken Erişim Hesabını Hazırla"
+            ? "InfluNex Hesabını Oluştur"
             : "Tekrar hoş geldin"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Üyelik, profil listeleme, kampanya hazırlama ve teklif simülasyonu
+          Üyelik, profil listeleme, kampanya hazırlama ve teklif gönderme
           tamamen ücretsizdir.
         </p>
       </div>
@@ -237,7 +222,7 @@ export function GoogleRoleAuth({
       {mode === "register" ? (
         <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-            <span>Onboarding Adımları (Simülasyon)</span>
+            <span>Hesap Kurulum Adımları</span>
             <span className="text-indigo-700">
               Form Tamamlama Oranı: %{completionPercentage}
             </span>
@@ -342,7 +327,7 @@ export function GoogleRoleAuth({
           className="mt-6 space-y-4 border-t border-slate-200 pt-6"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Veya E-Posta ile Beta Ön Kayıt Simülasyonu
+            Veya E-Posta ile Hızlı Hesap Oluştur
           </p>
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -496,8 +481,8 @@ export function GoogleRoleAuth({
           >
             <Video size={17} />
             {role === "ADVERTISER"
-              ? "Reklamveren Beta Ön Kaydını Tamamla"
-              : "Influencer / UGC Beta Ön Kaydını Tamamla"}
+              ? "Reklamveren Hesabını Tamamla"
+              : "Influencer / UGC Hesabını Tamamla"}
           </button>
         </form>
       ) : null}
@@ -508,16 +493,16 @@ export function GoogleRoleAuth({
           className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-950"
         >
           <strong className="block text-sm font-bold">
-            Beta Ön Kayıt Simülasyonu Tamamlandı!
+            Hesap Kaydınız Tamamlandı!
           </strong>
           <p className="mt-1">
-            15 durumlu örnek sipariş akışını, dekont doğrulama adımlarını ve AI
-            kampanya hazırlama aracını incelemek için{" "}
+            15 durumlu sipariş akışını, dekont doğrulama adımlarını ve AI
+            kampanya hazırlama aracını kullanmak için{" "}
             <Link
               href={`/${locale}/panel`}
               className="font-bold text-indigo-700 underline"
             >
-              Örnek İşlem Paneline Geçin →
+              İşlem Paneline Geçin →
             </Link>
           </p>
         </div>

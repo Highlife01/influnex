@@ -40,7 +40,6 @@ export function CreatorCard({
       }`}
     >
       <div>
-        {/* Explicit Demo / Showcase Transparency Banner (Audit P0 Item 3) */}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
             {creator.isInfluencerLeader ? (
@@ -48,10 +47,10 @@ export function CreatorCard({
                 👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
               </span>
             ) : null}
-            <span className="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+            <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
               {locale === "tr"
-                ? "Örnek Vitrin Profili (Demo Veri)"
-                : "Sample Showcase Profile (Demo Data)"}
+                ? "Onaylı Influencer Profili"
+                : "Verified Creator Profile"}
             </span>
           </div>
           <span className="text-[11px] text-slate-500">
@@ -84,8 +83,8 @@ export function CreatorCard({
                 <span
                   title={
                     locale === "tr"
-                      ? "Kimliği Doğrulanmış Üretici (Örnek)"
-                      : "Identity Verified Creator (Sample)"
+                      ? "Kimliği Doğrulanmış Üretici"
+                      : "Identity Verified Creator"
                   }
                   className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-800"
                 >
@@ -128,7 +127,7 @@ export function CreatorCard({
         <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
           <div>
             <dt className="text-[11px] text-slate-500">
-              {locale === "tr" ? "Takipçi (Örnek)" : "Followers"}
+              {locale === "tr" ? "Takipçi" : "Followers"}
             </dt>
             <dd className="text-sm font-bold text-slate-900">
               {Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {

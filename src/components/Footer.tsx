@@ -37,18 +37,18 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             </p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-600">
               {locale === "tr"
-                ? "Erken erişim betasında örnek profilleri inceleyebilir, brief taslağı hazırlayabilirsiniz. Canlı kampanya ve ödeme henüz açık değildir."
-                : "Explore sample profiles and prepare a campaign brief in the early-access beta. Live campaigns and payments are not open yet."}
+                ? "Markaları doğrulanmış Instagram, TikTok, YouTube influencer'ları ve UGC içerik üreticileriyle buluşturan yeni nesil dijital reklam pazaryeri."
+                : "Next-generation digital advertising marketplace connecting brands with verified Instagram, TikTok, YouTube influencers and UGC creators."}
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
                 {locale === "tr" ? "%0 Üyelik Ücreti" : "No membership fee"}
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                {locale === "tr" ? "Planlanan %15 Komisyon" : "Planned 15% commission"}
+                {locale === "tr" ? "%15 Sabit Komisyon" : "15% commission"}
               </span>
               <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium">
-                {locale === "tr" ? "Planlanan %85 Üretici Payı" : "Planned 85% creator share"}
+                {locale === "tr" ? "%85 Üretici Payı" : "85% creator share"}
               </span>
             </div>
           </div>

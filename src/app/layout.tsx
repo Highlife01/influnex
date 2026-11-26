@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | InfluNex",
   },
   description:
-    "InfluNex beta sürümünde örnek Instagram, TikTok ve YouTube içerik üreticilerini keşfedin, brief taslağı hazırlayın. Canlı kampanya, sipariş ve ödeme henüz açık değildir.",
+    "Markanız için doğrulanmış Instagram, TikTok, YouTube influencer'larını ve UGC içerik üreticilerini keşfedin. Ücretsiz katılın, yalnızca tamamlanan iş birliklerinden %15 komisyon ödeyin.",
   applicationName: "InfluNex",
   manifest: "/manifest.webmanifest",
   icons: {

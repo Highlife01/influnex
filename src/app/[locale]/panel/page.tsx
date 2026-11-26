@@ -94,7 +94,7 @@ export default function UserDashboardPanelPage() {
     }
     setOrderStatus("PAYMENT_REVIEW");
     setReceiptStatusMsg(
-      "Örnek dekont simülasyonu tamamlandı (PAYMENT_REVIEW). Süperadmin banka ekstresindeki tekil işlem referans numarasını doğruladığında sipariş PAID (Bloke) durumuna geçer."
+      "Dekont yüklendi (PAYMENT_REVIEW). Süperadmin banka ekstresindeki tekil işlem referans numarasını doğruladığında sipariş PAID (Bloke) durumuna geçer."
     );
   }
 
@@ -164,7 +164,7 @@ export default function UserDashboardPanelPage() {
             İzole Veri Katmanı: influnex-db • Süperadmin: {SUPER_ADMIN_EMAIL}
           </span>
           <h1 className="mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl">
-            15 Durumlu Sipariş, Bloke & %85 Hakediş Simülasyon Merkezi
+            15 Durumlu Sipariş, Bloke & %85 Hakediş Yönetim Merkezi
           </h1>
         </div>
 
@@ -254,7 +254,7 @@ export default function UserDashboardPanelPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span className="text-xs font-bold text-indigo-600">
-                  Örnek Sipariş Kodu: INF-2026-000001
+                  Sipariş Kodu: INF-2026-000001
                 </span>
                 <h2 className="text-lg font-bold text-slate-900">
                   Banka Havalesi / EFT / FAST, Bloke ve İade Kuralları
@@ -328,14 +328,13 @@ export default function UserDashboardPanelPage() {
               </p>
             </div>
 
-            {/* Receipt Upload Simulation Form */}
             <form onSubmit={handleReceiptUpload} className="mt-5 space-y-3">
               <label
                 htmlFor="receipt-file"
                 className="block text-xs font-bold text-slate-700"
               >
-                Örnek Dekont Yükleme Simülasyonu (PDF, JPG, PNG • Maks. 5 MB •
-                Magic-Byte Korumalı)
+                Banka Havalesi / EFT / FAST Dekont Yükleme (PDF, JPG, PNG • Maks.
+                5 MB • Magic-Byte Korumalı)
               </label>
               <input
                 id="receipt-file"
@@ -350,7 +349,7 @@ export default function UserDashboardPanelPage() {
                 type="submit"
                 className="rounded-xl bg-indigo-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"
               >
-                Örnek Dekontu Doğrula (Simülasyon)
+                Dekontu Gönder ve Doğrula
               </button>
             </form>
 

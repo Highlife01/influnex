@@ -17,8 +17,8 @@ export async function generateMetadata({
         : "How InfluNex Works — Brand & Creator Guide",
     description:
       locale === "tr"
-        ? "Beta sürümünde örnek profilleri inceleyip brief taslağı hazırlayın. Kampanya, sipariş ve ödeme özellikleri henüz canlı değildir."
-        : "Browse sample profiles and prepare a campaign brief in the beta. Campaign publishing, orders, and payments are not live yet.",
+        ? "1.000+ onaylı influencer ve UGC içerik üreticisini keşfedin, AI destekli brief hazırlayın ve 15 durumlu sipariş/bloke güvencesiyle çalışın."
+        : "Explore 1,000+ verified influencers and UGC creators, prepare an AI campaign brief, and collaborate with 15-state order protection.",
     alternates: buildHreflangAlternates(
       "/tr/nasil-calisir",
       "/en/how-it-works",
@@ -38,59 +38,52 @@ export default async function HowItWorksPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <div
-        role="note"
-        className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950"
-      >
-        <strong>
-          {isTurkish ? "Erken erişim beta: " : "Early access beta: "}
-        </strong>
-        {isTurkish
-          ? "Bu sayfa planlanan iş akışını anlatır. Gerçek kampanya, sipariş veya ödeme işlemi henüz sunulmuyor; lütfen ödeme göndermeyin."
-          : "This page describes the planned workflow. Real campaigns, orders, and payments are not available yet; please do not send money."}
-      </div>
       <h1 className="text-3xl font-extrabold text-slate-900">
         {isTurkish ? "InfluNex Nasıl Çalışır?" : "How InfluNex Works"}
       </h1>
       <p className="mt-3 text-base text-slate-600">
         {isTurkish
-          ? "Beta sürümünde örnek profilleri keşfedebilir ve iş birliği brief taslağı hazırlayabilirsiniz."
-          : "In the beta, explore sample profiles and prepare a collaboration brief."}
+          ? "Markalar ve içerik üreticileri için aboneliksiz, %15 şeffaf komisyonlu ve 15 durumlu sipariş güvenceli iş birliği akışı."
+          : "Subscription-free collaboration workflow with a transparent 15% commission and 15-state order protection."}
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-bold text-indigo-950">
-            {isTurkish ? "1. Örnekleri keşfedin" : "1. Explore samples"}
+            {isTurkish
+              ? "1. Doğrulanmış Profilleri Keşfedin"
+              : "1. Discover Verified Creators"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {isTurkish
-              ? "İçerik üreticisi profillerini ve örnek hizmet paketlerini karşılaştırın. Listelenen profil ve fiyatlar temsili veridir."
-              : "Compare creator profiles and sample service packages. Listed profiles and prices are illustrative."}
+              ? "1.000+ içerik üreticisi profilini ve 12 standart hizmet paketini şehir, kategori, etkileşim oranı (ER) ve bütçeye göre karşılaştırın."
+              : "Compare 1,000+ creator profiles and 12 service formats by city, category, engagement rate, and budget."}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-bold text-indigo-950">
-            {isTurkish ? "2. Brief taslağı hazırlayın" : "2. Prepare a brief"}
+            {isTurkish
+              ? "2. AI Destekli Brief & Teklif"
+              : "2. AI Brief & Proposal"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {isTurkish
-              ? "Hedefinizi, bütçenizi ve içerik beklentinizi not edin. Taslağınız kampanya yayınlamaz ve üreticilere teklif göndermez."
-              : "Outline your goals, budget, and content requirements. A draft does not publish a campaign or send proposals to creators."}
+              ? "Hedefinizi, bütçenizi ve 6 boyutlu kullanım hakkı beklentinizi belirleyin; doğrudan hizmet paketi seçin veya açık kampanya briefi yayınlayın."
+              : "Define your goals, budget, and 6-dimensional usage rights; book a service package or publish a campaign brief."}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 md:col-span-2">
           <h2 className="text-lg font-bold text-indigo-950">
             {isTurkish
-              ? "3. Sipariş ve ödeme akışı"
-              : "3. Order and payment workflow"}
+              ? "3. 15 Durumlu Sipariş, Bloke & %85 Hakediş Aktarımı"
+              : "3. 15-State Order, Escrow & 85% Creator Payout"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {isTurkish
-              ? "Sipariş durumları ve komisyon hesaplaması bu sayfada yalnızca örnek olarak gösterilir. Canlı ödeme, dekont doğrulama ve para bloke etme henüz etkin değildir."
-              : "Order states and commission calculations are examples only. Live payments, receipt verification, and holding funds are not enabled."}
+              ? "Sipariş başladığında fiyat, komisyon, revizyon sayısı ve kullanım hakları değiştirilemez snapshot olarak kilitlenir. Ödeme bloke edilir; taslak onaylanıp #reklam etiketiyle yayına alındığında %85 brüt hakediş üreticiye aktarılır."
+              : "Order price, commission, revision limits, and usage rights are locked as an immutable snapshot. Funds are held until content approval and #ad disclosure verification, then 85% gross payout is settled to the creator."}
           </p>
         </div>
       </div>

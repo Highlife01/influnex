@@ -75,7 +75,7 @@ export function buildCreatorProfileJsonLd(
     "@type": "ProfilePage",
     "@id": `${profileUrl}#profilepage`,
     url: profileUrl,
-    name: `${profile.displayName} (@${profile.username}) — Örnek Vitrin Profili | InfluNex`,
+    name: `${profile.displayName} (@${profile.username}) | InfluNex`,
     dateModified: profile.updatedAt,
     mainEntity: {
       "@type": "Person",
