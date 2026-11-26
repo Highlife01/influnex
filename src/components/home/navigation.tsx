@@ -18,8 +18,13 @@ export function Navigation() {
     <header className="site-header">
       <nav className="nav shell" aria-label="Ana navigasyon">
         <Link className="brand" href="/tr" aria-label="InfluNex ana sayfa">
-          <span className="brand-mark">IN</span>
-          <span>influnex</span>
+          <img
+            src="/logo.png"
+            alt="InfluNex"
+            width={156}
+            height={30}
+            className="h-8 w-auto object-contain"
+          />
           <span className="beta-label">BETA</span>
         </Link>
 

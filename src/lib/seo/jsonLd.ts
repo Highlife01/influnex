@@ -21,6 +21,7 @@ export function buildOrganizationAndWebsiteJsonLd(locale: SupportedLocale) {
         "@id": `${SITE_BASE_URL}/#organization`,
         name: "InfluNex",
         url: SITE_BASE_URL,
+        logo: `${SITE_BASE_URL}/logo.png`,
         slogan:
           locale === "tr"
             ? "İş birliği yap. Birlikte kazan."

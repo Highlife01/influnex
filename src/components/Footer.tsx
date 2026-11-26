@@ -21,12 +21,16 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
           <div className="lg:col-span-2">
             <Link
               href={`/${locale}`}
-              className="flex items-center gap-2.5 text-xl font-bold text-slate-900"
+              aria-label="InfluNex Ana Sayfa"
+              className="inline-flex items-center"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-950 text-xs font-extrabold text-white">
-                IN
-              </span>
-              <span>influnex</span>
+              <img
+                src="/logo.png"
+                alt="InfluNex"
+                width={160}
+                height={30}
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <p className="mt-2 text-sm font-semibold text-indigo-700">
               {t.slogan}

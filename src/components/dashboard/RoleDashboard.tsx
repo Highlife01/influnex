@@ -489,9 +489,13 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
         {/* Sidebar Navigation */}
         <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-2xs">
           <div className="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
-            <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 font-black text-white shadow-sm">
-              IN
-            </span>
+            <img
+              src="/icon-mark.png"
+              alt="InfluNex"
+              width={44}
+              height={44}
+              className="size-11 rounded-xl object-contain"
+            />
             <div>
               <p className="font-black tracking-tight text-slate-950">
                 InfluNex Pro

@@ -15,6 +15,17 @@ export const metadata: Metadata = {
     "InfluNex beta sürümünde örnek Instagram, TikTok ve YouTube içerik üreticilerini keşfedin, brief taslağı hazırlayın. Canlı kampanya, sipariş ve ödeme henüz açık değildir.",
   applicationName: "InfluNex",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon-mark.png", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/icon-mark.png",
+  },
+  openGraph: {
+    siteName: "InfluNex",
+    images: [{ url: "/logo.png", width: 898, height: 170, alt: "InfluNex" }],
+  },
 };
 
 export const viewport: Viewport = {

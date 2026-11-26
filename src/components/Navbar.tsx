@@ -28,14 +28,16 @@ export function Navbar({ locale }: { locale: SupportedLocale }) {
         <div className="flex min-w-0 items-center gap-6 lg:gap-7">
           <Link
             href={`/${locale}`}
-            className="flex shrink-0 items-center gap-2.5 text-xl font-black tracking-tight text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+            aria-label="InfluNex Ana Sayfa"
+            className="flex shrink-0 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 text-sm font-black text-white shadow-sm">
-              IN
-            </span>
-            <span>
-              Influ<span className="text-indigo-600">Nex</span>
-            </span>
+            <img
+              src="/logo.png"
+              alt="InfluNex"
+              width={168}
+              height={32}
+              className="h-8 w-auto object-contain sm:h-9"
+            />
           </Link>
 
           <nav
