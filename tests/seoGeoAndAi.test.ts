@@ -54,6 +54,20 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
     expect(resolveDiscoverySlug("adana").kind).toBe("CITY");
     expect(resolveDiscoverySlug("otomotiv").kind).toBe("CATEGORY");
     expect(resolveDiscoverySlug("emre-toros-oto").kind).toBe("CREATOR_PROFILE");
+    const guldkocResolved = resolveDiscoverySlug("guldkoc");
+    expect(guldkocResolved.kind).toBe("CREATOR_PROFILE");
+    if (guldkocResolved.kind === "CREATOR_PROFILE") {
+      expect(guldkocResolved.profile.displayName).toBe("Gül Koç");
+      expect(guldkocResolved.profile.citySlug).toBe("adana");
+      expect(guldkocResolved.profile.isInfluencerLeader).toBe(true);
+      expect(
+        marketplaceStore.getCreatorServices(guldkocResolved.profile.id)
+      ).toHaveLength(3);
+    }
+    const topCreators = marketplaceStore.searchCreators({
+      sortBy: "RECOMMENDED",
+    }).items;
+    expect(topCreators[0]?.username).toBe("guldkoc");
     expect(getCategoryNameBySlug("teknoloji", "tr")).toBe("Teknoloji");
     expect(getCategoryNameBySlug("yemek-ve-gastronomi", "tr")).toBe(
       "Yemek ve Gastronomi"

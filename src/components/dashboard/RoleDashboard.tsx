@@ -78,6 +78,17 @@ interface AdminLedgerOrder {
 
 const INITIAL_ADMIN_CREATORS: AdminVerificationItem[] = [
   {
+    id: "cr-adana-guzellik-guldkoc",
+    name: "Gül Koç (👑 Influencer Lideri)",
+    handle: "@guldkoc",
+    city: "Adana",
+    category: "Güzellik, Moda & UGC",
+    followers: "10.398",
+    er: "%5.80",
+    badge: "ADMIN_VERIFIED",
+    status: "APPROVED",
+  },
+  {
     id: "cr-adana-oto-emre",
     name: "Emre Toros",
     handle: "@emretorosauto",
@@ -203,7 +214,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     "Organik Paylaşım + 30 Gün Dijital Kullanım"
   );
   const [creatorPublishUrl, setCreatorPublishUrl] = useState(
-    "https://www.instagram.com/reel/C8example/?caption=%23reklam"
+    "https://www.instagram.com/guldkoc/reel/DdTk6LpOFws/?caption=%23reklam"
   );
   const [creatorDeliveryMsg, setCreatorDeliveryMsg] = useState("");
 
@@ -645,7 +656,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 (activeViewRole === "ADMIN"
                   ? "Cebrail Kara (Süperadmin)"
                   : activeViewRole === "CREATOR"
-                    ? "Emre Toros (Influencer)"
+                    ? "Gül Koç (@guldkoc • 👑 Influencer Lideri)"
                     : "Toros Auto Care (Marka)")}
             </p>
             <p className="mt-0.5 truncate text-[11px] text-slate-500">
@@ -1015,11 +1026,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-bold text-emerald-300">
-                      <Award size={14} />
-                      Influencer & UGC Stüdyosu • %85 Brüt Hakediş (8500 BPS)
+                      <Crown size={14} />
+                      👑 Influencer Lideri: Gül Koç (@guldkoc) • %85 Brüt Hakediş (8500 BPS)
                     </span>
                     <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-                      Hoş Geldin, İçerik Üreticisi Kokpiti
+                      Hoş Geldin Gül Koç, Influencer Lideri Kokpiti
                     </h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-emerald-100">
                       Hizmet paketlerini oluştur, kendi fiyatını ve 6 boyutlu
@@ -1028,11 +1039,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     </p>
                   </div>
                   <Link
-                    href={`/${locale}/influencer/emre-toros-oto`}
+                    href={`/${locale}/influencer/guldkoc`}
                     className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-emerald-50"
                   >
                     <Globe size={15} />
-                    Canlı SEO Vitrinimi Gör ↗
+                    Canlı SEO Vitrinimi Gör (@guldkoc) ↗
                   </Link>
                 </div>
 

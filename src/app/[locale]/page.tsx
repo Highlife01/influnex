@@ -199,6 +199,54 @@ export default async function HomePage({
                 {t.hero.subtitle}
               </p>
 
+              {/* Featured Influencer Leader Above-the-Fold Spotlight Card */}
+              <div className="mt-6 flex flex-col justify-between gap-4 rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-white to-teal-50 p-4 shadow-md sm:flex-row sm:items-center">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src="/creators/guldkoc.jpg"
+                    alt="Gül Koç (@guldkoc)"
+                    width={60}
+                    height={60}
+                    className="h-15 w-15 rounded-2xl border-2 border-emerald-500 object-cover shadow-xs"
+                  />
+                  <div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-700 px-2.5 py-0.5 text-[11px] font-extrabold text-white">
+                        👑 {locale === "tr" ? "Influencer Lideri" : "Influencer Leader"}
+                      </span>
+                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-900">
+                        Adana • Güzellik, Moda & UGC
+                      </span>
+                    </div>
+                    <h2 className="mt-1 text-base font-black text-slate-950">
+                      Gül Koç{" "}
+                      <span className="text-xs font-bold text-indigo-700">
+                        (@guldkoc)
+                      </span>
+                    </h2>
+                    <p className="text-xs font-medium text-slate-600">
+                      10,4 B Takipçi • %5,8 Etkileşim • Instagram Reels, Story & UGC İş Birlikleri
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href="https://www.instagram.com/guldkoc/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl border border-pink-300 bg-pink-50 px-3 py-2 text-xs font-bold text-pink-800 hover:bg-pink-100"
+                  >
+                    Instagram ↗
+                  </a>
+                  <Link
+                    href={`/${locale}/influencer/guldkoc`}
+                    className="rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-extrabold text-white shadow-xs hover:bg-emerald-800"
+                  >
+                    {locale === "tr" ? "Profili & Paketleri Gör →" : "View Leader Profile →"}
+                  </Link>
+                </div>
+              </div>
+
               {/* Primary Dual-Role Action Cards */}
               <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Link
@@ -485,9 +533,17 @@ export default async function HomePage({
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              Şeffaf Veri Kaynağı & Hizmet Paketleri
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                Şeffaf Veri Kaynağı & Hizmet Paketleri
+              </span>
+              <Link
+                href={`/${locale}/influencer/guldkoc`}
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-0.5 text-xs font-extrabold text-emerald-900 hover:bg-emerald-100"
+              >
+                👑 Influencer Lideri: Gül Koç (@guldkoc) →
+              </Link>
+            </div>
             <h2 className="mt-1 text-2xl font-extrabold text-slate-900 sm:text-3xl">
               Öne Çıkan Influencer & UGC Vitrin Profilleri
             </h2>

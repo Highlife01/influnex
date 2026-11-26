@@ -32,15 +32,28 @@ export function CreatorCard({
         : "bg-amber-50 text-amber-800 border-amber-200";
 
   return (
-    <article className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-[border-color,box-shadow] hover:border-indigo-300 hover:shadow-md">
+    <article
+      className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-xs transition-[border-color,box-shadow] hover:border-indigo-300 hover:shadow-md ${
+        creator.isInfluencerLeader
+          ? "border-emerald-400 ring-2 ring-emerald-500/20"
+          : "border-slate-200"
+      }`}
+    >
       <div>
         {/* Explicit Demo / Showcase Transparency Banner (Audit P0 Item 3) */}
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
-            {locale === "tr"
-              ? "Örnek Vitrin Profili (Demo Veri)"
-              : "Sample Showcase Profile (Demo Data)"}
-          </span>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {creator.isInfluencerLeader ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-gradient-to-r from-emerald-600 to-teal-700 px-2.5 py-0.5 text-[11px] font-extrabold text-white shadow-2xs">
+                👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
+              </span>
+            ) : null}
+            <span className="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+              {locale === "tr"
+                ? "Örnek Vitrin Profili (Demo Veri)"
+                : "Sample Showcase Profile (Demo Data)"}
+            </span>
+          </div>
           <span className="text-[11px] text-slate-500">
             Güncelleme: {creator.updatedAt.slice(0, 10)}
           </span>

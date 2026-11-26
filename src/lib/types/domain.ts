@@ -99,6 +99,10 @@ export interface PublicCreatorProfile {
   username: string;
   previousUsernames: string[];
   displayName: string;
+  socialProfileUrl?: string;
+  isInfluencerLeader?: boolean;
+  leaderTitleTr?: string;
+  leaderTitleEn?: string;
   headlineTr: string;
   headlineEn: string;
   bioTr: string;

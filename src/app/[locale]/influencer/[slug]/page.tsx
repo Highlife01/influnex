@@ -261,6 +261,11 @@ export default async function DynamicSlugPage({
                     <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
                       {creator.displayName}
                     </h1>
+                    {creator.isInfluencerLeader ? (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400 bg-gradient-to-r from-emerald-600 to-teal-700 px-3 py-0.5 text-xs font-extrabold text-white shadow-2xs">
+                        👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
+                      </span>
+                    ) : null}
                     <span className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-900">
                       Örnek Vitrin Profili
                     </span>
@@ -275,6 +280,16 @@ export default async function DynamicSlugPage({
               </div>
 
               <div className="flex flex-wrap gap-2">
+                {creator.socialProfileUrl ? (
+                  <a
+                    href={creator.socialProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl border border-pink-200 bg-pink-50 px-4 py-2.5 text-sm font-bold text-pink-800 hover:bg-pink-100"
+                  >
+                    Instagram (@{creator.username}) ↗
+                  </a>
+                ) : null}
                 <Link
                   href={`/tr/kayit?role=ADVERTISER&creator=${creator.username}`}
                   className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-indigo-700"
@@ -516,6 +531,60 @@ export default async function DynamicSlugPage({
             })}
           </div>
         </section>
+
+        {/* Creator Portfolio & Recent Reels Showcase */}
+        {creator.portfolio.length > 0 ? (
+          <section className="mt-10">
+            <h2 className="text-xl font-bold text-slate-900">
+              Portfolyo ve Öne Çıkan İçerik Örnekleri
+            </h2>
+            <p className="mt-1 text-xs text-slate-600">
+              İçerik üreticisinin yayınladığı örnek Reels ve marka iş birliği formatları.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {creator.portfolio.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs"
+                >
+                  <div className="h-44 w-full bg-slate-100">
+                    <img
+                      src={item.thumbnailUrl}
+                      alt={item.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between p-4">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-indigo-700">
+                        <span>
+                          {item.platform} • {item.format}
+                        </span>
+                        {item.durationSeconds ? (
+                          <span>{item.durationSeconds} sn</span>
+                        ) : null}
+                      </div>
+                      <h3 className="mt-1 text-sm font-bold text-slate-900">
+                        {item.title}
+                      </h3>
+                    </div>
+                    {item.contentUrl ? (
+                      <a
+                        href={item.contentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                      >
+                        Instagram&apos;da İncele ↗
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* Internal Linking: Human-Readable Category & City Names with Proper Spacing (Audit Section 4 Fix) */}
         <section className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 p-5">

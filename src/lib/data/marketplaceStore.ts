@@ -53,6 +53,91 @@ export interface CreatorSearchFilters {
 
 const VERIFIED_CREATORS: PublicCreatorProfile[] = [
   {
+    id: "cr_adana_guzellik_guldkoc",
+    tenantId: INFLUNEX_TENANT_ID,
+    username: "guldkoc",
+    previousUsernames: ["gul-koc"],
+    displayName: "Gül Koç",
+    socialProfileUrl: "https://www.instagram.com/guldkoc/",
+    isInfluencerLeader: true,
+    leaderTitleTr: "Influencer Lideri",
+    leaderTitleEn: "Influencer Leader",
+    headlineTr: "InfluNex Influencer Lideri • Güzellik, Moda ve Günlük Yaşam & UGC",
+    headlineEn: "InfluNex Influencer Leader • Beauty, Fashion & Lifestyle Creator & UGC",
+    bioTr: "Gül Koç | Beauty & Lifestyle Creator ✨ Adana merkezli güzellik, kozmetik, moda kombinleri ve günlük yaşam içerikleri üretiyorum. Markalar için yüksek etkileşimli Instagram Reels, hikâye serileri ve doğal UGC reklam iş birlikleri hazırlıyorum.",
+    bioEn: "Adana-based Beauty & Lifestyle Creator producing authentic Instagram Reels, Story sets, and UGC brand collaborations across beauty, fashion, and daily life.",
+    avatarUrl: "/creators/guldkoc.jpg",
+    coverUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
+    countryCode: "TR",
+    citySlug: "adana",
+    cityNameTr: "Adana",
+    spokenLanguages: ["tr"],
+    categorySlugs: [
+      "guzellik",
+      "moda",
+      "kozmetik",
+      "ugc-icerik-uretimi",
+      "alisveris",
+      "yerel-isletmeler",
+    ],
+    platforms: ["INSTAGRAM", "UGC"],
+    primaryPlatform: "INSTAGRAM",
+    totalFollowers: 10398,
+    averageEngagementRate: 5.8,
+    averageViews: 6800,
+    metricVerificationSource: "ADMIN_VERIFIED",
+    audienceSummaryTr: "%82 Kadın (Adana, Mersin, Gaziantep, İstanbul), 18-35 yaş güzellik, cilt bakımı, kombin ve günlük yaşam takipçileri",
+    audienceSummaryEn: "82% Women aged 18-35 across Adana and Türkiye interested in beauty, skincare, outfit styling, and lifestyle",
+    startingPriceMinorUnits: 200000, // 2.000 TL
+    currency: "TRY",
+    averageDeliveryDays: 3,
+    completedOrdersCount: 12,
+    verifiedReviewCount: 10,
+    averageRating: 4.95,
+    offersUgc: true,
+    verificationBadges: {
+      emailVerified: true,
+      phoneVerified: true,
+      identityVerified: true,
+      socialVerified: true,
+    },
+    status: "APPROVED",
+    qualityScore: 100,
+    portfolio: [
+      {
+        id: "pf_guldkoc_1",
+        title: "Kozmetik & Güzellik Mağaza Alışverişi ve Ürün Deneyimi Reels",
+        platform: "INSTAGRAM",
+        format: "REEL",
+        thumbnailUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=600&q=80",
+        contentUrl: "https://www.instagram.com/guldkoc/reel/DdTk6LpOFws/",
+        brandCategorySlug: "guzellik",
+        durationSeconds: 45,
+      },
+      {
+        id: "pf_guldkoc_2",
+        title: "Makyaj ve Günlük Bakım Rutini Instagram Reels",
+        platform: "INSTAGRAM",
+        format: "REEL",
+        thumbnailUrl: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
+        contentUrl: "https://www.instagram.com/guldkoc/reel/Dfy2rVvu7w5/",
+        brandCategorySlug: "kozmetik",
+        durationSeconds: 40,
+      },
+      {
+        id: "pf_guldkoc_3",
+        title: "Günlük Kombin & Moda Stil Önerisi Reels",
+        platform: "INSTAGRAM",
+        format: "REEL",
+        thumbnailUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80",
+        contentUrl: "https://www.instagram.com/guldkoc/reel/DfNmONTOzKt/",
+        brandCategorySlug: "moda",
+        durationSeconds: 35,
+      },
+    ],
+    updatedAt: "2026-11-26T08:40:00.000Z",
+  },
+  {
     id: "cr_adana_oto_01",
     tenantId: INFLUNEX_TENANT_ID,
     username: "emre-toros-oto",
@@ -409,6 +494,84 @@ const VERIFIED_CREATORS: PublicCreatorProfile[] = [
 ];
 
 const INITIAL_SERVICES: CreatorServiceRecord[] = [
+  {
+    id: "srv_guldkoc_reels",
+    tenantId: INFLUNEX_TENANT_ID,
+    creatorId: "cr_adana_guzellik_guldkoc",
+    creatorUsername: "guldkoc",
+    titleTr: "Instagram Reels Güzellik, Kombin & Yaşam Tarzı Tanıtımı",
+    titleEn: "Instagram Reels Beauty, Outfit & Lifestyle Showcase",
+    serviceTypeSlug: "instagram-reels",
+    platform: "INSTAGRAM",
+    descriptionTr: "Adana'da doğal ışık ve estetik kurguyla hazırlanan 30-60 saniye Instagram Reels ürün/mekân deneyimi, kapak görseli, hikâye paylaşımı ve #reklam yasal iş birliği etiketi.",
+    descriptionEn: "30-60s aesthetic Instagram Reels beauty/fashion/lifestyle showcase with story repost and #ad disclosure.",
+    priceMinorUnits: 350000, // 3.500 TL -> 525 TL komisyon, 2.975 TL üretici hakedişi
+    currency: "TRY",
+    deliveryDays: 3,
+    revisionCount: 2,
+    videoDurationSeconds: 45,
+    postRetentionDays: 365,
+    usageRightsTr: "Organik sosyal medya hesaplarında 1 yıl paylaşım hakkı",
+    usageRightsEn: "1-year organic social media repost rights",
+    paidAdsReuseAllowed: true,
+    usageDurationDays: 180,
+    exclusivityTermsTr: "Yayından sonraki 3 gün aynı alt kategoride rakip marka paylaşılmaz",
+    isUgcService: false,
+    isActive: true,
+    updatedAt: "2026-11-26T08:40:00.000Z",
+  },
+  {
+    id: "srv_guldkoc_story",
+    tenantId: INFLUNEX_TENANT_ID,
+    creatorId: "cr_adana_guzellik_guldkoc",
+    creatorUsername: "guldkoc",
+    titleTr: "3 Kare Instagram Story + Ürün Linki & Etiket Paylaşımı",
+    titleEn: "3-Frame Instagram Story Set + Product Link & Brand Tag",
+    serviceTypeSlug: "instagram-story",
+    platform: "INSTAGRAM",
+    descriptionTr: "Güzellik, moda veya yerel işletme tanıtımı içeren 3 ardışık dikey Instagram Story karesi, marka etiketleme ve doğrudan satış/kampanya link yönlendirmesi.",
+    descriptionEn: "3 sequential vertical Instagram Story frames with brand tag and direct link sticker.",
+    priceMinorUnits: 200000, // 2.000 TL -> 300 TL komisyon, 1.700 TL üretici hakedişi
+    currency: "TRY",
+    deliveryDays: 2,
+    revisionCount: 1,
+    videoDurationSeconds: 45,
+    postRetentionDays: 1,
+    usageRightsTr: "24 saat Story yayını + Öne Çıkanlar (Highlights) opsiyonu",
+    usageRightsEn: "24-hour Story publication",
+    paidAdsReuseAllowed: false,
+    usageDurationDays: 30,
+    exclusivityTermsTr: "Münhasırlık yok",
+    isUgcService: false,
+    isActive: true,
+    updatedAt: "2026-11-26T08:40:00.000Z",
+  },
+  {
+    id: "srv_guldkoc_ugc",
+    tenantId: INFLUNEX_TENANT_ID,
+    creatorId: "cr_adana_guzellik_guldkoc",
+    creatorUsername: "guldkoc",
+    titleTr: "UGC Güzellik & Moda Ürün Deneyim Videosu (9:16 Dikey Kreatif)",
+    titleEn: "UGC Beauty & Fashion Product Experience Video (9:16 Ad Creative)",
+    serviceTypeSlug: "ugc-reklam-videosu",
+    platform: "UGC",
+    descriptionTr: "Markanızın kendi Instagram, TikTok ve Meta Ads reklamlarında kullanabileceği, ürün dokusunu ve gerçek kullanım deneyimini yakın plan gösteren kanca odaklı dikey UGC video.",
+    descriptionEn: "Hook-driven 9:16 vertical UGC product experience video delivered with paid advertising usage rights.",
+    priceMinorUnits: 250000, // 2.500 TL -> 375 TL komisyon, 2.125 TL üretici hakedişi
+    currency: "TRY",
+    deliveryDays: 3,
+    revisionCount: 2,
+    videoDurationSeconds: 40,
+    postRetentionDays: 365,
+    usageRightsTr: "Marka organik hesaplarında ve Meta/TikTok ücretli reklamlarında 180 gün kullanım hakkı",
+    usageRightsEn: "180-day organic and Meta/TikTok paid ads usage rights",
+    paidAdsReuseAllowed: true,
+    usageDurationDays: 180,
+    exclusivityTermsTr: "Münhasırlık yok",
+    isUgcService: true,
+    isActive: true,
+    updatedAt: "2026-11-26T08:40:00.000Z",
+  },
   {
     id: "srv_adana_oto_reels",
     tenantId: INFLUNEX_TENANT_ID,
@@ -926,9 +1089,10 @@ export class IsolatedMarketplaceStore {
     }
 
     if (filters.queryText && filters.queryText.trim()) {
-      const q = filters.queryText.trim().toLowerCase();
+      const q = filters.queryText.trim().toLowerCase().replace(/^@/, "");
       list = list.filter(
         (c) =>
+          c.username.toLowerCase().includes(q) ||
           c.displayName.toLowerCase().includes(q) ||
           c.headlineTr.toLowerCase().includes(q) ||
           c.bioTr.toLowerCase().includes(q) ||
@@ -938,6 +1102,7 @@ export class IsolatedMarketplaceStore {
     }
 
     const computeCompositeRankScore = (c: PublicCreatorProfile): number => {
+      const leaderBonus = c.isInfluencerLeader ? 35 : 0;
       const verificationBonus =
         c.metricVerificationSource === "API_VERIFIED"
           ? 20
@@ -946,7 +1111,13 @@ export class IsolatedMarketplaceStore {
             : 0;
       const engagementScore = Math.min(c.averageEngagementRate * 4, 25);
       const ratingScore = (c.averageRating ?? 4.0) * 5;
-      return c.qualityScore * 0.5 + verificationBonus + engagementScore + ratingScore;
+      return (
+        c.qualityScore * 0.5 +
+        leaderBonus +
+        verificationBonus +
+        engagementScore +
+        ratingScore
+      );
     };
 
     const sortBy = filters.sortBy || "RECOMMENDED";
