@@ -25,7 +25,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               className="inline-flex items-center"
             >
               <img
-                src="/logo.png"
+                src="/logo.png?v=2"
                 alt="InfluNex"
                 width={160}
                 height={30}

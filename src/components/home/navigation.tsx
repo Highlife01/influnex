@@ -19,7 +19,7 @@ export function Navigation() {
       <nav className="nav shell" aria-label="Ana navigasyon">
         <Link className="brand" href="/tr" aria-label="InfluNex ana sayfa">
           <img
-            src="/logo.png"
+            src="/logo.png?v=2"
             alt="InfluNex"
             width={156}
             height={30}

@@ -17,16 +17,16 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "512x512", type: "image/png" },
-      { url: "/icon-mark.png", type: "image/png" },
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png?v=2", sizes: "512x512", type: "image/png" },
+      { url: "/icon-mark.png?v=2", type: "image/png" },
+      { url: "/icon.svg?v=2", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.png",
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.png?v=2",
+    apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     siteName: "InfluNex",
-    images: [{ url: "/logo.png", width: 898, height: 170, alt: "InfluNex" }],
+    images: [{ url: "/logo.png?v=2", width: 898, height: 170, alt: "InfluNex" }],
   },
 };
 

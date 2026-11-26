@@ -32,7 +32,7 @@ export function Navbar({ locale }: { locale: SupportedLocale }) {
             className="flex shrink-0 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
             <img
-              src="/logo.png"
+              src="/logo.png?v=2"
               alt="InfluNex"
               width={168}
               height={32}

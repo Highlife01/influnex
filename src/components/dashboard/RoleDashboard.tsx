@@ -490,7 +490,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
         <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-2xs">
           <div className="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
             <img
-              src="/icon-mark.png"
+              src="/icon-mark.png?v=2"
               alt="InfluNex"
               width={44}
               height={44}
