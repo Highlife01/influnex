@@ -193,10 +193,14 @@ export default async function HomePage({
               </div>
 
               <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.12]">
-                {t.hero.title}
+                {locale === "tr"
+                  ? "İyi bir iş birliği, doğru buluşmayla başlar. 💙"
+                  : t.hero.title}
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                {t.hero.subtitle}
+                {locale === "tr"
+                  ? "InfluNex, markalarla içerik üreticilerini bir araya getirir. Markanız için yaratıcı içerikler üretecek kişilerle tanışın; içerik üreticisiyseniz tarzınıza ve kitlenize uygun markalarla yeni iş birliklerinin kapısını açın."
+                  : t.hero.subtitle}
               </p>
 
               {/* Featured Influencer Leader Above-the-Fold Spotlight Card */}
@@ -267,11 +271,13 @@ export default async function HomePage({
                       />
                     </div>
                     <h2 className="mt-3 text-lg font-black">
-                      {t.hero.ctaJoinCreator}
+                      {locale === "tr"
+                        ? "Yaratıcılığın yeni iş birliklerine dönüşsün. ✨"
+                        : t.hero.ctaJoinCreator}
                     </h2>
                     <p className="mt-1 text-xs leading-relaxed text-emerald-50">
                       {locale === "tr"
-                        ? "Ücretsiz vitrinini aç, kendi paket fiyatını ve telif sınırını belirle, tamamlanan işlerden %85 brüt hakediş kazan."
+                        ? "İçerik üretmeyi seviyor, kendi tarzınla markalara değer katmak istiyorsan InfluNex ile tanış. Ürettiğin içerikleri, ilgi alanlarını ve kitleni anlat; %85 brüt hakedişle kazan."
                         : "Launch your free creator showcase, set your own prices and usage rights, and keep 85% gross payout."}
                     </p>
                   </div>
@@ -293,11 +299,13 @@ export default async function HomePage({
                       />
                     </div>
                     <h2 className="mt-3 text-lg font-black">
-                      {t.hero.ctaFindCreator}
+                      {locale === "tr"
+                        ? "Markanızın hikâyesini kim anlatsın? 🎯"
+                        : t.hero.ctaFindCreator}
                     </h2>
                     <p className="mt-1 text-xs leading-relaxed text-indigo-100">
                       {locale === "tr"
-                        ? `${totalCreatorsCount} doğrulanmış vitrin profilini şehir, kategori, ER ve bütçeye göre anında karşılaştır.`
+                        ? `Ürününüzü, hedef kitlenizi ve kampanya fikrinizi paylaşın. İçeriğiyle markanıza uyum sağlayabilecek ${totalCreatorsCount} doğrulanmış üreticiyle tanışın.`
                         : `Filter ${totalCreatorsCount} showcase profiles by city, category, ER, and budget.`}
                     </p>
                   </div>

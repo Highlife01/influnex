@@ -13,10 +13,21 @@ export async function GET() {
     lang: "tr-TR",
     icons: [
       {
+        src: "/favicon.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any maskable",
+      },
+      {
+        src: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+      {
         src: "/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
-        purpose: "any maskable",
+        purpose: "any",
       },
     ],
   };
