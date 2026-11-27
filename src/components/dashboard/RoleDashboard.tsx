@@ -180,6 +180,17 @@ const VERIFIED_REAL_SERVICES: RealCreatorServiceItem[] = [
   },
 ];
 
+function safeCommissionBreakdown(amountMinorUnits: number) {
+  if (!Number.isFinite(amountMinorUnits) || amountMinorUnits <= 0) {
+    return {
+      grossAmountMinorUnits: 0,
+      platformCommissionMinorUnits: 0,
+      creatorNetPayoutMinorUnits: 0,
+    };
+  }
+  return calculateCommissionBreakdown(Math.round(amountMinorUnits), "TRY");
+}
+
 export function RoleDashboard({ locale, role }: RoleDashboardProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -964,7 +975,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       "\uFEFFSiparisKodu;Tarih;Marka;Influencer;Hizmet;BrutTutarTL;Komisyon15TL;UreticiPayi85TL;BankaRef;Durum\n";
     const rows = ledgerOrders
       .map((o) => {
-        const b = calculateCommissionBreakdown(o.grossTl * 100, "TRY");
+        const b = safeCommissionBreakdown(o.grossTl * 100);
         return `${o.orderCode};${o.createdAt};${o.brandName};${o.creatorName};${o.serviceTitle};${o.grossTl};${b.platformCommissionMinorUnits / 100};${b.creatorNetPayoutMinorUnits / 100};${o.bankTransactionRef};${o.state}`;
       })
       .join("\n");
@@ -1051,18 +1062,13 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     (acc, o) => acc + o.grossTl * 100,
     0
   );
-  const totalLedgerBreakdown = calculateCommissionBreakdown(
-    totalLedgerGrossMinor,
-    "TRY"
-  );
+  const totalLedgerBreakdown = safeCommissionBreakdown(totalLedgerGrossMinor);
 
   const completedCreatorPayoutMinor = ledgerOrders
     .filter((o) => o.state === "COMPLETED" || o.state === "PAYOUT_COMPLETED")
     .reduce(
       (acc, o) =>
-        acc +
-        calculateCommissionBreakdown(o.grossTl * 100, "TRY")
-          .creatorNetPayoutMinorUnits,
+        acc + safeCommissionBreakdown(o.grossTl * 100).creatorNetPayoutMinorUnits,
       0
     );
 
@@ -1074,9 +1080,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     .filter((o) => o.state === "PAID")
     .reduce(
       (acc, o) =>
-        acc +
-        calculateCommissionBreakdown(o.grossTl * 100, "TRY")
-          .creatorNetPayoutMinorUnits,
+        acc + safeCommissionBreakdown(o.grossTl * 100).creatorNetPayoutMinorUnits,
       0
     );
 
@@ -2177,9 +2181,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {filteredLedgerOrders.map((ord) => {
-                            const b = calculateCommissionBreakdown(
-                              ord.grossTl * 100,
-                              "TRY"
+                            const b = safeCommissionBreakdown(
+                              ord.grossTl * 100
                             );
                             const statusLabel =
                               ord.state === "PAYMENT_REVIEW"
@@ -2447,9 +2450,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     </h2>
                     <div className="mt-4 space-y-3">
                       {creatorServices.map((srv) => {
-                        const b = calculateCommissionBreakdown(
-                          srv.priceTl * 100,
-                          "TRY"
+                        const b = safeCommissionBreakdown(
+                          srv.priceTl * 100
                         );
                         return (
                           <div
@@ -2815,9 +2817,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     </h2>
                     <div className="mt-4 space-y-3">
                       {creatorServices.map((srv) => {
-                        const b = calculateCommissionBreakdown(
-                          srv.priceTl * 100,
-                          "TRY"
+                        const b = safeCommissionBreakdown(
+                          srv.priceTl * 100
                         );
                         return (
                           <div

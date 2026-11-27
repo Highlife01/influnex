@@ -88,10 +88,15 @@ export default function UserDashboardPanelPage() {
     }
   }, []);
 
-  const breakdown = calculateCommissionBreakdown(
-    Math.max(0, Math.round(calcAmountTl * 100)),
-    "TRY"
-  );
+  const safeAmountMinor = Math.max(0, Math.round((Number(calcAmountTl) || 0) * 100));
+  const breakdown =
+    safeAmountMinor > 0
+      ? calculateCommissionBreakdown(safeAmountMinor, "TRY")
+      : {
+          grossAmountMinorUnits: 0,
+          platformCommissionMinorUnits: 0,
+          creatorNetPayoutMinorUnits: 0,
+        };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -163,7 +168,14 @@ export default function UserDashboardPanelPage() {
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {realOrders.map((ord) => {
-              const b = calculateCommissionBreakdown(ord.grossTl * 100, "TRY");
+              const b =
+                ord.grossTl > 0
+                  ? calculateCommissionBreakdown(ord.grossTl * 100, "TRY")
+                  : {
+                      grossAmountMinorUnits: 0,
+                      platformCommissionMinorUnits: 0,
+                      creatorNetPayoutMinorUnits: 0,
+                    };
               return (
                 <div
                   key={ord.orderCode}
