@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { SupportedLocale } from "@/lib/types/domain";
 import { DICTIONARY } from "@/lib/i18n/dictionary";
 import { localizedPath } from "@/lib/i18n/paths";
+import { NavbarAuthActions } from "./auth/NavbarAuthActions";
 
 export function Navbar({ locale }: { locale: SupportedLocale }) {
   const t = DICTIONARY[locale];
@@ -95,18 +96,7 @@ export function Navbar({ locale }: { locale: SupportedLocale }) {
           >
             {locale === "tr" ? "EN" : "TR"}
           </Link>
-          <Link
-            href={loginHref}
-            className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 md:inline-block"
-          >
-            {t.nav.login}
-          </Link>
-          <Link
-            href={signupHref}
-            className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-2xs transition hover:bg-indigo-700"
-          >
-            {t.nav.joinFree}
-          </Link>
+          <NavbarAuthActions locale={locale} />
         </div>
       </div>
     </header>

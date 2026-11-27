@@ -88,18 +88,36 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-2">
             <Link
               href="/tr/yonetim"
-              className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-emerald-400"
+              className="rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-amber-300"
             >
-              Canlı Süperadmin Kokpitini Aç →
+              👑 Süperadmin Komuta Merkezini Aç →
+            </Link>
+            <Link
+              href="/tr/yayinci/panel"
+              className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20"
+            >
+              Yayıncı Paneli →
+            </Link>
+            <Link
+              href="/tr/reklamveren/panel"
+              className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20"
+            >
+              Marka Paneli →
             </Link>
             <Link
               href="/tr/panel"
-              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20"
+              className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20"
             >
-              15 Durumlu Sipariş Simülatörü →
+              15 Aşamalı Sipariş Odası →
+            </Link>
+            <Link
+              href="/tr/influencer/turkiye"
+              className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20"
+            >
+              Türkiye 81 İl SEO →
             </Link>
           </div>
         </div>

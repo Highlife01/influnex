@@ -5,6 +5,7 @@
  */
 
 import type { UserRole } from "../types/domain";
+import { isSuperAdminEmail } from "../auth/roles";
 import { redactSensitiveLogData } from "./rbac";
 import {
   FirebaseAdminConfigurationError,
@@ -142,7 +143,11 @@ export async function verifyApiMutationRequest(
   }
 
   const actorUid = decodedToken.uid;
-  const actorRole = decodedToken.role;
+  const isSuperAdmin = isSuperAdminEmail(decodedToken.email);
+  const actorRole: UserRole | undefined = isSuperAdmin
+    ? "ADMIN"
+    : (decodedToken.role as UserRole | undefined);
+
   if (
     actorRole !== "ADVERTISER" &&
     actorRole !== "CREATOR" &&
@@ -155,7 +160,8 @@ export async function verifyApiMutationRequest(
     };
   }
 
-  if (!options.allowedRoles.includes(actorRole)) {
+  // SuperAdmin (cebrailkara@gmail.com / ADMIN) has universal access across all endpoints
+  if (actorRole !== "ADMIN" && !options.allowedRoles.includes(actorRole)) {
     return {
       allowed: false,
       status: 403,

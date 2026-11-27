@@ -18,9 +18,11 @@ import {
   getInfluNexAuth,
   getInfluNexGoogleProvider,
 } from "@/lib/firebase/client";
+import { SUPER_ADMIN_EMAIL, isSuperAdminEmail } from "@/lib/auth/roles";
 import type { UserRole } from "@/lib/types/domain";
 import { INITIAL_CATEGORIES, INITIAL_CITIES } from "@/lib/data/catalog";
 import { UserRegistrationSchema } from "@/lib/validators/schemas";
+import { INFLUNEX_SESSION_STORAGE_KEY } from "./NavbarAuthActions";
 
 type AccountRole = Extract<UserRole, "ADVERTISER" | "CREATOR">;
 
@@ -117,8 +119,25 @@ export function GoogleRoleAuth({
         getInfluNexGoogleProvider()
       );
       const idToken = await credential.user.getIdToken();
-      const isSuperAdmin =
-        credential.user.email?.trim().toLowerCase() === "cebrailkara@gmail.com";
+      const userEmail = credential.user.email?.trim().toLowerCase() || "";
+      const isSuperAdmin = isSuperAdminEmail(userEmail);
+
+      try {
+        localStorage.setItem(
+          INFLUNEX_SESSION_STORAGE_KEY,
+          JSON.stringify({
+            email: userEmail,
+            displayName:
+              credential.user.displayName ||
+              (isSuperAdmin ? "Cebrail Kara (Süperadmin)" : userEmail),
+            role: isSuperAdmin ? "ADMIN" : role,
+            isSuperAdmin,
+          })
+        );
+      } catch {
+        // ignore
+      }
+
       const response = await fetch("/api/auth/profile", {
         method: "POST",
         headers: {
@@ -176,8 +195,58 @@ export function GoogleRoleAuth({
     setErrorMessage("");
     setEmailSignupSuccess(false);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // If cebrailkara@gmail.com logs in or registers, grant immediate Super Admin universal access!
+    if (isSuperAdminEmail(normalizedEmail)) {
+      try {
+        localStorage.setItem(
+          INFLUNEX_SESSION_STORAGE_KEY,
+          JSON.stringify({
+            email: SUPER_ADMIN_EMAIL,
+            displayName: displayName.trim() || "Cebrail Kara (Süperadmin)",
+            role: "ADMIN",
+            isSuperAdmin: true,
+          })
+        );
+      } catch {
+        // ignore
+      }
+      router.replace(`/${locale}/yonetim`);
+      router.refresh();
+      return;
+    }
+
+    if (mode === "login") {
+      if (!normalizedEmail.includes("@")) {
+        setErrorMessage("Lütfen geçerli bir e-posta adresi girin.");
+        return;
+      }
+      try {
+        localStorage.setItem(
+          INFLUNEX_SESSION_STORAGE_KEY,
+          JSON.stringify({
+            email: normalizedEmail,
+            displayName:
+              displayName.trim() || normalizedEmail.split("@")[0] || "Kullanıcı",
+            role,
+            isSuperAdmin: false,
+          })
+        );
+      } catch {
+        // ignore
+      }
+      router.replace(
+        role === "CREATOR"
+          ? `/${locale}/yayinci/panel`
+          : `/${locale}/reklamveren/panel`
+      );
+      router.refresh();
+      return;
+    }
+
     const parsed = UserRegistrationSchema.safeParse({
-      email,
+      email: normalizedEmail,
       displayName,
       role,
       birthYear: role === "CREATOR" ? Number(birthYear) : undefined,
@@ -190,6 +259,20 @@ export function GoogleRoleAuth({
           "Lütfen zorunlu alanları kontrol edin."
       );
       return;
+    }
+
+    try {
+      localStorage.setItem(
+        INFLUNEX_SESSION_STORAGE_KEY,
+        JSON.stringify({
+          email: normalizedEmail,
+          displayName: displayName.trim(),
+          role,
+          isSuperAdmin: false,
+        })
+      );
+    } catch {
+      // ignore
     }
 
     setEmailSignupSuccess(true);
@@ -320,172 +403,193 @@ export function GoogleRoleAuth({
         {!busy ? <ArrowRight size={17} /> : null}
       </button>
 
-      {/* Option 2: Guided Lightweight Pre-Registration Form */}
-      {mode === "register" ? (
-        <form
-          onSubmit={handleQuickEmailOnboarding}
-          className="mt-6 space-y-4 border-t border-slate-200 pt-6"
-        >
+      {/* Option 2: Direct Email Sign-In / Registration (Supports cebrailkara@gmail.com Super Admin instant login) */}
+      <form
+        onSubmit={handleQuickEmailOnboarding}
+        className="mt-6 space-y-4 border-t border-slate-200 pt-6"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Veya E-Posta ile Hızlı Hesap Oluştur
+            {mode === "login"
+              ? "Veya E-Posta ile Doğrudan Giriş Yap"
+              : "Veya E-Posta ile Hızlı Hesap Oluştur"}
           </p>
+          {isSuperAdminEmail(email) ? (
+            <span className="rounded-full bg-indigo-950 px-3 py-0.5 text-[11px] font-extrabold text-amber-300">
+              👑 Süperadmin Yetkisi Algılandı ({SUPER_ADMIN_EMAIL})
+            </span>
+          ) : null}
+        </div>
 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="onboard-name"
-                className="block text-xs font-bold text-slate-700"
-              >
-                {role === "ADVERTISER"
-                  ? "Marka / Şirket Adı"
-                  : "Görünecek Ad / Kullanıcı Adı"}
-              </label>
-              <input
-                id="onboard-name"
-                type="text"
-                required
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder={
-                  role === "ADVERTISER"
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="onboard-email"
+              className="block text-xs font-bold text-slate-700"
+            >
+              E-Posta Adresi
+            </label>
+            <input
+              id="onboard-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ornek@gmail.com"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="onboard-name"
+              className="block text-xs font-bold text-slate-700"
+            >
+              {role === "ADVERTISER"
+                ? "Marka / Şirket Adı"
+                : "Ad Soyad / Kullanıcı Adı"}
+            </label>
+            <input
+              id="onboard-name"
+              type="text"
+              required={mode === "register" && !isSuperAdminEmail(email)}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder={
+                isSuperAdminEmail(email)
+                  ? "Cebrail Kara (Süperadmin)"
+                  : role === "ADVERTISER"
                     ? "Örn: Toros Otomotiv"
                     : "Örn: Emre Toros"
-                }
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="onboard-email"
-                className="block text-xs font-bold text-slate-700"
-              >
-                Kurumsal veya Kişisel E-Posta
-              </label>
-              <input
-                id="onboard-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ad@ornek.com"
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
-              />
-            </div>
+              }
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
+            />
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="onboard-city"
-                className="block text-xs font-bold text-slate-700"
-              >
-                Şehir
-              </label>
-              <select
-                id="onboard-city"
-                value={citySlug}
-                onChange={(e) => setCitySlug(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
-              >
-                {INITIAL_CITIES.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.nameTr}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="onboard-category"
-                className="block text-xs font-bold text-slate-700"
-              >
-                {role === "ADVERTISER"
-                  ? "Marka Sektörü"
-                  : "Ana İçerik Kategorisi"}
-              </label>
-              <select
-                id="onboard-category"
-                value={primaryCategory}
-                onChange={(e) => setPrimaryCategory(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
-              >
-                {INITIAL_CATEGORIES.map((cat) => (
-                  <option key={cat.id} value={cat.slugTr}>
-                    {cat.nameTr}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {role === "CREATOR" ? (
+        {mode === "register" && !isSuperAdminEmail(email) ? (
+          <>
             <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <div>
                 <label
-                  htmlFor="onboard-creator-mode"
+                  htmlFor="onboard-city"
                   className="block text-xs font-bold text-slate-700"
                 >
-                  Üretim Modeli (Influencer & UGC Ayrımı)
+                  Şehir
                 </label>
                 <select
-                  id="onboard-creator-mode"
-                  value={creatorMode}
-                  onChange={(e) =>
-                    setCreatorMode(
-                      e.target.value as
-                        | "INFLUENCER_AND_UGC"
-                        | "INFLUENCER_ONLY"
-                        | "UGC_ONLY"
-                    )
-                  }
+                  id="onboard-city"
+                  value={citySlug}
+                  onChange={(e) => setCitySlug(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
                 >
-                  <option value="INFLUENCER_AND_UGC">
-                    Hem Influencer Paylaşımı Hem UGC Video
-                  </option>
-                  <option value="INFLUENCER_ONLY">
-                    Yalnızca Kendi Hesabımda Paylaşım (Influencer)
-                  </option>
-                  <option value="UGC_ONLY">
-                    Yalnızca Marka İçin UGC Reklam Kreatifi (Yayın Şartsız)
-                  </option>
+                  {INITIAL_CITIES.map((c) => (
+                    <option key={c.id} value={c.slug}>
+                      {c.nameTr}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label
-                  htmlFor="onboard-birth-year"
+                  htmlFor="onboard-category"
                   className="block text-xs font-bold text-slate-700"
                 >
-                  Doğum Yılı (18+ Yaş Sınırı Zorunludur)
+                  {role === "ADVERTISER"
+                    ? "Marka Sektörü"
+                    : "Ana İçerik Kategorisi"}
                 </label>
-                <input
-                  id="onboard-birth-year"
-                  type="number"
-                  min={1940}
-                  max={2026}
-                  required
-                  value={birthYear}
-                  onChange={(e) => setBirthYear(Number(e.target.value))}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
-                />
+                <select
+                  id="onboard-category"
+                  value={primaryCategory}
+                  onChange={(e) => setPrimaryCategory(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                >
+                  {INITIAL_CATEGORIES.map((cat) => (
+                    <option key={cat.id} value={cat.slugTr}>
+                      {cat.nameTr}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          ) : null}
 
-          <button
-            type="submit"
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-xs transition hover:bg-indigo-700"
-          >
-            <Video size={17} />
-            {role === "ADVERTISER"
-              ? "Reklamveren Hesabını Tamamla"
-              : "Influencer / UGC Hesabını Tamamla"}
-          </button>
-        </form>
-      ) : null}
+            {role === "CREATOR" ? (
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="onboard-creator-mode"
+                    className="block text-xs font-bold text-slate-700"
+                  >
+                    Üretim Modeli (Influencer & UGC Ayrımı)
+                  </label>
+                  <select
+                    id="onboard-creator-mode"
+                    value={creatorMode}
+                    onChange={(e) =>
+                      setCreatorMode(
+                        e.target.value as
+                          | "INFLUENCER_AND_UGC"
+                          | "INFLUENCER_ONLY"
+                          | "UGC_ONLY"
+                      )
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                  >
+                    <option value="INFLUENCER_AND_UGC">
+                      Hem Influencer Paylaşımı Hem UGC Video
+                    </option>
+                    <option value="INFLUENCER_ONLY">
+                      Yalnızca Kendi Hesabımda Paylaşım (Influencer)
+                    </option>
+                    <option value="UGC_ONLY">
+                      Yalnızca Marka İçin UGC Reklam Kreatifi (Yayın Şartsız)
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="onboard-birth-year"
+                    className="block text-xs font-bold text-slate-700"
+                  >
+                    Doğum Yılı (18+ Yaş Sınırı Zorunludur)
+                  </label>
+                  <input
+                    id="onboard-birth-year"
+                    type="number"
+                    min={1940}
+                    max={2026}
+                    required
+                    value={birthYear}
+                    onChange={(e) => setBirthYear(Number(e.target.value))}
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        <button
+          type="submit"
+          className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white shadow-xs transition ${
+            isSuperAdminEmail(email)
+              ? "bg-gradient-to-r from-slate-950 via-indigo-950 to-emerald-900 hover:opacity-95"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
+        >
+          <Video size={17} />
+          {isSuperAdminEmail(email)
+            ? `👑 Süperadmin (${SUPER_ADMIN_EMAIL}) Olarak Tüm Panellere Giriş Yap`
+            : mode === "login"
+              ? "Hesabıma Giriş Yap"
+              : role === "ADVERTISER"
+                ? "Reklamveren Hesabını Tamamla"
+                : "Influencer / UGC Hesabını Tamamla"}
+        </button>
+      </form>
 
       {emailSignupSuccess ? (
         <div
