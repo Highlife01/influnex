@@ -58,8 +58,14 @@ export default async function RootLayout({
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
+gtag('config', 'G-8DTL72STQW');
 window.dataLayer.push({'gtm.start': new Date().getTime(), event: 'gtm.js'});`}
         </Script>
+        <Script
+          id="ga4-loader"
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-8DTL72STQW"
+        />
         <Script
           id="gtm-loader"
           strategy="afterInteractive"
