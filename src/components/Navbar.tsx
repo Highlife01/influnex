@@ -23,7 +23,7 @@ export function Navbar({ locale }: { locale: SupportedLocale }) {
     "rounded-lg px-3 py-2 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b-2 border-slate-300 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-6 lg:gap-7">
           <Link
@@ -32,17 +32,17 @@ export function Navbar({ locale }: { locale: SupportedLocale }) {
             className="flex shrink-0 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
             <img
-              src="/logo.png?v=2"
+              src="/logo.png?v=3"
               alt="InfluNex"
-              width={168}
-              height={32}
+              width={180}
+              height={34}
               className="h-8 w-auto object-contain sm:h-9"
             />
           </Link>
 
           <nav
             aria-label="Ana Menü"
-            className="hidden items-center gap-5 text-sm font-semibold text-slate-700 lg:flex"
+            className="hidden items-center gap-5 text-sm font-bold text-slate-950 lg:flex"
           >
             <Link href={exploreHref} className={linkClass}>
               {t.nav.explore}

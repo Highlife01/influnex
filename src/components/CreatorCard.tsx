@@ -26,34 +26,34 @@ export function CreatorCard({
 
   const sourceBadgeStyle =
     creator.metricVerificationSource === "API_VERIFIED"
-      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+      ? "bg-emerald-100 text-emerald-950 border-emerald-500"
       : creator.metricVerificationSource === "ADMIN_VERIFIED"
-        ? "bg-indigo-50 text-indigo-800 border-indigo-200"
-        : "bg-amber-50 text-amber-800 border-amber-200";
+        ? "bg-indigo-100 text-indigo-950 border-indigo-500"
+        : "bg-amber-100 text-amber-950 border-amber-500";
 
   return (
     <article
-      className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-xs transition-[border-color,box-shadow] hover:border-indigo-300 hover:shadow-md ${
+      className={`group flex flex-col justify-between rounded-2xl border-2 bg-white p-5 shadow-sm transition-[border-color,box-shadow] hover:border-indigo-700 hover:shadow-lg ${
         creator.isInfluencerLeader
-          ? "border-emerald-400 ring-2 ring-emerald-500/20"
-          : "border-slate-200"
+          ? "border-emerald-600 ring-2 ring-emerald-600/30"
+          : "border-slate-300"
       }`}
     >
       <div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
             {creator.isInfluencerLeader ? (
-              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-gradient-to-r from-emerald-600 to-teal-700 px-2.5 py-0.5 text-[11px] font-extrabold text-white shadow-2xs">
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-800 bg-emerald-800 px-2.5 py-0.5 text-[11px] font-extrabold text-white shadow-2xs">
                 👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
               </span>
             ) : null}
-            <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+            <span className="inline-flex items-center rounded-md border border-emerald-600 bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-950">
               {locale === "tr"
                 ? "Onaylı Influencer Profili"
                 : "Verified Creator Profile"}
             </span>
           </div>
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px] font-semibold text-slate-700">
             Güncelleme: {creator.updatedAt.slice(0, 10)}
           </span>
         </div>
@@ -124,47 +124,47 @@ export function CreatorCard({
         </div>
 
         {/* Follower & Engagement Metrics */}
-        <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
+        <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-slate-300 bg-slate-100 p-3 text-center">
           <div>
-            <dt className="text-[11px] text-slate-500">
+            <dt className="text-[11px] font-bold text-slate-800">
               {locale === "tr" ? "Takipçi" : "Followers"}
             </dt>
-            <dd className="text-sm font-bold text-slate-900">
+            <dd className="text-sm font-black text-slate-950">
               {Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
                 notation: "compact",
               }).format(creator.totalFollowers)}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">
+            <dt className="text-[11px] font-bold text-slate-800">
               {locale === "tr" ? "Etkileşim" : "Engagement"}
             </dt>
-            <dd className="text-sm font-bold text-emerald-700">
+            <dd className="text-sm font-black text-emerald-800">
               %{creator.averageEngagementRate}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] text-slate-500">
+            <dt className="text-[11px] font-bold text-slate-800">
               {locale === "tr" ? "Ort. Teslim" : "Delivery"}
             </dt>
-            <dd className="text-sm font-bold text-slate-900">
+            <dd className="text-sm font-black text-slate-950">
               {creator.averageDeliveryDays} Gün
             </dd>
           </div>
         </dl>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5">
+      <div className="mt-4 flex items-center justify-between border-t-2 border-slate-200 pt-3.5">
         <div>
-          <span className="block text-[11px] text-slate-500">
+          <span className="block text-[11px] font-bold text-slate-700">
             {locale === "tr"
               ? "Toplam Hizmet Bedeli (Brüt Başlangıç)"
               : "Total Gross Service Price"}
           </span>
-          <span className="text-base font-extrabold text-slate-900">
+          <span className="text-base font-black text-slate-950">
             {formatMinorUnits(creator.startingPriceMinorUnits, "TRY", locale)}
           </span>
-          <span className="block text-[11px] text-emerald-700">
+          <span className="block text-[11px] font-extrabold text-emerald-800">
             Üretici Payı (%85):{" "}
             {formatMinorUnits(
               breakdown.creatorNetPayoutMinorUnits,
@@ -176,7 +176,7 @@ export function CreatorCard({
 
         <Link
           href={profileHref}
-          className="rounded-xl bg-indigo-950 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+          className="rounded-xl bg-[#001aff] px-3.5 py-2.5 text-xs font-extrabold text-white shadow-xs transition-colors hover:bg-indigo-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
         >
           {locale === "tr" ? "Profili & Paketleri Gör" : "View Profile"}
         </Link>

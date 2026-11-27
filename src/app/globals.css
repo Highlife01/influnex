@@ -1,13 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #171a15;
-  --muted: #61695d;
-  --cream: #f7f8f4;
+  --ink: #090d16;
+  --muted: #2d3748;
+  --cream: #f4f6fb;
   --lime: #c9ff5b;
-  --lime-dark: #5c7525;
-  --line: #dce1d5;
-  --white: #fff;
+  --lime-dark: #3f5714;
+  --line: #94a3b8;
+  --white: #ffffff;
+  color-scheme: light;
+}
+
+/* Global High-Contrast & WCAG 1.4.3 / 1.4.11 Reinforcement */
+body {
+  color: #090d16;
+  background-color: #ffffff;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Boost low-contrast muted slate text across all pages to exceed 7:1 AAA contrast */
+.text-slate-400 {
+  color: #475569 !important;
+}
+.text-slate-500 {
+  color: #334155 !important;
+}
+.text-slate-600 {
+  color: #1e293b !important;
+}
+.text-slate-700 {
+  color: #0f172a !important;
+}
+
+/* Dark-background overrides keep bright legible text */
+.bg-slate-950 .text-slate-300,
+.from-slate-950 .text-slate-300,
+.via-slate-900 .text-indigo-100,
+.from-indigo-950 .text-indigo-100 {
+  color: #f8fafc !important;
+}
+
+/* Enforce >= 3:1 non-text contrast on card borders and form controls (WCAG 1.4.11) */
+.border-slate-100 {
+  border-color: #cbd5e1 !important;
+}
+.border-slate-200,
+.border-slate-200\/80 {
+  border-color: #94a3b8 !important;
+}
+.border-slate-300 {
+  border-color: #64748b !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  border-color: #475569;
+  color: #090d16;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #475569;
+  opacity: 1;
+}
+
+/* High-contrast 3:1 focus indicator with outline-offset (WCAG 2.4.7 & 1.4.11) */
+:where(a:any-link, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #001aff !important;
+  outline-offset: 3px !important;
+}
+
+@media (prefers-contrast: more) {
+  body {
+    color: #000000;
+  }
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600,
+  .text-slate-700 {
+    color: #000000 !important;
+  }
+  .border-slate-100,
+  .border-slate-200,
+  .border-slate-300 {
+    border-color: #1e293b !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(a:any-link, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid Highlight !important;
+  }
 }
 .marketplace-home * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 104px; }
