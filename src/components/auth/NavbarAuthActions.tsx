@@ -125,7 +125,7 @@ export function NavbarAuthActions({ locale }: { locale: SupportedLocale }) {
                 href={`/${locale}/admin`}
                 className="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100"
               >
-                <span>2. Muhasebe, 1.000 Profil & SEO</span>
+                <span>2. Muhasebe, Üreticiler & SEO</span>
                 <span>→</span>
               </Link>
               <Link

@@ -133,7 +133,7 @@ export default function UserDashboardPanelPage() {
 
       <div className="border-b border-slate-200 pb-6">
         <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
-          Canlı Veritabanı: influnex-db • Sıfır Mock Veri
+          Canlı Sistem • Güvenli Sipariş Takibi
         </span>
         <h1 className="mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl">
           Sipariş Aşamaları, Güvenli Ödeme Blokesi ve %85 Hakediş Rehberi
@@ -161,9 +161,8 @@ export default function UserDashboardPanelPage() {
 
         {realOrders.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-xs text-slate-600">
-            Henüz kayıtlı sipariş bulunmuyor (tüm örnek/mock siparişler
-            silindi). Süperadmin panelinden oluşturduğunuz gerçek siparişler
-            otomatik olarak burada listelenir.
+            Henüz kayıtlı sipariş bulunmuyor. Süperadmin panelinden oluşturduğunuz
+            gerçek siparişler otomatik olarak burada listelenir.
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -191,6 +191,120 @@ function safeCommissionBreakdown(amountMinorUnits: number) {
   return calculateCommissionBreakdown(Math.round(amountMinorUnits), "TRY");
 }
 
+function readLocalSavedCreatorEmails(): Record<string, string> {
+  const emailMap: Record<string, string> = {};
+  try {
+    const raw = window.localStorage.getItem(REAL_STORAGE_KEYS.CREATORS);
+    if (raw) {
+      for (const item of JSON.parse(raw) as RealCreatorItem[]) {
+        if (item.email) emailMap[item.id] = item.email;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return emailMap;
+}
+
+function normalizeRemoteOrders(
+  docs: Partial<RealLedgerOrder>[]
+): RealLedgerOrder[] {
+  return docs
+    .filter((d) => d.orderCode && d.brandName)
+    .map((data) => ({
+      orderCode: data.orderCode!,
+      brandName: data.brandName!,
+      creatorName: data.creatorName || "Gül Koç (@guldkoc)",
+      serviceTitle: data.serviceTitle || "",
+      grossTl: Number(data.grossTl || 0),
+      bankTransactionRef: data.bankTransactionRef || "",
+      state: data.state || "PAYMENT_REVIEW",
+      adDisclosureVerified: Boolean(data.adDisclosureVerified),
+      publishUrl: data.publishUrl,
+      createdAt: data.createdAt || "",
+    }));
+}
+
+function normalizeRemoteCampaigns(
+  docs: Partial<RealCampaignItem>[]
+): RealCampaignItem[] {
+  return docs
+    .filter((d) => d.id && d.title)
+    .map((data) => ({
+      id: data.id!,
+      brandName: data.brandName || "",
+      title: data.title!,
+      city: data.city || "Adana",
+      category: data.category || "Güzellik & Kozmetik",
+      platform: data.platform || "INSTAGRAM",
+      budgetTl: Number(data.budgetTl || 0),
+      proposalCount: Number(data.proposalCount || 0),
+      status: data.status || "OPEN",
+      createdAt: data.createdAt || "",
+    }));
+}
+
+function mergeRemoteCreators(docs: Partial<RealCreatorItem>[]): RealCreatorItem[] {
+  const savedEmails = readLocalSavedCreatorEmails();
+  const merged: RealCreatorItem[] = VERIFIED_REAL_CREATORS.map((c) => ({
+    ...c,
+    email: savedEmails[c.id] || c.email,
+  }));
+  for (const data of docs) {
+    if (
+      data.id &&
+      data.name &&
+      !merged.some((existing) => existing.id === data.id)
+    ) {
+      merged.push({
+        id: data.id,
+        name: data.name,
+        handle: data.handle || `@${data.username || "creator"}`,
+        username: data.username || data.id,
+        city: data.city || "Adana",
+        category: data.category || "Güzellik & Kozmetik",
+        platform: data.platform || "INSTAGRAM",
+        followers: Number(data.followers || 0),
+        erPercent: Number(data.erPercent || 0),
+        isLeader: Boolean(data.isLeader),
+        email: savedEmails[data.id] || data.email || "",
+        socialUrl: data.socialUrl || "",
+        status: data.status || "APPROVED",
+      });
+    }
+  }
+  return merged;
+}
+
+function mergeRemoteServices(
+  docs: Partial<RealCreatorServiceItem & { priceMinorUnits?: number }>[]
+): RealCreatorServiceItem[] {
+  const merged: RealCreatorServiceItem[] = [...VERIFIED_REAL_SERVICES];
+  for (const data of docs) {
+    if (
+      data.id &&
+      data.title &&
+      !merged.some((existing) => existing.id === data.id)
+    ) {
+      merged.push({
+        id: data.id,
+        title: data.title,
+        creatorName: data.creatorName || "Gül Koç",
+        creatorHandle: data.creatorHandle || "@guldkoc",
+        platform: data.platform || "INSTAGRAM",
+        priceTl: Number(
+          data.priceTl ||
+            (data.priceMinorUnits ? Math.round(data.priceMinorUnits / 100) : 0)
+        ),
+        deliveryDays: Number(data.deliveryDays || 3),
+        revisions: Number(data.revisions || 1),
+        usageScope: data.usageScope || "",
+      });
+    }
+  }
+  return merged;
+}
+
 export function RoleDashboard({ locale, role }: RoleDashboardProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -292,6 +406,77 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     setActiveViewRole(role);
   }, [role]);
 
+  function applyWorkspaceDocs(payload: {
+    orders?: Partial<RealLedgerOrder>[];
+    campaigns?: Partial<RealCampaignItem>[];
+    creators?: Partial<RealCreatorItem>[];
+    services?: Partial<RealCreatorServiceItem & { priceMinorUnits?: number }>[];
+  }) {
+    if (payload.orders && payload.orders.length > 0) {
+      const normalized = normalizeRemoteOrders(payload.orders);
+      if (normalized.length > 0) persistOrders(normalized);
+    }
+    if (payload.campaigns && payload.campaigns.length > 0) {
+      const normalized = normalizeRemoteCampaigns(payload.campaigns);
+      if (normalized.length > 0) persistCampaigns(normalized);
+    }
+    if (payload.creators && payload.creators.length > 0) {
+      persistCreators(mergeRemoteCreators(payload.creators));
+    }
+    if (payload.services && payload.services.length > 0) {
+      persistServices(mergeRemoteServices(payload.services));
+    }
+  }
+
+  async function syncRemoteWorkspace(activeUser?: User | null) {
+    try {
+      if (activeUser) {
+        try {
+          const idToken = await activeUser.getIdToken();
+          const res = await fetch("/api/v1/admin/workspace", {
+            headers: { Authorization: `Bearer ${idToken}` },
+          });
+          if (res.ok) {
+            const payload = await res.json();
+            applyWorkspaceDocs(payload);
+            return;
+          }
+        } catch {
+          // fallback to direct Firestore reads
+        }
+      }
+
+      const db = getInfluNexFirestore();
+      const [ordersSnap, campaignsSnap, creatorsSnap, servicesSnap] =
+        await Promise.all([
+          getDocs(collection(db, "influnex_orders")).catch(() => null),
+          getDocs(collection(db, "influnex_campaigns")).catch(() => null),
+          getDocs(collection(db, "influnex_publicCreatorProfiles")).catch(
+            () => null
+          ),
+          getDocs(collection(db, "influnex_services")).catch(() => null),
+        ]);
+
+      applyWorkspaceDocs({
+        orders: ordersSnap?.docs.map((d) => d.data() as Partial<RealLedgerOrder>),
+        campaigns: campaignsSnap?.docs.map(
+          (d) => d.data() as Partial<RealCampaignItem>
+        ),
+        creators: creatorsSnap?.docs.map(
+          (d) => d.data() as Partial<RealCreatorItem>
+        ),
+        services: servicesSnap?.docs.map(
+          (d) =>
+            d.data() as Partial<
+              RealCreatorServiceItem & { priceMinorUnits?: number }
+            >
+        ),
+      });
+    } catch {
+      // keep local state if network read is blocked
+    }
+  }
+
   // Gerçek verileri localStorage + Firestore (influnex-db) üzerinden yükle
   useEffect(() => {
     try {
@@ -336,148 +521,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       // ignore storage errors
     }
 
-    // Firestore (influnex-db) üzerindeki gerçek koleksiyonları senkronize et
-    async function syncFromFirestore() {
-      try {
-        const db = getInfluNexFirestore();
-
-        const [ordersSnap, campaignsSnap, creatorsSnap, servicesSnap] =
-          await Promise.all([
-            getDocs(collection(db, "influnex_orders")).catch(() => null),
-            getDocs(collection(db, "influnex_campaigns")).catch(() => null),
-            getDocs(collection(db, "influnex_publicCreatorProfiles")).catch(
-              () => null
-            ),
-            getDocs(collection(db, "influnex_creatorServices")).catch(
-              () => null
-            ),
-          ]);
-
-        if (ordersSnap && !ordersSnap.empty) {
-          const fsOrders: RealLedgerOrder[] = [];
-          ordersSnap.forEach((d) => {
-            const data = d.data() as Partial<RealLedgerOrder>;
-            if (data.orderCode && data.brandName) {
-              fsOrders.push({
-                orderCode: data.orderCode,
-                brandName: data.brandName,
-                creatorName: data.creatorName || "Gül Koç (@guldkoc)",
-                serviceTitle: data.serviceTitle || "",
-                grossTl: Number(data.grossTl || 0),
-                bankTransactionRef: data.bankTransactionRef || "",
-                state: data.state || "PAYMENT_REVIEW",
-                adDisclosureVerified: Boolean(data.adDisclosureVerified),
-                publishUrl: data.publishUrl,
-                createdAt: data.createdAt || "",
-              });
-            }
-          });
-          if (fsOrders.length > 0) {
-            setLedgerOrders(fsOrders);
-            window.localStorage.setItem(
-              REAL_STORAGE_KEYS.ORDERS,
-              JSON.stringify(fsOrders)
-            );
-          }
-        }
-
-        if (campaignsSnap && !campaignsSnap.empty) {
-          const fsCampaigns: RealCampaignItem[] = [];
-          campaignsSnap.forEach((d) => {
-            const data = d.data() as Partial<RealCampaignItem>;
-            if (data.id && data.title) {
-              fsCampaigns.push({
-                id: data.id,
-                brandName: data.brandName || "",
-                title: data.title,
-                city: data.city || "Adana",
-                category: data.category || "Güzellik & Kozmetik",
-                platform: data.platform || "INSTAGRAM",
-                budgetTl: Number(data.budgetTl || 0),
-                proposalCount: Number(data.proposalCount || 0),
-                status: data.status || "OPEN",
-                createdAt: data.createdAt || "",
-              });
-            }
-          });
-          if (fsCampaigns.length > 0) {
-            setAdminCampaigns(fsCampaigns);
-            window.localStorage.setItem(
-              REAL_STORAGE_KEYS.CAMPAIGNS,
-              JSON.stringify(fsCampaigns)
-            );
-          }
-        }
-
-        if (creatorsSnap && !creatorsSnap.empty) {
-          const fsCreators: RealCreatorItem[] = [...VERIFIED_REAL_CREATORS];
-          creatorsSnap.forEach((d) => {
-            const data = d.data() as Partial<RealCreatorItem>;
-            if (
-              data.id &&
-              data.name &&
-              !fsCreators.some((existing) => existing.id === data.id)
-            ) {
-              fsCreators.push({
-                id: data.id,
-                name: data.name,
-                handle: data.handle || `@${data.username || "creator"}`,
-                username: data.username || data.id,
-                city: data.city || "Adana",
-                category: data.category || "Güzellik & Kozmetik",
-                platform: data.platform || "INSTAGRAM",
-                followers: Number(data.followers || 0),
-                erPercent: Number(data.erPercent || 0),
-                isLeader: Boolean(data.isLeader),
-                email: data.email || "",
-                socialUrl: data.socialUrl || "",
-                status: data.status || "APPROVED",
-              });
-            }
-          });
-          setAdminCreators(fsCreators);
-          window.localStorage.setItem(
-            REAL_STORAGE_KEYS.CREATORS,
-            JSON.stringify(fsCreators)
-          );
-        }
-
-        if (servicesSnap && !servicesSnap.empty) {
-          const fsServices: RealCreatorServiceItem[] = [
-            ...VERIFIED_REAL_SERVICES,
-          ];
-          servicesSnap.forEach((d) => {
-            const data = d.data() as Partial<RealCreatorServiceItem>;
-            if (
-              data.id &&
-              data.title &&
-              !fsServices.some((existing) => existing.id === data.id)
-            ) {
-              fsServices.push({
-                id: data.id,
-                title: data.title,
-                creatorName: data.creatorName || "Gül Koç",
-                creatorHandle: data.creatorHandle || "@guldkoc",
-                platform: data.platform || "INSTAGRAM",
-                priceTl: Number(data.priceTl || 0),
-                deliveryDays: Number(data.deliveryDays || 3),
-                revisions: Number(data.revisions || 1),
-                usageScope: data.usageScope || "",
-              });
-            }
-          });
-          setCreatorServices(fsServices);
-          window.localStorage.setItem(
-            REAL_STORAGE_KEYS.SERVICES,
-            JSON.stringify(fsServices)
-          );
-        }
-      } catch {
-        // Firestore read fallback to local state
-      }
-    }
-
-    syncFromFirestore();
+    syncRemoteWorkspace(getInfluNexAuth().currentUser);
   }, []);
 
   useEffect(() => {
@@ -553,6 +597,9 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
           }
 
           setChecking(false);
+          if (superAdminMatch || effectiveRole === "ADMIN") {
+            void syncRemoteWorkspace(nextUser);
+          }
         } catch {
           setUser(nextUser);
           setChecking(false);
@@ -665,8 +712,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     persistServices(next);
     try {
       const db = getInfluNexFirestore();
-      await setDoc(doc(db, "influnex_creatorServices", item.id), {
+      await setDoc(doc(db, "influnex_services", item.id), {
         ...item,
+        creatorId: user?.uid || "admin",
+        priceMinorUnits: Math.round(item.priceTl * 100),
+        isActive: true,
         tenantId: INFLUNEX_TENANT_ID,
       });
     } catch {
@@ -683,7 +733,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     persistServices(next);
     try {
       const db = getInfluNexFirestore();
-      await deleteDoc(doc(db, "influnex_creatorServices", id));
+      await deleteDoc(doc(db, "influnex_services", id));
     } catch {
       // ignore
     }
@@ -803,8 +853,13 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       return;
     }
 
+    const maxOrderSeq = ledgerOrders.reduce((max, o) => {
+      const match = o.orderCode.match(/-(\d+)$/);
+      const num = match ? Number(match[1]) : 0;
+      return Number.isFinite(num) && num > max ? num : max;
+    }, 0);
     const nextCode = `INF-${new Date().getFullYear()}-${String(
-      ledgerOrders.length + 1
+      maxOrderSeq + 1
     ).padStart(6, "0")}`;
     const item: RealLedgerOrder = {
       orderCode: nextCode,
@@ -825,14 +880,20 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     };
     const next = [item, ...ledgerOrders];
     persistOrders(next);
-    try {
-      const db = getInfluNexFirestore();
-      await setDoc(doc(db, "influnex_orders", item.orderCode), {
-        ...item,
-        tenantId: INFLUNEX_TENANT_ID,
-      });
-    } catch {
-      // ignore
+    if (user) {
+      try {
+        const idToken = await user.getIdToken();
+        await fetch("/api/v1/admin/workspace", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "UPSERT_ORDER", order: item }),
+        });
+      } catch {
+        // local storage already saved
+      }
     }
     pushLog(
       `Gerçek sipariş kaydedildi: ${nextCode} (${item.brandName} → ${item.creatorName}, ${item.grossTl.toLocaleString("tr-TR")} TL).`
@@ -873,12 +934,16 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       return ord;
     });
     persistOrders(next);
-    if (updatedItem) {
+    if (updatedItem && user) {
       try {
-        const db = getInfluNexFirestore();
-        await setDoc(doc(db, "influnex_orders", orderCode), {
-          ...(updatedItem as RealLedgerOrder),
-          tenantId: INFLUNEX_TENANT_ID,
+        const idToken = await user.getIdToken();
+        await fetch("/api/v1/admin/workspace", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "UPSERT_ORDER", order: updatedItem }),
         });
       } catch {
         // ignore
@@ -889,11 +954,20 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
   async function handleDeleteOrder(orderCode: string) {
     const next = ledgerOrders.filter((o) => o.orderCode !== orderCode);
     persistOrders(next);
-    try {
-      const db = getInfluNexFirestore();
-      await deleteDoc(doc(db, "influnex_orders", orderCode));
-    } catch {
-      // ignore
+    if (user) {
+      try {
+        const idToken = await user.getIdToken();
+        await fetch("/api/v1/admin/workspace", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "DELETE_ORDER", orderCode }),
+        });
+      } catch {
+        // ignore
+      }
     }
     pushLog(`${orderCode} siparişi silindi.`);
   }
@@ -919,6 +993,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       const db = getInfluNexFirestore();
       await setDoc(doc(db, "influnex_campaigns", item.id), {
         ...item,
+        advertiserId: user?.uid || "admin",
+        budgetMinorUnits: Math.round(item.budgetTl * 100),
         tenantId: INFLUNEX_TENANT_ID,
       });
     } catch {
@@ -1016,12 +1092,16 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     const updated = next.find(
       (o) => o.orderCode === selectedOrderCodeForDelivery
     );
-    if (updated) {
+    if (updated && user) {
       try {
-        const db = getInfluNexFirestore();
-        await setDoc(doc(db, "influnex_orders", updated.orderCode), {
-          ...updated,
-          tenantId: INFLUNEX_TENANT_ID,
+        const idToken = await user.getIdToken();
+        await fetch("/api/v1/admin/workspace", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "UPSERT_ORDER", order: updated }),
         });
       } catch {
         // ignore
@@ -1150,7 +1230,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 font-bold text-emerald-300">
               <ShieldCheck size={13} />
-              Sadece Gerçek Veriler • Sıfır Mock Veri
+              Canlı Veriler • Güvenli Takip
             </span>
             {activeEmail ? (
               <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-slate-200">
@@ -1532,16 +1612,16 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
                         <Database size={13} />
-                        Canlı Veritabanı: influnex-db (Sıfır Mock Veri)
+                        Canlı Sistem • Veriler Anlık İşlenir
                       </span>
                     </div>
                     <h1 className="mt-2.5 text-2xl font-black tracking-tight sm:text-3xl">
                       InfluNex Süperadmin Yönetim ve Kontrol Merkezi
                     </h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-300">
-                      Bu panelde hiçbir örnek veya sahte veri yer almaz. Tüm
-                      rakamlar yalnızca gerçek doğrulanmış üreticiler, gerçek
-                      oluşturulan siparişler ve gerçek kampanyalardan hesaplanır.
+                      Buradaki tüm rakamlar yalnızca doğrulanmış gerçek
+                      üreticiler, gerçek oluşturulan siparişler ve aktif marka
+                      kampanyalarından anlık olarak hesaplanır.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1834,7 +1914,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       </h2>
                     </div>
                     <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
-                      Sıfır Sahte Profil • Firestore influnex-db Senkron
+                      Yalnızca Gerçek Onaylı Üreticiler
                     </span>
                   </div>
 
@@ -2159,9 +2239,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                         Henüz Kayıtlı Sipariş Bulunmuyor (0,00 TL)
                       </strong>
                       <p className="mt-1">
-                        Tüm mock/örnek siparişler temizlendi. Yukarıdaki formdan
-                        gerçek bir sipariş ve banka dekont referansı
-                        girdiğinizde burada listelenir.
+                        Yukarıdaki formdan yeni bir sipariş ve banka dekont
+                        referansı girdiğinizde burada listelenir.
                       </p>
                     </div>
                   ) : (
@@ -2366,8 +2445,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                         Henüz Yayınlanmış Kampanya İlanı Bulunmuyor (0 İlan)
                       </strong>
                       <p className="mt-1">
-                        Tüm mock/örnek kampanya ilanları kaldırıldı. Yukarıdaki
-                        formdan gerçek bir marka kampanyası yayınlayabilirsiniz.
+                        Yukarıdaki formdan yeni bir marka kampanyası
+                        yayınlayabilirsiniz.
                       </p>
                     </div>
                   ) : (

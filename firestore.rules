@@ -52,12 +52,18 @@ service cloud.firestore {
       allow read: if (resource.data.status == "APPROVED" && isInfluNexTenantDoc())
                   || isOwner(creatorId)
                   || isAdmin();
-      allow create, update: if isOwner(creatorId)
+      allow create, update: if isSignedIn()
                             && isWritingInfluNexTenant()
                             && !request.resource.data.keys().hasAny(["iban", "nationalId", "taxId", "phone", "privateEmail", "bankAccountHolder"])
                             && (
-                              !request.resource.data.keys().hasAny(["verificationBadges"]) ||
-                              (resource != null && request.resource.data.verificationBadges == resource.data.verificationBadges)
+                              isAdmin() ||
+                              (
+                                isOwner(creatorId) &&
+                                (
+                                  !request.resource.data.keys().hasAny(["verificationBadges"]) ||
+                                  (resource != null && request.resource.data.verificationBadges == resource.data.verificationBadges)
+                                )
+                              )
                             );
       allow delete: if isAdmin();
     }
@@ -118,15 +124,18 @@ service cloud.firestore {
                   || isAdmin();
       allow create: if isSignedIn()
                     && isWritingInfluNexTenant()
-                    && request.resource.data.creatorId == request.auth.uid
                     && request.resource.data.priceMinorUnits is int
-                    && request.resource.data.priceMinorUnits >= 10000;
+                    && request.resource.data.priceMinorUnits >= 10000
+                    && (isAdmin() || request.resource.data.creatorId == request.auth.uid);
       allow update: if isSignedIn()
                     && isWritingInfluNexTenant()
-                    && resource.data.creatorId == request.auth.uid
-                    && request.resource.data.creatorId == request.auth.uid
                     && request.resource.data.priceMinorUnits is int
-                    && request.resource.data.priceMinorUnits >= 10000;
+                    && request.resource.data.priceMinorUnits >= 10000
+                    && (
+                      isAdmin() ||
+                      (resource.data.creatorId == request.auth.uid &&
+                       request.resource.data.creatorId == request.auth.uid)
+                    );
       allow delete: if (isSignedIn() && resource.data.creatorId == request.auth.uid) || isAdmin();
     }
 
@@ -137,13 +146,23 @@ service cloud.firestore {
                   || isAdmin();
       allow create: if isSignedIn()
                     && isWritingInfluNexTenant()
-                    && request.resource.data.advertiserId == request.auth.uid
-                    && request.resource.data.budgetMinorUnits is int
-                    && request.resource.data.budgetMinorUnits > 0;
+                    && (
+                      isAdmin() ||
+                      (
+                        request.resource.data.advertiserId == request.auth.uid &&
+                        request.resource.data.budgetMinorUnits is int &&
+                        request.resource.data.budgetMinorUnits > 0
+                      )
+                    );
       allow update: if isSignedIn()
                     && isWritingInfluNexTenant()
-                    && resource.data.advertiserId == request.auth.uid
-                    && request.resource.data.advertiserId == request.auth.uid;
+                    && (
+                      isAdmin() ||
+                      (
+                        resource.data.advertiserId == request.auth.uid &&
+                        request.resource.data.advertiserId == request.auth.uid
+                      )
+                    );
       allow delete: if isAdmin();
     }
 
