@@ -55,39 +55,85 @@ export async function GET(
     }
   } else if (type === "categories.xml") {
     for (const cat of INITIAL_CATEGORIES) {
-      const { items } = marketplaceStore.searchCreators({
+      const { total } = marketplaceStore.searchCreators({
         categorySlug: cat.slugTr,
       });
       const gate = evaluateIndexQualityGate({
         path: `/tr/influencer/${cat.slugTr}`,
-        approvedCreatorCount: items.length,
-        activeServiceCount: items.length,
+        approvedCreatorCount: total,
+        activeServiceCount: total,
         uniqueDescriptionText: `${cat.descriptionTr} ${cat.seoDescriptionTr}`,
       });
       if (gate.includeInSitemap) {
         entries.push({
           loc: `${SITE_BASE_URL}/tr/influencer/${cat.slugTr}`,
-          lastmod: "2026-11-24T12:00:00.000Z",
+          lastmod: "2026-11-26T12:00:00.000Z",
           changefreq: "daily",
           priority: "0.8",
+        });
+        entries.push({
+          loc: `${SITE_BASE_URL}/en/creators/${cat.slugEn}`,
+          lastmod: "2026-11-26T12:00:00.000Z",
+          changefreq: "daily",
+          priority: "0.7",
         });
       }
     }
   } else if (type === "cities.xml") {
+    // 1. Türkiye 81 Province Master Hub
+    entries.push({
+      loc: `${SITE_BASE_URL}/tr/influencer/turkiye`,
+      lastmod: "2026-11-26T12:00:00.000Z",
+      changefreq: "daily",
+      priority: "0.9",
+    });
+    entries.push({
+      loc: `${SITE_BASE_URL}/en/creators/turkiye`,
+      lastmod: "2026-11-26T12:00:00.000Z",
+      changefreq: "daily",
+      priority: "0.8",
+    });
+
+    // 2. All 81 Turkish Provinces + UGC City Hubs + Qualifying City x Category Combinations
     for (const city of INITIAL_CITIES) {
-      const { items } = marketplaceStore.searchCreators({
+      const { total } = marketplaceStore.searchCreators({
         citySlug: city.slug,
       });
       const gate = evaluateIndexQualityGate({
         path: `/tr/influencer/${city.slug}`,
-        approvedCreatorCount: items.length,
-        activeServiceCount: items.length,
+        approvedCreatorCount: total,
+        activeServiceCount: total,
         uniqueDescriptionText: `${city.descriptionTr} ${city.descriptionEn}`,
       });
       if (gate.includeInSitemap) {
         entries.push({
           loc: `${SITE_BASE_URL}/tr/influencer/${city.slug}`,
-          lastmod: "2026-11-24T12:00:00.000Z",
+          lastmod: "2026-11-26T12:00:00.000Z",
+          changefreq: "daily",
+          priority: "0.8",
+        });
+        entries.push({
+          loc: `${SITE_BASE_URL}/en/creators/${city.slug}`,
+          lastmod: "2026-11-26T12:00:00.000Z",
+          changefreq: "daily",
+          priority: "0.7",
+        });
+      }
+
+      const ugcTotal = marketplaceStore.searchCreators({
+        citySlug: city.slug,
+        ugcOnly: true,
+      }).total;
+      const ugcGate = evaluateIndexQualityGate({
+        path: `/tr/ugc/${city.slug}`,
+        approvedCreatorCount: ugcTotal,
+        activeServiceCount: ugcTotal,
+        uniqueDescriptionText: `${city.nameTr} UGC içerik üreticileri. ${city.descriptionTr}`,
+      });
+      if (ugcGate.includeInSitemap) {
+        entries.push({
+          loc: `${SITE_BASE_URL}/tr/ugc/${city.slug}`,
+          lastmod: "2026-11-26T12:00:00.000Z",
           changefreq: "daily",
           priority: "0.8",
         });
@@ -95,20 +141,20 @@ export async function GET(
 
       // City x Category programmatic combinations passing the Index Quality Gate (>= 3 approved creators)
       for (const cat of INITIAL_CATEGORIES) {
-        const comboCreators = marketplaceStore.searchCreators({
+        const comboTotal = marketplaceStore.searchCreators({
           citySlug: city.slug,
           categorySlug: cat.slugTr,
-        }).items;
+        }).total;
         const comboGate = evaluateIndexQualityGate({
           path: `/tr/influencer/${city.slug}/${cat.slugTr}`,
-          approvedCreatorCount: comboCreators.length,
-          activeServiceCount: comboCreators.length,
+          approvedCreatorCount: comboTotal,
+          activeServiceCount: comboTotal,
           uniqueDescriptionText: `${city.nameTr} ${cat.nameTr} influencer ve UGC içerik üreticileri. ${city.descriptionTr}`,
         });
         if (comboGate.includeInSitemap) {
           entries.push({
             loc: `${SITE_BASE_URL}/tr/influencer/${city.slug}/${cat.slugTr}`,
-            lastmod: "2026-11-24T12:00:00.000Z",
+            lastmod: "2026-11-26T12:00:00.000Z",
             changefreq: "daily",
             priority: "0.8",
           });

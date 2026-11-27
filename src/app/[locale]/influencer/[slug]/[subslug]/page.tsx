@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreatorCard } from "@/components/CreatorCard";
 import {
+  FEATURED_CITIES,
   INITIAL_CATEGORIES,
   INITIAL_CITIES,
   PLATFORM_LABELS,
@@ -13,6 +14,7 @@ import { localizedPath } from "@/lib/i18n/paths";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
+  buildFaqJsonLd,
 } from "@/lib/seo/jsonLd";
 import { evaluateIndexQualityGate } from "@/lib/seo/qualityGate";
 import { buildHreflangAlternates } from "@/lib/seo/routeRegistry";
@@ -194,23 +196,73 @@ export default async function CityAndCategoryCombinationPage({
         </div>
       )}
 
-      {/* Related Internal Links */}
-      <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <h2 className="text-sm font-bold text-slate-900">
-          Benzer Şehir ve Kategori Sayfaları
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          {INITIAL_CITIES.filter((c) => c.slug !== city.slug).map((other) => (
+      {/* Related Internal Links: Other Categories in This City + Same Category Across Other Cities */}
+      <div className="mt-10 space-y-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900">
+            {city.nameTr} İlindeki Diğer Kategoriler
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {INITIAL_CATEGORIES.filter((c) => c.slugTr !== subslug).map(
+              (otherCat) => (
+                <Link
+                  key={otherCat.id}
+                  href={`${basePath}/${city.slug}/${otherCat.slugTr}`}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                >
+                  {city.nameTr} {otherCat.nameTr}
+                </Link>
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-slate-900">
+              Türkiye Geneli Diğer İllerde {subTitle} Influencer&apos;ları
+            </h2>
             <Link
-              key={other.id}
-              href={`${basePath}/${other.slug}/${subslug}`}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+              href={`${basePath}/turkiye`}
+              className="text-xs font-bold text-indigo-600 hover:underline"
             >
-              {other.nameTr} {subTitle} Influencer&apos;ları
+              81 İl Rehberi →
             </Link>
-          ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {FEATURED_CITIES.filter((c) => c.slug !== city.slug).map(
+              (other) => (
+                <Link
+                  key={other.id}
+                  href={`${basePath}/${other.slug}/${subslug}`}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                >
+                  {other.nameTr} {subTitle} Influencer&apos;ları
+                </Link>
+              )
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Programmatic FAQ JSON-LD & Accordion */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            buildFaqJsonLd([
+              {
+                question: `${city.nameTr} ${subTitle} influencer iş birliği nasıl yapılır?`,
+                answer: `${city.nameTr} ilindeki onaylı ${subTitle.toLowerCase()} içerik üreticilerinin paketlerini karşılaştırıp doğrudan sipariş oluşturabilir veya ücretsiz kampanya ilanı açabilirsiniz.`,
+              },
+              {
+                question: `${city.nameTr} ${subTitle} reklam fiyatları ne kadar?`,
+                answer: `Fiyatlar üreticinin takipçi etkileşimine, video formatına (Reels, TikTok, YouTube, UGC) ve kullanım haklarına göre belirlenir. Tamamlanan işlerde %15 hizmet komisyonu uygulanır.`,
+              },
+            ])
+          ),
+        }}
+      />
     </div>
   );
 }

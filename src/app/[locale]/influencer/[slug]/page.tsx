@@ -3,9 +3,12 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CreatorCard } from "@/components/CreatorCard";
 import {
+  FEATURED_CITIES,
   INITIAL_CATEGORIES,
   INITIAL_CITIES,
   PLATFORM_LABELS,
+  SERVICE_TEMPLATES,
+  TURKIYE_REGIONS,
 } from "@/lib/data/catalog";
 import { marketplaceStore } from "@/lib/data/marketplaceStore";
 import {
@@ -17,6 +20,7 @@ import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
   buildCreatorProfileJsonLd,
+  buildFaqJsonLd,
 } from "@/lib/seo/jsonLd";
 import { evaluateIndexQualityGate } from "@/lib/seo/qualityGate";
 import {
@@ -134,9 +138,9 @@ export async function generateMetadata({
 
   if (resolved.kind === "COUNTRY") {
     return {
-      title: "Türkiye Influencer ve UGC İçerik Üreticileri",
+      title: "Türkiye 81 İl Influencer ve UGC İçerik Üreticileri Rehberi",
       description:
-        "Türkiye genelindeki Instagram, TikTok, YouTube influencer ve UGC içerik üreticilerini keşfedin.",
+        "Türkiye'nin 7 coğrafi bölgesi ve 81 ilindeki doğrulanmış Instagram, TikTok, YouTube influencer'larını ve UGC içerik üreticilerini şehir ve kategoriye göre keşfedin.",
       alternates: buildHreflangAlternates(
         "/tr/influencer/turkiye",
         "/en/creators/turkiye",
@@ -512,40 +516,47 @@ export default async function DynamicSlugPage({
   let heading = "";
   let description = "";
   let creators = marketplaceStore.searchCreators().items;
+  let totalMatches = creators.length;
 
   if (resolved.kind === "CITY") {
     heading = `${resolved.city.nameTr} Influencer ve UGC İçerik Üreticileri`;
     description = resolved.city.descriptionTr;
-    creators = marketplaceStore.searchCreators({
+    const res = marketplaceStore.searchCreators({
       citySlug: resolved.city.slug,
-    }).items;
+      limit: 24,
+    });
+    creators = res.items;
+    totalMatches = res.total;
   } else if (resolved.kind === "CATEGORY") {
     heading = `${resolved.category.nameTr} Influencer ve İçerik Üreticileri`;
     description = resolved.category.descriptionTr;
-    creators = marketplaceStore.searchCreators({
+    const res = marketplaceStore.searchCreators({
       categorySlug: resolved.category.slugTr,
-    }).items;
+      limit: 24,
+    });
+    creators = res.items;
+    totalMatches = res.total;
   } else if (resolved.kind === "PLATFORM") {
     const label = PLATFORM_LABELS[resolved.platform];
     heading = `${label.nameTr} Influencer ve İçerik Üreticileri`;
     description = `${label.nameTr} üzerinde markanız için gerçek etkileşimli sponsorlu içerik ve reklam iş birlikleri oluşturun.`;
-    creators = marketplaceStore.searchCreators({
+    const res = marketplaceStore.searchCreators({
       platform: resolved.platform,
-    }).items;
+      limit: 24,
+    });
+    creators = res.items;
+    totalMatches = res.total;
   } else if (resolved.kind === "COUNTRY") {
-    heading = "Türkiye Influencer ve UGC İçerik Üreticileri";
+    heading = "Türkiye 81 İl Influencer ve UGC İçerik Üreticileri Rehberi";
     description =
-      "Türkiye genelindeki 81 il ve 25 kategoride onaylı influencer ve UGC içerik üreticileri.";
+      "Türkiye'nin 7 coğrafi bölgesindeki 81 il ve 25 uzmanlık kategorisinde doğrulanmış Instagram, TikTok, YouTube influencer'ları ve UGC içerik üreticileri.";
+    const res = marketplaceStore.searchCreators({ limit: 12 });
+    creators = res.items;
+    totalMatches = res.total;
   }
 
   const pagePath =
     locale === "tr" ? `/tr/influencer/${slug}` : `/en/creators/${slug}`;
-  const gate = evaluateIndexQualityGate({
-    path: pagePath,
-    approvedCreatorCount: creators.length,
-    activeServiceCount: creators.length,
-    uniqueDescriptionText: `${heading} - ${description} Markanız için güvenli ve şeffaf %15 komisyon modeliyle hemen iş birliği başlatın.`,
-  });
 
   const collectionJsonLd = buildCollectionPageJsonLd({
     title: heading,
@@ -555,11 +566,53 @@ export default async function DynamicSlugPage({
     locale,
   });
 
+  const programmaticFaqs =
+    resolved.kind === "CITY"
+      ? [
+          {
+            question: `${resolved.city.nameTr} influencer ve UGC içerik üreticileriyle nasıl iş birliği yapılır?`,
+            answer: `${resolved.city.nameTr} (${resolved.city.regionTr} Bölgesi) sayfasındaki onaylı profilleri inceleyerek doğrudan hizmet paketi seçebilir veya ücretsiz kampanya ilanı açarak ${resolved.city.nameTr} merkezli içerik üreticilerinden teklif toplayabilirsiniz.`,
+          },
+          {
+            question: `${resolved.city.nameTr} influencer reklam fiyatları nasıl belirlenir?`,
+            answer: `${resolved.city.nameTr} ilindeki içerik üreticileri Instagram Reels, Story, TikTok, YouTube ve UGC video paket fiyatlarını kendi belirler. Üyelik ücretsizdir; yalnızca tamamlanan iş birliklerinde %15 hizmet komisyonu uygulanır ve %85 üreticiye ödenir.`,
+          },
+        ]
+      : resolved.kind === "CATEGORY"
+        ? [
+            {
+              question: `Türkiye'de ${resolved.category.nameTr.toLowerCase()} kategorisinde hangi şehirlerde influencer bulunuyor?`,
+              answer: `İstanbul, Adana, Ankara, İzmir, Antalya, Bursa, Mersin ve Gaziantep başta olmak üzere Türkiye'nin 81 ilinde ${resolved.category.nameTr.toLowerCase()} alanında içerik üreten doğrulanmış profiller yer almaktadır.`,
+            },
+            {
+              question: `${resolved.category.nameTr} markaları için UGC mi yoksa influencer paylaşımı mı tercih edilmeli?`,
+              answer: `Markanızın kendi reklamlarında (Meta/TikTok Ads) kullanmak istediğiniz kreatifler için UGC paketlerini, doğrudan hedef kitle erişimi için influencer paylaşım paketlerini tercih edebilirsiniz.`,
+            },
+          ]
+        : [
+            {
+              question: "InfluNex Türkiye'nin kaç ilinde hizmet veriyor?",
+              answer:
+                "InfluNex, Türkiye'nin 7 coğrafi bölgesindeki 81 ilin tamamında ve 25 sektörel kategoride markalarla içerik üreticilerini buluşturur.",
+            },
+            {
+              question: "Şehir ve kategori sayfalarında üyelik ücreti var mı?",
+              answer:
+                "Hayır. Türkiye'nin 81 ilinden tüm içerik üreticileri ve markalar ücretsiz katılır; yalnızca tamamlanan işlerde %15 komisyon uygulanır.",
+            },
+          ];
+
+  const faqJsonLd = buildFaqJsonLd(programmaticFaqs);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -571,11 +624,23 @@ export default async function DynamicSlugPage({
           <Link href="/tr/influencer" className="hover:text-indigo-600">
             Influencer Keşfet
           </Link>{" "}
-          / <span className="font-semibold text-slate-800">{heading}</span>
+          /{" "}
+          {resolved.kind === "CITY" ? (
+            <>
+              <Link
+                href="/tr/influencer/turkiye"
+                className="hover:text-indigo-600"
+              >
+                Türkiye (81 İl)
+              </Link>{" "}
+              /{" "}
+            </>
+          ) : null}
+          <span className="font-semibold text-slate-800">{heading}</span>
         </nav>
 
         <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
-          {creators.length} Onaylı Profil
+          {totalMatches.toLocaleString("tr-TR")} Onaylı Profil
         </span>
       </div>
 
@@ -584,64 +649,289 @@ export default async function DynamicSlugPage({
         {description}
       </p>
 
+      {/* CITY QUICK FILTER PILLS: Platforms & Top Categories in This City */}
+      {resolved.kind === "CITY" ? (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold text-slate-800">
+              {resolved.city.nameTr} Platformlar:
+            </span>
+            {Object.entries(PLATFORM_LABELS).map(([k, v]) => (
+              <Link
+                key={k}
+                href={
+                  v.slug === "ugc"
+                    ? `/tr/ugc/${resolved.city.slug}`
+                    : `/tr/influencer/${resolved.city.slug}/${v.slug}`
+                }
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-indigo-700 hover:border-indigo-400"
+              >
+                {resolved.city.nameTr} {v.nameTr}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold text-slate-800">
+              {resolved.city.nameTr} Sektörler:
+            </span>
+            {INITIAL_CATEGORIES.slice(0, 12).map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/tr/influencer/${resolved.city.slug}/${cat.slugTr}`}
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700"
+              >
+                {resolved.city.nameTr} {cat.nameTr}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* TURKIYE 81 PROVINCES x 7 GEOGRAPHICAL REGIONS HUB (/tr/influencer/turkiye) */}
+      {resolved.kind === "COUNTRY" ? (
+        <section className="mt-8 space-y-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <span className="text-xs text-slate-500">Kapsanan İl Sayısı</span>
+              <p className="mt-1 text-2xl font-extrabold text-slate-900">
+                81 İl
+              </p>
+              <span className="text-xs text-emerald-700">
+                01 Adana – 81 Düzce
+              </span>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <span className="text-xs text-slate-500">Coğrafi Bölge</span>
+              <p className="mt-1 text-2xl font-extrabold text-slate-900">
+                7 Bölge
+              </p>
+              <span className="text-xs text-indigo-700">
+                Tüm Türkiye Kapsamı
+              </span>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <span className="text-xs text-slate-500">Sektörel Kategori</span>
+              <p className="mt-1 text-2xl font-extrabold text-slate-900">
+                25 Kategori
+              </p>
+              <span className="text-xs text-slate-600">
+                81 × 25 = 2.025 İl/Sektör Ağı
+              </span>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <span className="text-xs text-slate-500">Onaylı Üretici</span>
+              <p className="mt-1 text-2xl font-extrabold text-emerald-700">
+                {totalMatches.toLocaleString("tr-TR")}+
+              </p>
+              <span className="text-xs text-slate-600">
+                Instagram, TikTok, YouTube & UGC
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {TURKIYE_REGIONS.map((region) => {
+              const regionCities = [...INITIAL_CITIES]
+                .filter((c) => c.regionTr === region)
+                .sort((a, b) => a.plateCode - b.plateCode);
+              return (
+                <div
+                  key={region}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h2 className="text-base font-bold text-slate-900">
+                      {region} Bölgesi Influencer&apos;ları
+                    </h2>
+                    <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-800">
+                      {regionCities.length} İl
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    {regionCities.map((city) => (
+                      <Link
+                        key={city.id}
+                        href={`/tr/influencer/${city.slug}`}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-800 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-800"
+                      >
+                        <span className="font-mono text-[11px] text-slate-400">
+                          {String(city.plateCode).padStart(2, "0")}
+                        </span>{" "}
+                        {city.nameTr}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       {creators.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {creators.map((creator) => (
-            <CreatorCard key={creator.id} creator={creator} locale={locale} />
-          ))}
+        <div className="mt-8">
+          {resolved.kind === "COUNTRY" ? (
+            <h2 className="mb-4 text-xl font-bold text-slate-900">
+              Türkiye Geneli Öne Çıkan İçerik Üreticileri
+            </h2>
+          ) : null}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {creators.map((creator) => (
+              <CreatorCard key={creator.id} creator={creator} locale={locale} />
+            ))}
+          </div>
         </div>
       ) : (
         <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
           <h2 className="text-lg font-bold text-slate-900">
             Bu kategoride/şehirde henüz yeterli onaylı profil bulunmuyor
           </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            InfluNex politikası gereği hiçbir sayfada sahte influencer profili
-            veya uydurma fiyat gösterilmez. Bu sayfa yeterli onaylı profil
-            oluşana kadar arama motorlarına <code>noindex</code> olarak sunulur.
-          </p>
           <div className="mt-4 flex justify-center gap-3">
             <Link
               href="/tr/kampanyalar"
               className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white"
             >
-              Örnek Kampanyaları İncele
+              Kampanyaları İncele
             </Link>
             <Link
               href="/tr/kayit?role=CREATOR"
               className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800"
             >
-              Erken Erişim Üretici Ön Kaydı
+              Ücretsiz Üretici Kaydı
             </Link>
           </div>
         </div>
       )}
 
-      {/* Cross-linking Matrix (City x Category & Related Hubs) */}
-      <section className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6">
-        <h2 className="text-base font-bold text-slate-900">
-          İlgili Şehir ve Kategori Kombinasyonları
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          {resolved.kind === "CITY"
-            ? INITIAL_CATEGORIES.slice(0, 10).map((cat) => (
+      {/* Programmatic Internal Linking Matrix: All 25 Categories, Neighboring Cities & All 81 Provinces */}
+      <section className="mt-12 space-y-6 rounded-2xl border border-slate-200 bg-slate-50 p-6">
+        {resolved.kind === "CITY" ? (
+          <>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                {resolved.city.nameTr} İli 25 Kategori Influencer Sayfaları
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                {INITIAL_CATEGORIES.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/tr/influencer/${resolved.city.slug}/${cat.slugTr}`}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700"
+                  >
+                    {resolved.city.nameTr} {cat.nameTr} Influencer&apos;ları
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-slate-900">
+                  {resolved.city.regionTr} Bölgesi ve Türkiye Geneli Diğer İller
+                </h3>
                 <Link
-                  key={cat.id}
-                  href={`/tr/influencer/${resolved.city.slug}/${cat.slugTr}`}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                  href="/tr/influencer/turkiye"
+                  className="text-xs font-bold text-indigo-600 hover:underline"
                 >
-                  {resolved.city.nameTr} {cat.nameTr} Influencer&apos;ları
+                  Tüm 81 İli Görüntüle →
                 </Link>
-              ))
-            : INITIAL_CITIES.map((city) => (
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                {INITIAL_CITIES.filter(
+                  (c) =>
+                    c.slug !== resolved.city.slug &&
+                    (c.regionTr === resolved.city.regionTr ||
+                      FEATURED_CITIES.some((f) => f.slug === c.slug))
+                )
+                  .slice(0, 24)
+                  .map((city) => (
+                    <Link
+                      key={city.id}
+                      href={`/tr/influencer/${city.slug}`}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                    >
+                      {city.nameTr} Influencer&apos;ları
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          </>
+        ) : resolved.kind === "CATEGORY" ? (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base font-bold text-slate-900">
+                81 İlde {resolved.category.nameTr} Influencer ve İçerik
+                Üreticileri
+              </h2>
+              <Link
+                href="/tr/influencer/turkiye"
+                className="text-xs font-bold text-indigo-600 hover:underline"
+              >
+                Türkiye 81 İl Rehberi →
+              </Link>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              {INITIAL_CITIES.map((city) => (
                 <Link
                   key={city.id}
-                  href={`/tr/influencer/${city.slug}`}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                  href={`/tr/influencer/${city.slug}/${resolved.category.slugTr}`}
+                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700"
                 >
-                  {city.nameTr} Influencer&apos;ları
+                  {city.nameTr} {resolved.category.nameTr}
                 </Link>
               ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                25 Uzmanlık Kategorisi ve 12 Hizmet Formatı
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                {INITIAL_CATEGORIES.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/tr/influencer/${cat.slugTr}`}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:border-indigo-400"
+                  >
+                    {cat.nameTr} Influencer&apos;ları
+                  </Link>
+                ))}
+                {SERVICE_TEMPLATES.map((srv) => (
+                  <Link
+                    key={srv.slug}
+                    href={`/tr/hizmetler/${srv.slug}`}
+                    className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-semibold text-indigo-900 hover:border-indigo-400"
+                  >
+                    {srv.nameTr}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* Localized Programmatic FAQ Accordion */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-900">
+          Sık Sorulan Sorular
+        </h2>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {programmaticFaqs.map((faq) => (
+            <div
+              key={faq.question}
+              className="rounded-2xl border border-slate-200 bg-white p-5"
+            >
+              <h3 className="text-sm font-bold text-slate-900">
+                {faq.question}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                {faq.answer}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
     </div>

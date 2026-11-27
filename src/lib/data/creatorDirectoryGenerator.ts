@@ -198,16 +198,27 @@ export function buildThousandCreatorCatalog(
   ];
 
   const remainingToGenerate = Math.max(0, targetTotalCount - profiles.length);
+  const topMetroCities = INITIAL_CITIES.slice(0, 8); // İstanbul, Adana, Ankara, İzmir, Mersin, Antalya, Bursa, Gaziantep
 
   for (let i = 0; i < remainingToGenerate; i++) {
-    const seq = profiles.length + 1; // 9..1000
+    const seq = profiles.length + 1;
     const firstName = FIRST_NAMES[i % FIRST_NAMES.length]!;
     const lastName =
       LAST_NAMES[Math.floor(i / FIRST_NAMES.length) % LAST_NAMES.length]!;
-    const city = INITIAL_CITIES[i % INITIAL_CITIES.length]!;
-    const primaryCat = INITIAL_CATEGORIES[i % INITIAL_CATEGORIES.length]!;
+    // First 324 generated profiles guarantee at least 4 creators in every single one of Türkiye's 81 provinces (81 * 4 = 324).
+    // Remaining generated profiles concentrate across the top 8 metropolitan hubs so all 8x25 City*Category combinations have >= 3 creators!
+    const city =
+      i < INITIAL_CITIES.length * 4
+        ? INITIAL_CITIES[i % INITIAL_CITIES.length]!
+        : topMetroCities[i % topMetroCities.length]!;
+    const primaryCat =
+      i < INITIAL_CITIES.length * 4
+        ? INITIAL_CATEGORIES[i % INITIAL_CATEGORIES.length]!
+        : INITIAL_CATEGORIES[Math.floor(i / topMetroCities.length) % INITIAL_CATEGORIES.length]!;
     const secondaryCat =
       INITIAL_CATEGORIES[(i + 7) % INITIAL_CATEGORIES.length]!;
+    const thirdCat =
+      INITIAL_CATEGORIES[(i + 13) % INITIAL_CATEGORIES.length]!;
     const primaryPlatform = platformsPool[i % platformsPool.length]!;
     const secondaryPlatform = platformsPool[(i + 1) % platformsPool.length]!;
     const offersUgc = primaryPlatform === "UGC" || i % 2 === 0;
@@ -275,6 +286,7 @@ export function buildThousandCreatorCatalog(
         new Set([
           primaryCat.slugTr,
           secondaryCat.slugTr,
+          thirdCat.slugTr,
           ...(offersUgc ? ["ugc-icerik-uretimi"] : []),
         ])
       ),

@@ -3,6 +3,7 @@ import {
   generateAiCampaignDraft,
   recommendCreatorsFromNaturalLanguage,
 } from "@/lib/ai/recommendationEngine";
+import { INITIAL_CITIES } from "@/lib/data/catalog";
 import { marketplaceStore } from "@/lib/data/marketplaceStore";
 import {
   buildCreatorProfileJsonLd,
@@ -28,6 +29,27 @@ describe("InfluNex SEO, Programmatic Quality Gate, Schema.org & AI Engine", () =
     expect(adminContacts.total).toBe(1000);
     expect(adminContacts.items).toHaveLength(1000);
     expect("contactEmail" in (adminContacts.items[0] || {})).toBe(false);
+  });
+
+  it("covers all 81 official Turkish provinces (plates 1..81) with indexable programmatic SEO pages", () => {
+    expect(INITIAL_CITIES).toHaveLength(81);
+    const plates = new Set(INITIAL_CITIES.map((c) => c.plateCode));
+    expect(plates.size).toBe(81);
+
+    for (const city of INITIAL_CITIES) {
+      expect(resolveDiscoverySlug(city.slug).kind).toBe("CITY");
+      const { total } = marketplaceStore.searchCreators({
+        citySlug: city.slug,
+      });
+      expect(total).toBeGreaterThanOrEqual(3);
+      const gate = evaluateIndexQualityGate({
+        path: `/tr/influencer/${city.slug}`,
+        approvedCreatorCount: total,
+        activeServiceCount: total,
+        uniqueDescriptionText: city.descriptionTr,
+      });
+      expect(gate.indexable).toBe(true);
+    }
   });
 
   it("enforces Programmatic SEO Index Quality Gate (minimum 3 approved creators required)", () => {

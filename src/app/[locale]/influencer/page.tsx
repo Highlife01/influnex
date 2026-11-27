@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CreatorCard } from "@/components/CreatorCard";
 import {
+  FEATURED_CITIES,
   INITIAL_CATEGORIES,
   INITIAL_CITIES,
   PLATFORM_LABELS,
@@ -227,8 +228,8 @@ export default async function InfluencerDiscoveryPage({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-bold text-slate-700">Şehirler:</span>
-          {INITIAL_CITIES.map((city) => (
+          <span className="font-bold text-slate-700">Şehirler (81 İl):</span>
+          {FEATURED_CITIES.map((city) => (
             <Link
               key={city.id}
               href={`${basePath}/${city.slug}`}
@@ -237,6 +238,12 @@ export default async function InfluencerDiscoveryPage({
               {city.nameTr}
             </Link>
           ))}
+          <Link
+            href={`${basePath}/turkiye`}
+            className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 font-bold text-indigo-800 hover:bg-indigo-100"
+          >
+            Tüm 81 İl Rehberi ({INITIAL_CITIES.length} İl) →
+          </Link>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">

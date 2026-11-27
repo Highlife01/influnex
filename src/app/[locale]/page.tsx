@@ -16,6 +16,7 @@ import { CommissionCalculatorWidget } from "@/components/CommissionCalculatorWid
 import { CreatorCard } from "@/components/CreatorCard";
 import { PlatformStatisticsSection } from "@/components/PlatformStatisticsSection";
 import {
+  FEATURED_CITIES,
   INITIAL_CATEGORIES,
   INITIAL_CITIES,
   PLATFORM_LABELS,
@@ -603,11 +604,19 @@ export default async function HomePage({
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                Şehirler
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Türkiye 81 İl
+                </h3>
+                <Link
+                  href={`${exploreHref}/turkiye`}
+                  className="text-xs font-bold text-indigo-600 hover:underline"
+                >
+                  Tüm 81 İli Gör →
+                </Link>
+              </div>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                {INITIAL_CITIES.map((city) => (
+                {FEATURED_CITIES.map((city) => (
                   <Link
                     key={city.id}
                     href={categoryPath(locale, city.slug)}
@@ -616,6 +625,12 @@ export default async function HomePage({
                     {city.nameTr}
                   </Link>
                 ))}
+                <Link
+                  href={`${exploreHref}/turkiye`}
+                  className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-bold text-indigo-800 hover:bg-indigo-100"
+                >
+                  + Tüm 81 İl Rehberi ({INITIAL_CITIES.length} İl)
+                </Link>
               </div>
             </div>
 
