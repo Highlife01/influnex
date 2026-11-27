@@ -12,6 +12,7 @@ import {
   Video,
 } from "lucide-react";
 import { AiNaturalLanguageSearchBox } from "@/components/AiNaturalLanguageSearchBox";
+import { BrandIntroOverlay } from "@/components/BrandIntroOverlay";
 import { CommissionCalculatorWidget } from "@/components/CommissionCalculatorWidget";
 import { CreatorCard } from "@/components/CreatorCard";
 import { PlatformStatisticsSection } from "@/components/PlatformStatisticsSection";
@@ -149,13 +150,16 @@ export default async function HomePage({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-indigo-900">
-                <Sparkles size={14} className="text-indigo-600" />
-                <span>
-                  {locale === "tr"
-                    ? "Ücretsiz Üyelik • Şeffaf Fiyatlar • %85 Üretici Kazancı"
-                    : "Free Membership • Transparent Pricing • 85% Creator Payout"}
-                </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-indigo-900">
+                  <Sparkles size={14} className="text-indigo-600" />
+                  <span>
+                    {locale === "tr"
+                      ? "Ücretsiz Üyelik • Şeffaf Fiyatlar • %85 Üretici Kazancı"
+                      : "Free Membership • Transparent Pricing • 85% Creator Payout"}
+                  </span>
+                </div>
+                <BrandIntroOverlay locale={locale} />
               </div>
 
               <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.15]">
