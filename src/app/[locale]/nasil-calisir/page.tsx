@@ -64,26 +64,26 @@ export default async function HowItWorksPage({
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-bold text-indigo-950">
             {isTurkish
-              ? "2. AI Destekli Brief & Teklif"
-              : "2. AI Brief & Proposal"}
+              ? "2. Hızlı Teklif & İş Birliği"
+              : "2. Brief & Proposal"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {isTurkish
-              ? "Hedefinizi, bütçenizi ve 6 boyutlu kullanım hakkı beklentinizi belirleyin; doğrudan hizmet paketi seçin veya açık kampanya briefi yayınlayın."
-              : "Define your goals, budget, and 6-dimensional usage rights; book a service package or publish a campaign brief."}
+              ? "Hedefinizi ve bütçenizi belirleyin; doğrudan bir içerik üreticisinin paketini seçin veya ücretsiz kampanya ilanı açarak teklif toplayın."
+              : "Define your goals and budget; book a service package directly or publish a free campaign brief."}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 md:col-span-2">
           <h2 className="text-lg font-bold text-indigo-950">
             {isTurkish
-              ? "3. 15 Durumlu Sipariş, Bloke & %85 Hakediş Aktarımı"
-              : "3. 15-State Order, Escrow & 85% Creator Payout"}
+              ? "3. Güvenli Ödeme ve %85 Üretici Kazancı"
+              : "3. Secure Payment & 85% Creator Payout"}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {isTurkish
-              ? "Sipariş başladığında fiyat, komisyon, revizyon sayısı ve kullanım hakları değiştirilemez snapshot olarak kilitlenir. Ödeme bloke edilir; taslak onaylanıp #reklam etiketiyle yayına alındığında %85 brüt hakediş üreticiye aktarılır."
-              : "Order price, commission, revision limits, and usage rights are locked as an immutable snapshot. Funds are held until content approval and #ad disclosure verification, then 85% gross payout is settled to the creator."}
+              ? "İş birliği başladığında fiyat, teslim süresi ve içerik kapsamı netleşir. Ödeme güvenceye alınır; içerik hazırlanıp onaylandıktan sonra %85 kazanç içerik üreticisine aktarılır."
+              : "Price, timeline, and deliverables are agreed upfront. Funds are protected until content approval, then 85% payout is released to the creator."}
           </p>
         </div>
       </div>

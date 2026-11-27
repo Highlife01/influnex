@@ -2,19 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  Award,
-  BarChart3,
   BriefcaseBusiness,
   CheckCircle2,
-  Crown,
   Globe,
-  Layers,
   Lock,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   Video,
-  Zap,
 } from "lucide-react";
 import { AiNaturalLanguageSearchBox } from "@/components/AiNaturalLanguageSearchBox";
 import { CommissionCalculatorWidget } from "@/components/CommissionCalculatorWidget";
@@ -59,7 +54,7 @@ export async function generateMetadata({
         : "Global Influencer & UGC Creator Marketplace",
     description:
       locale === "tr"
-        ? "Markanız için doğru Instagram, TikTok, YouTube influencer'ını ve UGC içerik üreticisini bulun. Ücretsiz katılın, yalnızca tamamlanan iş birliklerinden %15 komisyon ödeyin."
+        ? "Markanız için doğru Instagram, TikTok, YouTube influencer'ını ve UGC içerik üreticisini bulun. Ücretsiz katılın, kolayca iş birliği yapın."
         : "Find verified Instagram, TikTok, YouTube influencers and UGC creators. Free membership, 15% commission only on completed collaborations.",
     alternates,
   };
@@ -70,44 +65,44 @@ const HOME_FAQS = {
     {
       question: "InfluNex nedir ve nasıl çalışır?",
       answer:
-        "InfluNex, markaları doğrulanmış influencer ve UGC içerik üreticileriyle buluşturan iki taraflı bir pazaryeridir. Profilleri karşılaştırabilir, AI destekli kampanya briefi hazırlayabilir ve 15 durumlu sipariş/bloke güvencesiyle iş birliği yürütebilirsiniz.",
+        "InfluNex, markalarla influencer ve UGC içerik üreticilerini bir araya getiren bir iş birliği platformudur. Profilleri ve paket fiyatlarını inceleyebilir, ücretsiz kampanya ilanı açabilir ve güvenli iş birliği başlatabilirsiniz.",
     },
     {
-      question: "Üyelik ve komisyon ücretleri nasıl çalışır?",
+      question: "Üyelik ücretli mi? Komisyon oranı nedir?",
       answer:
-        "Üyelik, profil oluşturma ve kampanya listeleme tamamen ücretsizdir. Tamamlanan iş birliklerinde vergi ve yasal kesintiler öncesi brüt hizmet bedelinin %15'i platform komisyonu olarak ayrılır, %85'i doğrudan içerik üreticisinin brüt hakedişidir.",
+        "Hayır, hem markalar hem de içerik üreticileri için üyelik ve ilan açmak tamamen ücretsizdir. Yalnızca başarıyla tamamlanan iş birliklerinde hizmet bedelinin %15'i platform komisyonu olarak alınır, %85'i içerik üreticisine ödenir.",
     },
     {
-      question: "Influencer'lar için ödeme ve telif güvencesi nasıl sağlanır?",
+      question: "Ödemeler nasıl güvenceye alınıyor?",
       answer:
-        "Her siparişte fiyat, komisyon, revizyon sayısı ve 6 boyutlu kullanım hakkı (Organik / Paid Ads / Süre / Coğrafya) değiştirilemez snapshot olarak sabitlenir. Ödeme onaylanıp bloke edilmeden çekim süreci başlamaz.",
+        "İş birliği başladığında içerik kapsamı, teslim süresi ve ücret sabitlenir. Marka ödemeyi yaptığında tutar güvenceye alınır; içerik hazırlanıp onaylandıktan sonra üreticiye aktarılır.",
     },
     {
       question: "UGC içerik üreticisi ile influencer arasındaki fark nedir?",
       answer:
-        "Influencer'lar içeriği kendi sosyal medya hesaplarında takipçileriyle paylaşır. UGC içerik üreticileri ise içeriği markaya teslim eder; markanın kendi kanallarında veya reklamlarında kullanması için gereken haklar pakette net olarak tanımlanır.",
+        "Influencer, hazırladığı içeriği kendi sosyal medya hesabında takipçileriyle paylaşır. UGC içerik üreticisi ise videoyu kendi hesabında paylaşmak zorunda olmadan doğrudan markanın kendi reklamlarında ve sayfasında kullanması için üretir.",
     },
   ],
   en: [
     {
-      question: "What is InfluNex, and what can I do in the beta?",
+      question: "What is InfluNex and how does it work?",
       answer:
-        "InfluNex is a next-generation marketplace connecting brands with influencers and UGC creators. You can browse sample profiles, prepare AI campaign briefs, explore transparent format benchmarks, and test the Super Admin, Creator, and Advertiser dashboards.",
+        "InfluNex connects brands with verified influencers and UGC content creators. You can compare profiles and service packages, post a campaign brief for free, and collaborate securely.",
     },
     {
-      question: "How do membership and commission fees work?",
+      question: "Is membership free? How does commission work?",
       answer:
-        "Membership, listing, and campaign creation are 100% free. On completed collaborations, the platform takes a 15% commission on the gross service fee before taxes, leaving an 85% gross payout to the creator.",
+        "Membership, profile creation, and campaign posting are 100% free. A 15% platform fee applies only when a collaboration is completed, leaving 85% to the creator.",
     },
     {
-      question: "How are creator payments and usage rights protected?",
+      question: "How are payments and deliverables protected?",
       answer:
-        "Every order locks price, commission, revision limits, and 6-dimensional usage rights (Organic / Paid Ads / Duration / Geography) as an immutable snapshot.",
+        "Every order locks the agreed deliverables, timeline, and price upfront so both brands and creators collaborate with full peace of mind.",
     },
     {
       question: "What is the difference between a UGC creator and an influencer?",
       answer:
-        "Influencers publish content on their own social accounts. UGC creators deliver content to a brand for use on the brand's channels or paid ads according to the agreed usage license.",
+        "Influencers publish content on their own social media accounts. UGC creators produce videos for the brand to use on the brand's own channels and ads.",
     },
   ],
 };
@@ -135,7 +130,6 @@ export default async function HomePage({
   const campaignsHref = localizedPath(locale, "campaigns");
   const ugcHref = localizedPath(locale, "ugc");
   const signupHref = localizedPath(locale, "signup");
-  const pricingHref = localizedPath(locale, "pricing");
   const howItWorksHref = localizedPath(locale, "howItWorks");
 
   return (
@@ -149,200 +143,119 @@ export default async function HomePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      {/* Single Top Status Bar — Clear, Honest & Direct Dashboard Shortcuts */}
-      <div
-        role="status"
-        className="border-b border-indigo-200 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 px-4 py-2 text-center text-xs font-medium text-indigo-100"
-      >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1">
-          <span>
-            <strong className="text-emerald-300">
-              InfluNex Global Marketplace:
-            </strong>{" "}
-            {locale === "tr"
-              ? "%85 Üretici Hakedişi • %15 Tamamlanan İş Komisyonu • 15 Durumlu Sipariş & Bloke Mimarisi"
-              : "85% Creator Payout • 15% Commission on Completed Deals • 15-State Order Protection"}
-          </span>
-          <span className="inline-flex items-center gap-2 font-bold">
-            <Link
-              href={`/${locale}/yayinci/panel`}
-              className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-emerald-300 hover:bg-emerald-500/30"
-            >
-              {locale === "tr" ? "Influencer Paneli →" : "Creator Panel →"}
-            </Link>
-            <Link
-              href={`/${locale}/yonetim`}
-              className="rounded-md bg-indigo-500/25 px-2 py-0.5 text-indigo-200 hover:bg-indigo-500/40"
-            >
-              {locale === "tr" ? "Süperadmin Kokpiti →" : "Super Admin →"}
-            </Link>
-          </span>
-        </div>
-      </div>
-
-      {/* 1. EXECUTIVE ABOVE-THE-FOLD HERO WITH CREATOR-MAGNETIC & BRAND CARDS */}
-      <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-indigo-50/70 via-white to-white py-12 sm:py-16">
+      {/* 1. CLEAN, WELCOMING HERO */}
+      <section className="border-b border-slate-200 bg-gradient-to-b from-indigo-50/50 via-white to-white py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-indigo-200 bg-white px-3.5 py-1.5 text-xs font-bold text-indigo-950 shadow-2xs">
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-indigo-900">
                 <Sparkles size={14} className="text-indigo-600" />
                 <span>
-                  {t.slogan} • %0 Sabit Ücret • %85 Influencer Hakedişi
+                  {locale === "tr"
+                    ? "Ücretsiz Üyelik • Şeffaf Fiyatlar • %85 Üretici Kazancı"
+                    : "Free Membership • Transparent Pricing • 85% Creator Payout"}
                 </span>
               </div>
 
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.12]">
+              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.15]">
                 {locale === "tr"
-                  ? "İyi bir iş birliği, doğru buluşmayla başlar. 💙"
+                  ? "İyi bir iş birliği, doğru buluşmayla başlar."
                   : t.hero.title}
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
                 {locale === "tr"
-                  ? "InfluNex, markalarla içerik üreticilerini bir araya getirir. Markanız için yaratıcı içerikler üretecek kişilerle tanışın; içerik üreticisiyseniz tarzınıza ve kitlenize uygun markalarla yeni iş birliklerinin kapısını açın."
+                  ? "Markanız için yaratıcı videolar ve içerikler üretecek doğru isimlerle tanışın. İçerik üreticisiyseniz ücretsiz profilinizi açın, sevdiğiniz markalarla kolayca çalışın."
                   : t.hero.subtitle}
               </p>
 
-              {/* Featured Influencer Leader Above-the-Fold Spotlight Card */}
-              <div className="mt-6 flex flex-col justify-between gap-4 rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-white to-teal-50 p-4 shadow-md sm:flex-row sm:items-center">
-                <div className="flex items-center gap-3.5">
-                  <img
-                    src="/creators/guldkoc.jpg"
-                    alt="Gül Koç (@guldkoc)"
-                    width={60}
-                    height={60}
-                    className="h-15 w-15 rounded-2xl border-2 border-emerald-500 object-cover shadow-xs"
-                  />
-                  <div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-700 px-2.5 py-0.5 text-[11px] font-extrabold text-white">
-                        👑 {locale === "tr" ? "Influencer Lideri" : "Influencer Leader"}
-                      </span>
-                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-900">
-                        Adana • Güzellik, Moda & UGC
-                      </span>
-                    </div>
-                    <h2 className="mt-1 text-base font-black text-slate-950">
-                      Gül Koç{" "}
-                      <span className="text-xs font-bold text-indigo-700">
-                        (@guldkoc)
-                      </span>
-                    </h2>
-                    <p className="text-xs font-medium text-slate-600">
-                      10,4 B Takipçi • %5,8 Etkileşim • Instagram Reels, Story & UGC İş Birlikleri
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <a
-                    href="https://www.instagram.com/guldkoc/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-xl border border-pink-300 bg-pink-50 px-3 py-2 text-xs font-bold text-pink-800 hover:bg-pink-100"
-                  >
-                    Instagram ↗
-                  </a>
-                  <Link
-                    href={`/${locale}/influencer/guldkoc`}
-                    className="rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-extrabold text-white shadow-xs hover:bg-emerald-800"
-                  >
-                    {locale === "tr" ? "Profili & Paketleri Gör →" : "View Leader Profile →"}
-                  </Link>
-                </div>
-              </div>
-
-              {/* Primary Dual-Role Action Cards */}
+              {/* 2 Clear Action Cards */}
               <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Link
-                  href={`${signupHref}?role=CREATOR`}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-emerald-600 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-5 text-white shadow-md transition hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-2.5 py-1 text-xs font-extrabold text-white">
-                        <Crown size={14} />
-                        {locale === "tr"
-                          ? "Influencer & UGC Üreticileri (%85 Pay)"
-                          : "For Creators (85% Payout)"}
-                      </span>
-                      <ArrowRight
-                        size={18}
-                        className="transition-transform group-hover:translate-x-1"
-                      />
-                    </div>
-                    <h2 className="mt-3 text-lg font-black">
-                      {locale === "tr"
-                        ? "Yaratıcılığın yeni iş birliklerine dönüşsün. ✨"
-                        : t.hero.ctaJoinCreator}
-                    </h2>
-                    <p className="mt-1 text-xs leading-relaxed text-emerald-50">
-                      {locale === "tr"
-                        ? "İçerik üretmeyi seviyor, kendi tarzınla markalara değer katmak istiyorsan InfluNex ile tanış. Ürettiğin içerikleri, ilgi alanlarını ve kitleni anlat; %85 brüt hakedişle kazan."
-                        : "Launch your free creator showcase, set your own prices and usage rights, and keep 85% gross payout."}
-                    </p>
-                  </div>
-                </Link>
-
-                <Link
                   href={exploreHref}
-                  className="group flex flex-col justify-between rounded-2xl border-2 border-indigo-600 bg-indigo-600 p-5 text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                  className="group flex flex-col justify-between rounded-2xl bg-indigo-600 p-5 text-white shadow-sm transition hover:bg-indigo-700"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-xs font-bold">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-xs font-semibold">
                         <BriefcaseBusiness size={14} />
-                        {locale === "tr" ? "Markalar & Ajanslar İçin" : "For Brands"}
+                        {locale === "tr" ? "Markalar İçin" : "For Brands"}
                       </span>
                       <ArrowRight
                         size={18}
                         className="transition-transform group-hover:translate-x-1"
                       />
                     </div>
-                    <h2 className="mt-3 text-lg font-black">
+                    <h2 className="mt-3 text-lg font-bold">
                       {locale === "tr"
-                        ? "Markanızın hikâyesini kim anlatsın? 🎯"
-                        : t.hero.ctaFindCreator}
+                        ? "Influencer & UGC Üreticisi Bul"
+                        : "Find Influencers & Creators"}
                     </h2>
                     <p className="mt-1 text-xs leading-relaxed text-indigo-100">
                       {locale === "tr"
-                        ? `Ürününüzü, hedef kitlenizi ve kampanya fikrinizi paylaşın. İçeriğiyle markanıza uyum sağlayabilecek ${totalCreatorsCount} doğrulanmış üreticiyle tanışın.`
-                        : `Filter ${totalCreatorsCount} showcase profiles by city, category, ER, and budget.`}
+                        ? "Şehir, kategori ve bütçenize uygun içerik üreticilerini inceleyin."
+                        : "Browse verified creators by city, category, and budget."}
+                    </p>
+                  </div>
+                </Link>
+
+                <Link
+                  href={`${signupHref}?role=CREATOR`}
+                  className="group flex flex-col justify-between rounded-2xl border-2 border-emerald-600 bg-emerald-600 p-5 text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold">
+                        <Video size={14} />
+                        {locale === "tr"
+                          ? "İçerik Üreticileri İçin"
+                          : "For Creators"}
+                      </span>
+                      <ArrowRight
+                        size={18}
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </div>
+                    <h2 className="mt-3 text-lg font-bold">
+                      {locale === "tr"
+                        ? "Ücretsiz Profilini Oluştur"
+                        : "Create Your Free Profile"}
+                    </h2>
+                    <p className="mt-1 text-xs leading-relaxed text-emerald-50">
+                      {locale === "tr"
+                        ? "Hizmet paketlerini ekle, tamamlanan işlerden %85 kazanç elde et."
+                        : "Add your service packages and keep 85% of every collaboration."}
                     </p>
                   </div>
                 </Link>
               </div>
 
-              {/* Trust Strip */}
-              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-700">
+              {/* Simple Trust Points */}
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-slate-600">
                 <span className="inline-flex items-center gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600" />
-                  Abonelik veya Jeton Yok
+                  Aylık Abonelik Ücreti Yok
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600" />
-                  Ödeme Bloke & 6 Boyutlu Telif Koruması
+                  Güvenli Ödeme ve Net İş Tanımı
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <ShieldCheck size={15} className="text-indigo-600" />
-                  Ticaret Bakanlığı #reklam Uyumlu
+                  Resmî #reklam Mevzuatına Uygun
                 </span>
               </div>
             </div>
 
-            {/* Right Column: Quick Channel Matrix & Live Dashboard Access */}
-            <div className="lg:col-span-5">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-950/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                    Çok Kanallı Keşif Matrisi
-                  </span>
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-                    4 Ana Kanal • 12 Format
-                  </span>
-                </div>
-                <h2 className="mt-1 text-lg font-extrabold text-slate-900">
-                  Hangi Platformda İş Birliği Arıyorsunuz?
+            {/* Right Column: Simple Platform Selection + Featured Creator */}
+            <div className="space-y-4 lg:col-span-5">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-base font-bold text-slate-900">
+                  Hangi Kanalda İçerik Arıyorsunuz?
                 </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  İhtiyacınız olan platformu seçerek profilleri hemen listeleyin:
+                </p>
+
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   {Object.entries(PLATFORM_LABELS).map(([key, info]) => (
                     <Link
@@ -352,78 +265,48 @@ export default async function HomePage({
                           ? ugcHref
                           : categoryPath(locale, info.slug)
                       }
-                      className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-indigo-500 hover:bg-indigo-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                      className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-indigo-500 hover:bg-indigo-50/40"
                     >
-                      <span className="text-[11px] font-bold uppercase text-indigo-600">
-                        {info.slug.toUpperCase()}
-                      </span>
-                      <strong className="mt-0.5 block text-base font-extrabold text-slate-900 group-hover:text-indigo-950">
+                      <strong className="block text-base font-bold text-slate-900 group-hover:text-indigo-700">
                         {locale === "tr" ? info.nameTr : info.nameEn}
                       </strong>
-                      <span className="mt-1 block text-xs font-semibold text-slate-500 group-hover:text-indigo-700">
-                        Profilleri İncele →
+                      <span className="mt-1 block text-xs text-slate-500 group-hover:text-indigo-600">
+                        Profilleri Gör →
                       </span>
                     </Link>
                   ))}
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-indigo-100 bg-slate-50 p-4 text-xs text-slate-600">
-                  <div className="flex items-center justify-between font-bold text-slate-900">
-                    <span>Şeffaf Hakediş Matematiği (10.000 TL)</span>
-                    <Link
-                      href={pricingHref}
-                      className="text-indigo-600 hover:underline"
-                    >
-                      Komisyon Politikası →
-                    </Link>
-                  </div>
-                  <div className="mt-2.5 grid grid-cols-3 gap-2 text-center">
-                    <div className="rounded-xl bg-white p-2.5 shadow-2xs">
-                      <span className="block text-[10px] text-slate-500">
-                        Brüt Sipariş
+                {/* Featured Creator Spotlight: Gül Koç */}
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/creators/guldkoc.jpg"
+                      alt="Gül Koç (@guldkoc)"
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-xl object-cover ring-2 ring-emerald-500"
+                    />
+                    <div>
+                      <span className="text-[11px] font-bold text-emerald-800">
+                        👑 Öne Çıkan Üretici • Adana
                       </span>
-                      <strong className="text-sm font-black text-slate-900">
-                        10.000 TL
-                      </strong>
-                    </div>
-                    <div className="rounded-xl bg-indigo-50 p-2.5">
-                      <span className="block text-[10px] text-indigo-700">
-                        %15 Komisyon
-                      </span>
-                      <strong className="text-sm font-black text-indigo-900">
-                        1.500 TL
-                      </strong>
-                    </div>
-                    <div className="rounded-xl bg-emerald-50 p-2.5">
-                      <span className="block text-[10px] text-emerald-700">
-                        %85 Influencer Payı
-                      </span>
-                      <strong className="text-sm font-black text-emerald-900">
-                        8.500 TL
-                      </strong>
+                      <p className="text-sm font-bold text-slate-900">
+                        Gül Koç{" "}
+                        <span className="text-xs font-normal text-slate-500">
+                          (@guldkoc)
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        Güzellik, Moda & UGC • 10,4 B Takipçi
+                      </p>
                     </div>
                   </div>
-                </div>
-
-                {/* Quick Cockpit Switcher */}
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] font-bold">
                   <Link
-                    href={`/${locale}/yayinci/panel`}
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-2 text-emerald-900 hover:bg-emerald-100"
+                    href={`/${locale}/influencer/guldkoc`}
+                    className="shrink-0 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800"
                   >
-                    Yayıncı Paneli
-                  </Link>
-                  <Link
-                    href={`/${locale}/reklamveren/panel`}
-                    className="rounded-xl border border-indigo-200 bg-indigo-50 px-2 py-2 text-indigo-900 hover:bg-indigo-100"
-                  >
-                    Reklamveren Paneli
-                  </Link>
-                  <Link
-                    href={`/${locale}/yonetim`}
-                    className="rounded-xl border border-slate-300 bg-slate-900 px-2 py-2 text-white hover:bg-slate-800"
-                  >
-                    Süperadmin Paneli
+                    Profili Gör
                   </Link>
                 </div>
               </div>
@@ -432,139 +315,23 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* 2. CREATOR-MAGNETIC VALUE PROPOSITION: WHY TOP INFLUENCERS & UGC CREATORS CHOOSE INFLUNEX */}
-      <section className="border-b border-slate-200 bg-white py-14">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-800">
-                <Crown size={14} />
-                {locale === "tr"
-                  ? "İçerik Üreticisi Öncelikli Mimari"
-                  : "Creator-First Marketplace Architecture"}
-              </span>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-                {locale === "tr"
-                  ? "Influencer ve UGC Üreticileri Neden InfluNex'i Seçiyor?"
-                  : "Why Influencers & UGC Creators Choose InfluNex"}
-              </h2>
-              <p className="mt-1 max-w-3xl text-sm text-slate-600">
-                {locale === "tr"
-                  ? "DM karmaşası, belirsiz revizyon talepleri, geciken ödemeler ve izinsiz reklam kullanımlarına son veren 4 temel üretici güvencesi."
-                  : "Four core creator protections that eliminate DM chaos, endless revisions, late payouts, and unauthorized ad usage."}
-              </p>
-            </div>
-            <Link
-              href={`/${locale}/yayinci/panel`}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-950"
-            >
-              <Video size={15} />
-              {locale === "tr"
-                ? "Yayıncı Kokpitini Canlı İncele →"
-                : "Open Creator Cockpit →"}
-            </Link>
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="rounded-3xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
-                <TrendingUp size={20} />
-              </div>
-              <span className="mt-4 inline-block rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-extrabold text-emerald-900">
-                8500 BPS Hakediş
-              </span>
-              <h3 className="mt-2 text-base font-black text-slate-950">
-                %85 Yüksek Gelir Payı & Sıfır Sabit Ücret
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                Aylık abonelik, teklif jetonu veya vitrin öne çıkarma ücreti
-                ödemezsin. Yalnızca tamamlanan iş birliğinde %15 komisyon
-                kesilir; %85 brüt hakediş senindir.
-              </p>
-            </article>
-
-            <article className="rounded-3xl border border-indigo-200 bg-gradient-to-b from-indigo-50/70 to-white p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
-                <Lock size={20} />
-              </div>
-              <span className="mt-4 inline-block rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-extrabold text-indigo-900">
-                Bloke (Escrow) Koruması
-              </span>
-              <h3 className="mt-2 text-base font-black text-slate-950">
-                Ödeme Bloke Edilmeden Çekime Başlama Riski Yok
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                Marka ödemesi tekil sipariş koduyla doğrulanıp bloke hesabına
-                alındığında (<code>PAID</code>) çekime başlarsın; içerik teslim
-                sonrası ödeme peşinde koşmazsın.
-              </p>
-            </article>
-
-            <article className="rounded-3xl border border-violet-200 bg-gradient-to-b from-violet-50/70 to-white p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-sm">
-                <Layers size={20} />
-              </div>
-              <span className="mt-4 inline-block rounded-md bg-violet-100 px-2 py-0.5 text-[11px] font-extrabold text-violet-900">
-                Immutable Snapshot
-              </span>
-              <h3 className="mt-2 text-base font-black text-slate-950">
-                6 Boyutlu Telif & Revizyon Sınırı Güvencesi
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                Organik paylaşım mı, Paid Ads sponsorlu reklam mı, kaç gün ve
-                kaç revizyon hakkı var? Sipariş anında snapshot olarak
-                kilitlenir; kapsam dışı ek iş istenemez.
-              </p>
-            </article>
-
-            <article className="rounded-3xl border border-amber-200 bg-gradient-to-b from-amber-50/70 to-white p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-600 text-white shadow-sm">
-                <Globe size={20} />
-              </div>
-              <span className="mt-4 inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-900">
-                SEO & AI Görünürlüğü
-              </span>
-              <h3 className="mt-2 text-base font-black text-slate-950">
-                Google & Yapay Zekâ Aramalarında Kişisel Vitrin
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                <code>/tr/influencer/kullanici-adi</code> adresin Schema.org
-                JSON-LD yapısıyla Google ve AI arama motorlarında markaların
-                seni organik olarak bulmasını sağlar.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. FEATURED SHOWCASE CREATOR PROFILES + AI NATURAL LANGUAGE SEARCH */}
+      {/* 2. FEATURED CREATOR PROFILES + SIMPLE SEARCH */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                Şeffaf Veri Kaynağı & Hizmet Paketleri
-              </span>
-              <Link
-                href={`/${locale}/influencer/guldkoc`}
-                className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-0.5 text-xs font-extrabold text-emerald-900 hover:bg-emerald-100"
-              >
-                👑 Influencer Lideri: Gül Koç (@guldkoc) →
-              </Link>
-            </div>
-            <h2 className="mt-1 text-2xl font-extrabold text-slate-900 sm:text-3xl">
-              Öne Çıkan Influencer & UGC Vitrin Profilleri
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Öne Çıkan İçerik Üreticileri
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Her kartta metrik doğrulama kaynağı, son güncelleme tarihi, toplam
-              brüt hizmet bedeli ve %85 üretici payı birlikte gösterilir.
+              Profilleri, takipçi etkileşimlerini ve başlangıç fiyatlarını
+              karşılaştırın.
             </p>
           </div>
           <Link
             href={exploreHref}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-800 hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-800 hover:border-indigo-400"
           >
-            Tüm Filtreleri ve Profilleri Aç ({totalCreatorsCount}) →
+            Tüm Profilleri Gör ({totalCreatorsCount.toLocaleString("tr-TR")}) →
           </Link>
         </div>
 
@@ -574,74 +341,144 @@ export default async function HomePage({
           ))}
         </div>
 
-        {/* AI Natural Language Search Assistant */}
         <div className="mt-10">
           <AiNaturalLanguageSearchBox locale={locale} />
         </div>
       </section>
 
-      {/* 4. PROFESSIONAL PLATFORM STATISTICS, FORMAT BENCHMARKS & CREATOR INCOME SIMULATOR */}
+      {/* 3. WHY CREATORS & BRANDS LOVE INFLUNEX (4 SIMPLE HUMAN CARDS) */}
+      <section className="border-t border-slate-200 bg-slate-50 py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+              {locale === "tr"
+                ? "Neden InfluNex ile Çalışmalısınız?"
+                : "Why Collaborate on InfluNex?"}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              {locale === "tr"
+                ? "Karışık DM mesajlaşmaları ve belirsiz fiyatlar yerine her iki tarafı da koruyan sade ve anlaşılır bir süreç."
+                : "A simple, transparent workflow that protects both creators and brands."}
+            </p>
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <article className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <TrendingUp size={20} />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-slate-900">
+                Kazancın %85&apos;i Üreticide Kalır
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Üyelik, profil açma veya başvuru için hiçbir sabit ücret
+                ödemezsiniz. Yalnızca tamamlanan işlerde %15 hizmet komisyonu
+                uygulanır.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                <Lock size={20} />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-slate-900">
+                Ödeme Güvencesi
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Marka ödemeyi yapmadan çekim başlamaz. İçerik teslim edilip
+                onaylandığında ödeme sorunsuz şekilde üreticiye aktarılır.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+                <CheckCircle2 size={20} />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-slate-900">
+                Net İş ve Telif Şartları
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Videonun süresi, teslim günü, revizyon sayısı ve nerede
+                kullanılacağı işin başında netleşir; sonradan sürpriz istekler
+                çıkmaz.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                <Globe size={20} />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-slate-900">
+                Markaların Sizi Kolayca Bulması
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Kendi şehir ve uzmanlık alanınızdaki kişisel vitrin sayfanızla
+                markalar sizi kolayca keşfeder ve doğrudan teklif gönderir.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. SIMPLE RATES & CREATOR EARNINGS CALCULATOR */}
       <PlatformStatisticsSection
         locale={locale}
         approvedCreatorCount={totalCreatorsCount}
         openCampaignCount={openCampaigns.length}
       />
 
-      {/* 5. HOW IT WORKS (3 CLEAR STEPS) & LIVE COMMISSION CALCULATOR */}
+      {/* 5. HOW IT WORKS (3 SIMPLE STEPS) */}
       <section className="border-b border-slate-200 bg-slate-50 py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
             <div className="lg:col-span-5">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                {locale === "tr" ? "Uçtan Uca Güvenli Akış" : "End-to-End Workflow"}
-              </span>
-              <h2 className="mt-2 text-2xl font-extrabold text-slate-900">
-                {locale === "tr" ? "InfluNex Nasıl Çalışır?" : "How InfluNex Works"}
+              <h2 className="text-2xl font-bold text-slate-900">
+                {locale === "tr" ? "3 Adımda Nasıl Çalışır?" : "How It Works in 3 Steps"}
               </h2>
               <ol className="mt-6 space-y-4 text-sm text-slate-600">
                 <li className="flex gap-3.5 rounded-2xl border border-slate-200 bg-white p-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-950 text-xs font-bold text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                     1
                   </span>
                   <div>
                     <strong className="block text-slate-900">
                       {locale === "tr"
-                        ? "Profilleri Karşılaştırın & AI Brief Hazırlayın"
-                        : "Compare Profiles & Prepare an AI Brief"}
+                        ? "Uygun Profili Seçin veya İlan Açın"
+                        : "Choose a Creator or Post a Brief"}
                     </strong>
                     {locale === "tr"
-                      ? "Doğrulanmış etkileşim oranlarını, 6 boyutlu kullanım haklarını ve paket fiyatlarını karşılaştırıp brief oluşturun."
-                      : "Compare engagement rates, 6-dimensional usage rights, and package prices to prepare your campaign brief."}
+                      ? "İçerik üreticilerinin paketlerini inceleyin ya da ihtiyacınızı anlatan ücretsiz bir kampanya ilanı oluşturun."
+                      : "Browse creator packages or post a free campaign brief."}
                   </div>
                 </li>
                 <li className="flex gap-3.5 rounded-2xl border border-slate-200 bg-white p-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-950 text-xs font-bold text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                     2
                   </span>
                   <div>
                     <strong className="block text-slate-900">
                       {locale === "tr"
-                        ? "Sabit Snapshot & 15 Durumlu Sipariş Güvencesi"
-                        : "Immutable Snapshot & 15-State Order Protection"}
+                        ? "Detaylarda Anlaşın ve İş Birliğini Başlatın"
+                        : "Agree on Details & Start the Order"}
                     </strong>
                     {locale === "tr"
-                      ? "Sipariş başlatıldığında fiyat, %15 komisyon, %85 üretici hakedişi ve revizyon hakkı snapshot olarak sabitlenir."
-                      : "When an order starts, price, 15% commission, 85% creator payout, and revision limits are locked as a snapshot."}
+                      ? "Teslim süresi, içerik detayı ve ücret netleşir. Ödeme güvenceye alındığında üretici çekime başlar."
+                      : "Timeline, deliverables, and price are agreed upfront before production starts."}
                   </div>
                 </li>
                 <li className="flex gap-3.5 rounded-2xl border border-slate-200 bg-white p-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-950 text-xs font-bold text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                     3
                   </span>
                   <div>
                     <strong className="block text-slate-900">
                       {locale === "tr"
-                        ? "#reklam Doğrulaması & %85 Hakediş Aktarımı"
-                        : "#ad Disclosure Verification & 85% Payout"}
+                        ? "İçerik Onaylansın, Ödeme Aktarılsın"
+                        : "Approve Content & Complete Payout"}
                     </strong>
                     {locale === "tr"
-                      ? "Taslak onaylanıp Ticaret Bakanlığı #reklam etiketiyle yayına alındığında %85 brüt hakediş üretici ödeme kuyruğuna aktarılır."
-                      : "Once the draft is approved and published with #ad disclosure, the 85% gross payout moves to the creator settlement queue."}
+                      ? "Hazırlanan içerik onaylanıp paylaşıldığında %85 kazanç içerik üreticisine ödenir."
+                      : "Once content is approved and published, the 85% payout is released to the creator."}
                   </div>
                 </li>
               </ol>
@@ -651,8 +488,8 @@ export default async function HomePage({
                   className="text-xs font-bold text-indigo-600 hover:underline"
                 >
                   {locale === "tr"
-                    ? "Tüm 15 sipariş durumunu ve iş akışını incele →"
-                    : "See all 15 order states and workflow details →"}
+                    ? "Detaylı bilgi için Nasıl Çalışır sayfasını inceleyin →"
+                    : "Learn more on our How It Works page →"}
                 </Link>
               </div>
             </div>
@@ -664,22 +501,23 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* 6. SAMPLE CAMPAIGNS & UGC vs INFLUENCER COMPARISON */}
+      {/* 6. OPEN CAMPAIGNS */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              {locale === "tr" ? "Açık Kampanya Briefleri" : "Open Campaign Briefs"}
-            </span>
-            <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
-              Açık Reklam Kampanyaları & %85 Hakediş Fırsatları
+            <h2 className="text-2xl font-bold text-slate-900">
+              Açık Reklam Kampanyaları
             </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Markaların güncel iş birliği ilanlarını inceleyin ve ücretsiz
+              başvurun.
+            </p>
           </div>
           <Link
             href={campaignsHref}
             className="text-sm font-semibold text-indigo-600 hover:underline"
           >
-            Tüm Kampanyaları İncele →
+            Tüm Kampanyaları Gör →
           </Link>
         </div>
 
@@ -692,18 +530,18 @@ export default async function HomePage({
             return (
               <article
                 key={cmp.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs transition hover:border-indigo-300 hover:shadow-md"
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs transition hover:border-indigo-300"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-bold text-indigo-900">
+                    <span className="rounded-md bg-indigo-50 px-2.5 py-1 font-bold text-indigo-900">
                       {cmp.brandName}
                     </span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 font-bold text-slate-900">
-                      Brüt: {formatMinorUnits(cmp.budgetMinorUnits)}
+                    <span className="rounded-md bg-slate-100 px-2.5 py-1 font-bold text-slate-900">
+                      Bütçe: {formatMinorUnits(cmp.budgetMinorUnits)}
                     </span>
                   </div>
-                  <h3 className="mt-2.5 text-base font-bold text-slate-900">
+                  <h3 className="mt-3 text-base font-bold text-slate-900">
                     {cmp.title}
                   </h3>
                   <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-600">
@@ -713,20 +551,20 @@ export default async function HomePage({
 
                 <div className="mt-4 border-t border-slate-100 pt-3 text-xs">
                   <div className="flex items-center justify-between text-slate-600">
-                    <span>Üretici Brüt Payı (%85):</span>
-                    <strong className="text-emerald-800">
+                    <span>Üreticiye Ödenecek (%85):</span>
+                    <strong className="text-emerald-700">
                       {formatMinorUnits(breakdown.creatorNetPayoutMinorUnits)}
                     </strong>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-slate-500">
-                      Teslim: {cmp.deliveryDeadline}
+                      Son Teslim: {cmp.deliveryDeadline}
                     </span>
                     <Link
                       href={campaignsHref}
                       className="font-bold text-indigo-600 hover:underline"
                     >
-                      Detayları Gör →
+                      İlanı İncele →
                     </Link>
                   </div>
                 </div>
@@ -736,21 +574,17 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* 7. COMPACT SEO DISCOVERY HUB (CATEGORIES, CITIES & SERVICES) */}
+      {/* 7. CATEGORIES, CITIES & SERVICES */}
       <section className="border-t border-slate-200 bg-slate-50 py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-xl font-extrabold text-slate-900">
-            Sektör, Şehir ve Hizmet Türüne Göre Hızlı Keşif
+          <h2 className="text-xl font-bold text-slate-900">
+            Kategori, Şehir ve İçerik Türüne Göre Keşfedin
           </h2>
-          <p className="mt-1 text-xs text-slate-600">
-            25 uzmanlık kategorisi, 81 Türkiye şehri ve 12 reklam hizmet
-            formatı.
-          </p>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                Popüler Sektörler
+                Popüler Kategoriler
               </h3>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {INITIAL_CATEGORIES.slice(0, 12).map((cat) => (
@@ -760,7 +594,7 @@ export default async function HomePage({
                       locale,
                       locale === "tr" ? cat.slugTr : cat.slugEn
                     )}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-semibold text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
                   >
                     {locale === "tr" ? cat.nameTr : cat.nameEn}
                   </Link>
@@ -770,43 +604,31 @@ export default async function HomePage({
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                Şehir Bazlı Influencer&apos;lar
+                Şehirler
               </h3>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {INITIAL_CITIES.map((city) => (
                   <Link
                     key={city.id}
                     href={categoryPath(locale, city.slug)}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-semibold text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
                   >
-                    {city.nameTr} Influencer&apos;ları
+                    {city.nameTr}
                   </Link>
                 ))}
-                <Link
-                  href={`${exploreHref}/adana/otomotiv`}
-                  className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-bold text-indigo-800"
-                >
-                  Adana Otomotiv Influencer&apos;ları
-                </Link>
-                <Link
-                  href={`${exploreHref}/istanbul/moda`}
-                  className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-bold text-indigo-800"
-                >
-                  İstanbul Moda Influencer&apos;ları
-                </Link>
               </div>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                Hizmet Paketleri
+                İçerik Türleri
               </h3>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {SERVICE_TEMPLATES.slice(0, 8).map((srv) => (
                   <Link
                     key={srv.slug}
                     href={servicePath(locale, srv.slug)}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-semibold text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-800 hover:border-indigo-400 hover:text-indigo-600"
                   >
                     {locale === "tr" ? srv.nameTr : srv.nameEn}
                   </Link>
@@ -819,7 +641,7 @@ export default async function HomePage({
 
       {/* 8. FAQ SECTION */}
       <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
-        <h2 className="text-center text-2xl font-extrabold text-slate-900">
+        <h2 className="text-center text-2xl font-bold text-slate-900">
           {locale === "tr" ? "Sık Sorulan Sorular" : "Frequently Asked Questions"}
         </h2>
         <div className="mt-8 space-y-3">

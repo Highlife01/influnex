@@ -64,8 +64,8 @@ export default async function InfluencerAdPricingPage({
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-slate-600">
         {isTr
-          ? "Üyelik, profil listeleme ve kampanya yayınlama tamamen ücretsizdir. İçerik üreticilerinin belirlediği brüt hizmet bedellerinde yalnızca tamamlanan iş birlikleri için %15 platform komisyonu (1500 BPS) uygulanır; %85 brüt pay (8500 BPS) içerik üreticisinindir."
-          : "Membership, profile listing, and campaign publishing are 100% free. A 15% platform commission (1500 BPS) applies only on completed collaborations, leaving an 85% gross payout (8500 BPS) to the creator."}
+          ? "Üyelik, profil oluşturma ve kampanya ilanı açmak tamamen ücretsizdir. İçerik üreticilerinin kendi belirlediği hizmet bedellerinde yalnızca tamamlanan iş birlikleri için %15 platform komisyonu uygulanır; %85 kazanç doğrudan içerik üreticisine ödenir."
+          : "Membership, profile listing, and campaign publishing are 100% free. A 15% platform fee applies only on completed collaborations, leaving an 85% payout to the creator."}
       </p>
 
       <div className="mt-8">

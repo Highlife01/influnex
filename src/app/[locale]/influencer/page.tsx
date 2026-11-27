@@ -141,30 +141,16 @@ export default async function InfluencerDiscoveryPage({
         / <span className="font-semibold text-slate-800">Influencer Keşfet</span>
       </nav>
 
-      <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-800">
-            {total.toLocaleString("tr-TR")} Onaylı Influencer & UGC Profili •
-            Sayfa {currentPage} / {totalPages}
-          </span>
-          <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
-            {locale === "tr"
-              ? "1.000+ Influencer ve UGC İçerik Üreticisini Keşfedin"
-              : "Discover 1,000+ Influencers & UGC Content Creators"}
-          </h1>
-          <p className="mt-1.5 max-w-3xl text-sm text-slate-600">
-            Sıralama algoritmamız ücretli öne çıkarma içermez; kategori
-            uygunluğu, gerçek etkileşim oranı, doğrulama kaynağı ve tamamlanan
-            iş birliği kalitesini esas alır.
-          </p>
-        </div>
-
-        <Link
-          href={`/${locale}/admin#influencer-eposta-rehberi`}
-          className="inline-flex items-center rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-950"
-        >
-          1.000 Influencer Tanıtım & Davet Merkezi (Süperadmin) →
-        </Link>
+      <div className="mt-4">
+        <h1 className="text-3xl font-extrabold text-slate-900">
+          {locale === "tr"
+            ? "Influencer ve UGC İçerik Üreticileri"
+            : "Influencers & UGC Content Creators"}
+        </h1>
+        <p className="mt-1.5 max-w-2xl text-sm text-slate-600">
+          Markanıza uygun içerik üreticilerini şehir, kategori, platform ve
+          bütçeye göre kolayca filtreleyin.
+        </p>
       </div>
 
       {/* Fast Server-Rendered Search & Sort Bar */}

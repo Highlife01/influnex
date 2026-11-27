@@ -291,49 +291,6 @@ export default async function DynamicSlugPage({
               </div>
             </div>
 
-            {/* Distinct Verification Metadata & Timestamps (Audit P1 & P2) */}
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <strong className="text-slate-900">
-                  Doğrulama Durumu ve Metrik Kaynağı Şeffaflık Özeti
-                </strong>
-                <span className="text-slate-500">
-                  Son Metrik Güncelleme Tarihi: {creator.updatedAt.slice(0, 10)}{" "}
-                  • Geçerlilik Süresi: 30 Gün
-                </span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1 font-semibold text-indigo-900">
-                  İstatistik Kaynağı:{" "}
-                  {t.metricSource[creator.metricVerificationSource]}
-                </span>
-                {creator.metricVerificationSource === "USER_DECLARED" ? (
-                  <span className="rounded-lg border border-amber-300 bg-amber-100 px-3 py-1 font-bold text-amber-950">
-                    ⚠ Takipçi ve Etkileşim Verileri Kullanıcı Beyanlıdır (Resmî
-                    API Doğrulaması Yoktur)
-                  </span>
-                ) : (
-                  <>
-                    {creator.verificationBadges.emailVerified ? (
-                      <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
-                        ✓ Doğrulanan Alan: E-Posta
-                      </span>
-                    ) : null}
-                    {creator.verificationBadges.identityVerified ? (
-                      <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
-                        ✓ Doğrulanan Alan: Kimlik & 18+ Yaş
-                      </span>
-                    ) : null}
-                    {creator.verificationBadges.socialVerified ? (
-                      <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
-                        ✓ Doğrulanan Alan: Sosyal Medya Hesap Sahipliği
-                      </span>
-                    ) : null}
-                  </>
-                )}
-              </div>
-            </div>
-
             <p className="mt-5 text-sm leading-relaxed text-slate-700">
               {locale === "tr" ? creator.bioTr : creator.bioEn}
             </p>
@@ -373,13 +330,10 @@ export default async function DynamicSlugPage({
         {/* Services & Transparent Pricing List */}
         <section className="mt-10">
           <h2 className="text-xl font-bold text-slate-900">
-            Reklam Hizmet Paketleri, Kullanım Hakları ve Komisyon Dökümü
+            Hizmet Paketleri ve Fiyatlar
           </h2>
           <p className="mt-1 text-xs text-slate-600">
-            <strong>Komisyon Hesaplama Tabanı:</strong> %15 platform komisyonu,
-            tamamlanan ve onaylanan siparişin vergi hariç brüt hizmet bedeli
-            üzerinden hesaplanır. %85 üretici payı, yürürlükteki vergi, stopaj
-            ve faturalandırma yükümlülükleri öncesi brüt üretici hakedişidir.
+            İhtiyacınıza uygun paketi seçerek iş birliği başlatabilirsiniz.
           </p>
 
           <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -409,108 +363,48 @@ export default async function DynamicSlugPage({
                       {locale === "tr" ? srv.descriptionTr : srv.descriptionEn}
                     </p>
 
-                    {/* 6-Row Granular Usage Rights Breakdown (Audit P1 Item 3) */}
+                    {/* Clean Usage Summary */}
                     <dl className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
                       <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          1. Yayın Kanalı:
-                        </dt>
-                        <dd className="font-medium text-slate-900">
+                        <dt className="text-slate-600">Paylaşım Şekli:</dt>
+                        <dd className="font-semibold text-slate-900">
                           {srv.isUgcService
-                            ? "Markanın Kendi Hesapları (Yayın Şartsız)"
-                            : `${srv.platform} Üretici Profili`}
+                            ? "Markaya Video Teslimi (UGC)"
+                            : `${srv.platform} Hesabında Paylaşım`}
                         </dd>
                       </div>
                       <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          2. Yayında Kalma / Lisans Süresi:
-                        </dt>
-                        <dd className="font-medium text-slate-900">
-                          {srv.usageDurationDays} Gün (Yayında Kalma:{" "}
-                          {srv.postRetentionDays} Gün)
+                        <dt className="text-slate-600">Kullanım Süresi:</dt>
+                        <dd className="font-semibold text-slate-900">
+                          {srv.usageDurationDays} Gün
                         </dd>
                       </div>
                       <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          3. Organik / Ücretli Reklam (Paid Ads):
-                        </dt>
-                        <dd className="font-medium text-slate-900">
+                        <dt className="text-slate-600">Reklam İzni:</dt>
+                        <dd className="font-semibold text-slate-900">
                           {srv.paidAdsReuseAllowed
-                            ? "Organik + Sponsorlu Reklam İzni Dahil"
-                            : "Yalnızca Organik Paylaşım"}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          4. Coğrafi Kapsam:
-                        </dt>
-                        <dd className="font-medium text-slate-900">
-                          Türkiye & Global Dijital Kanallar
-                        </dd>
-                      </div>
-                      <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          5. Kategori Münhasırlığı:
-                        </dt>
-                        <dd className="font-medium text-slate-900">
-                          {srv.exclusivityTermsTr}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between py-1.5">
-                        <dt className="font-semibold text-slate-600">
-                          6. Yasal Reklam Bildirimi:
-                        </dt>
-                        <dd className="font-medium text-slate-900">
-                          Ticaret Bakanlığı #reklam / #işbirliği Zorunlu
+                            ? "Sponsorlu Reklam İzni Dahil"
+                            : "Organik Paylaşım"}
                         </dd>
                       </div>
                     </dl>
                   </div>
 
-                  {/* Fixed Unambiguous 3-Column Financial Breakdown (Audit P0 Item 4) */}
-                  <div className="mt-5 border-t border-slate-100 pt-4">
-                    <div className="grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                      <div>
-                        <span className="block text-[11px] font-medium text-slate-500">
-                          Toplam Hizmet Bedeli (Brüt)
-                        </span>
-                        <strong className="mt-0.5 block text-sm font-extrabold text-slate-900">
-                          {formatMinorUnits(breakdown.grossAmountMinorUnits)}
-                        </strong>
-                      </div>
-                      <div>
-                        <span className="block text-[11px] font-medium text-indigo-700">
-                          Platform Komisyonu (%15)
-                        </span>
-                        <strong className="mt-0.5 block text-sm font-bold text-indigo-900">
-                          {formatMinorUnits(
-                            breakdown.platformCommissionMinorUnits
-                          )}
-                        </strong>
-                      </div>
-                      <div>
-                        <span className="block text-[11px] font-medium text-emerald-700">
-                          Üretici Brüt Payı (%85)
-                        </span>
-                        <strong className="mt-0.5 block text-sm font-extrabold text-emerald-800">
-                          {formatMinorUnits(
-                            breakdown.creatorNetPayoutMinorUnits
-                          )}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-500">
-                        Vergi/stopaj öncesi brüt hizmet tabanı
+                  <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                    <div>
+                      <span className="block text-xs text-slate-500">
+                        Paket Fiyatı
                       </span>
-                      <Link
-                        href={`/tr/panel?action=order&serviceId=${srv.id}`}
-                        className="rounded-xl bg-indigo-950 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700"
-                      >
-                        Sipariş & İş Birliği Başlat
-                      </Link>
+                      <strong className="text-lg font-extrabold text-slate-900">
+                        {formatMinorUnits(breakdown.grossAmountMinorUnits)}
+                      </strong>
                     </div>
+                    <Link
+                      href={`/tr/panel?action=order&serviceId=${srv.id}`}
+                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"
+                    >
+                      İş Birliği Başlat
+                    </Link>
                   </div>
                 </div>
               );
@@ -680,15 +574,8 @@ export default async function DynamicSlugPage({
           / <span className="font-semibold text-slate-800">{heading}</span>
         </nav>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            gate.indexable
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-amber-50 text-amber-800"
-          }`}
-        >
-          SEO Quality Gate: {gate.robotsDirective} ({creators.length} Onaylı
-          Profil)
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
+          {creators.length} Onaylı Profil
         </span>
       </div>
 

@@ -153,14 +153,11 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             >
               info@influnex.com.tr
             </a>
-            <Link href="/sitemap.xml" className="hover:text-indigo-600">
-              Sitemap Index
+            <Link href={`/${locale}/nasil-calisir`} className="hover:text-indigo-600">
+              {locale === "tr" ? "Nasıl Çalışır?" : "How It Works"}
             </Link>
-            <Link href="/llms.txt" className="hover:text-indigo-600">
-              GEO / llms.txt
-            </Link>
-            <Link href="/api/v1/openapi" className="hover:text-indigo-600">
-              OpenAPI v1
+            <Link href={`/${locale}/kampanyalar`} className="hover:text-indigo-600">
+              {locale === "tr" ? "Kampanyalar" : "Campaigns"}
             </Link>
           </div>
         </div>

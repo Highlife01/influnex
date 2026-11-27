@@ -164,15 +164,8 @@ export default async function CityAndCategoryCombinationPage({
           / <span className="font-semibold text-slate-800">{subTitle}</span>
         </nav>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            gate.indexable
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-amber-50 text-amber-800"
-          }`}
-        >
-          Index Quality Gate: {gate.robotsDirective} ({creators.length} Onaylı
-          Profil)
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
+          {creators.length} Onaylı Profil
         </span>
       </div>
 

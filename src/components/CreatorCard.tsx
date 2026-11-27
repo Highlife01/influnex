@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { PublicCreatorProfile, SupportedLocale } from "@/lib/types/domain";
-import {
-  calculateCommissionBreakdown,
-  formatMinorUnits,
-} from "@/lib/finance/commission";
-import { DICTIONARY } from "@/lib/i18n/dictionary";
+import { formatMinorUnits } from "@/lib/finance/commission";
+
+const PLATFORM_NAMES: Record<string, string> = {
+  INSTAGRAM: "Instagram",
+  TIKTOK: "TikTok",
+  YOUTUBE: "YouTube",
+  UGC: "UGC Video",
+};
 
 export function CreatorCard({
   creator,
@@ -13,172 +16,121 @@ export function CreatorCard({
   creator: PublicCreatorProfile;
   locale?: SupportedLocale;
 }) {
-  const t = DICTIONARY[locale];
   const profileHref =
     locale === "tr"
       ? `/tr/influencer/${creator.username}`
       : `/en/creators/${creator.username}`;
 
-  const breakdown = calculateCommissionBreakdown(
-    creator.startingPriceMinorUnits,
-    creator.currency
-  );
-
-  const sourceBadgeStyle =
-    creator.metricVerificationSource === "API_VERIFIED"
-      ? "bg-emerald-100 text-emerald-950 border-emerald-500"
-      : creator.metricVerificationSource === "ADMIN_VERIFIED"
-        ? "bg-indigo-100 text-indigo-950 border-indigo-500"
-        : "bg-amber-100 text-amber-950 border-amber-500";
-
   return (
     <article
-      className={`group flex flex-col justify-between rounded-2xl border-2 bg-white p-5 shadow-sm transition-[border-color,box-shadow] hover:border-indigo-700 hover:shadow-lg ${
+      className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-2xs transition hover:border-indigo-400 hover:shadow-md ${
         creator.isInfluencerLeader
-          ? "border-emerald-600 ring-2 ring-emerald-600/30"
-          : "border-slate-300"
+          ? "border-emerald-500 ring-1 ring-emerald-500/20"
+          : "border-slate-200"
       }`}
     >
       <div>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {creator.isInfluencerLeader ? (
-              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-800 bg-emerald-800 px-2.5 py-0.5 text-[11px] font-extrabold text-white shadow-2xs">
-                👑 {locale === "tr" ? creator.leaderTitleTr || "Influencer Lideri" : creator.leaderTitleEn || "Influencer Leader"}
-              </span>
-            ) : null}
-            <span className="inline-flex items-center rounded-md border border-emerald-600 bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-950">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          {creator.isInfluencerLeader ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700 px-3 py-0.5 text-xs font-bold text-white">
+              👑{" "}
               {locale === "tr"
-                ? "Onaylı Influencer Profili"
-                : "Verified Creator Profile"}
+                ? creator.leaderTitleTr || "Öne Çıkan Üretici"
+                : creator.leaderTitleEn || "Featured Creator"}
             </span>
-          </div>
-          <span className="text-[11px] font-semibold text-slate-700">
-            Güncelleme: {creator.updatedAt.slice(0, 10)}
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+              ✓ {locale === "tr" ? "Onaylı Profil" : "Verified"}
+            </span>
+          )}
+          <span className="text-xs font-medium text-slate-500">
+            {creator.cityNameTr}
           </span>
         </div>
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3.5">
           <img
             src={creator.avatarUrl}
             alt={creator.displayName}
-            width={64}
-            height={64}
+            width={60}
+            height={60}
             loading="lazy"
-            className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-100"
+            className="h-15 w-15 rounded-2xl object-cover ring-1 ring-slate-200"
           />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-indigo-600">
-                <Link
-                  href={profileHref}
-                  className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
-                >
-                  {creator.displayName}
-                </Link>
-              </h3>
-              {/* Never show "Kimlik Onaylı" if metrics are USER_DECLARED to avoid misleading trust signals */}
-              {creator.verificationBadges.identityVerified &&
-              creator.metricVerificationSource !== "USER_DECLARED" ? (
-                <span
-                  title={
-                    locale === "tr"
-                      ? "Kimliği Doğrulanmış Üretici"
-                      : "Identity Verified Creator"
-                  }
-                  className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-800"
-                >
-                  Kimlik Doğrulamalı
-                </span>
-              ) : null}
-            </div>
-            <p className="text-xs text-slate-500">
-              @{creator.username} • {creator.cityNameTr}
-            </p>
-            <p className="mt-1 line-clamp-2 text-xs font-medium text-slate-700">
+            <h3 className="truncate text-base font-bold text-slate-900 group-hover:text-indigo-600">
+              <Link
+                href={profileHref}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+              >
+                {creator.displayName}
+              </Link>
+            </h3>
+            <p className="text-xs text-slate-500">@{creator.username}</p>
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">
               {locale === "tr" ? creator.headlineTr : creator.headlineEn}
             </p>
           </div>
         </div>
 
-        {/* Strict Metric Source Attribution Badge (Section 8 & Audit P1) */}
+        {/* Clean Platform Tags */}
         <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-          <span
-            className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${sourceBadgeStyle}`}
-          >
-            Metrik Kaynağı: {t.metricSource[creator.metricVerificationSource]}
-          </span>
-          {creator.offersUgc ? (
-            <span className="inline-flex items-center rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
-              UGC
-            </span>
-          ) : null}
           {creator.platforms.map((p) => (
             <span
               key={p}
-              className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+              className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
             >
-              {p}
+              {PLATFORM_NAMES[p] || p}
             </span>
           ))}
         </div>
 
-        {/* Follower & Engagement Metrics */}
-        <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-slate-300 bg-slate-100 p-3 text-center">
+        {/* 3 Clear Numbers */}
+        <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">
           <div>
-            <dt className="text-[11px] font-bold text-slate-800">
+            <dt className="text-[11px] text-slate-500">
               {locale === "tr" ? "Takipçi" : "Followers"}
             </dt>
-            <dd className="text-sm font-black text-slate-950">
+            <dd className="mt-0.5 text-sm font-bold text-slate-900">
               {Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
                 notation: "compact",
               }).format(creator.totalFollowers)}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] font-bold text-slate-800">
+            <dt className="text-[11px] text-slate-500">
               {locale === "tr" ? "Etkileşim" : "Engagement"}
             </dt>
-            <dd className="text-sm font-black text-emerald-800">
+            <dd className="mt-0.5 text-sm font-bold text-emerald-700">
               %{creator.averageEngagementRate}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] font-bold text-slate-800">
-              {locale === "tr" ? "Ort. Teslim" : "Delivery"}
+            <dt className="text-[11px] text-slate-500">
+              {locale === "tr" ? "Teslim" : "Delivery"}
             </dt>
-            <dd className="text-sm font-black text-slate-950">
-              {creator.averageDeliveryDays} Gün
+            <dd className="mt-0.5 text-sm font-bold text-slate-900">
+              {creator.averageDeliveryDays} {locale === "tr" ? "Gün" : "Days"}
             </dd>
           </div>
         </dl>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t-2 border-slate-200 pt-3.5">
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5">
         <div>
-          <span className="block text-[11px] font-bold text-slate-700">
-            {locale === "tr"
-              ? "Toplam Hizmet Bedeli (Brüt Başlangıç)"
-              : "Total Gross Service Price"}
+          <span className="block text-[11px] text-slate-500">
+            {locale === "tr" ? "Başlangıç Fiyatı" : "Starting at"}
           </span>
-          <span className="text-base font-black text-slate-950">
+          <span className="text-base font-extrabold text-slate-900">
             {formatMinorUnits(creator.startingPriceMinorUnits, "TRY", locale)}
-          </span>
-          <span className="block text-[11px] font-extrabold text-emerald-800">
-            Üretici Payı (%85):{" "}
-            {formatMinorUnits(
-              breakdown.creatorNetPayoutMinorUnits,
-              "TRY",
-              locale
-            )}
           </span>
         </div>
 
         <Link
           href={profileHref}
-          className="rounded-xl bg-[#001aff] px-3.5 py-2.5 text-xs font-extrabold text-white shadow-xs transition-colors hover:bg-indigo-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-700"
         >
-          {locale === "tr" ? "Profili & Paketleri Gör" : "View Profile"}
+          {locale === "tr" ? "Profili İncele" : "View Profile"}
         </Link>
       </div>
     </article>

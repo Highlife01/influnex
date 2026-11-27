@@ -42,23 +42,20 @@ export function AiNaturalLanguageSearchBox({
     }
   }
 
-  const focusRing =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2";
-
   return (
-    <div className="rounded-2xl border border-indigo-100 bg-slate-50/90 p-5 shadow-xs sm:p-6">
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-950 px-3 py-1 text-xs font-semibold text-white">
-          Yapay Zekâ Destekli Doğal Dil Influencer Arama
-        </span>
+        <strong className="text-sm font-bold text-slate-900">
+          Ne Tür Bir İçerik Üreticisi Arıyorsunuz?
+        </strong>
         <span className="text-xs text-slate-500">
-          1.000+ Onaylı Influencer & UGC Kataloğunda Arama
+          Şehir, kategori ve bütçenizi yazarak hızlıca bulun
         </span>
       </div>
 
       <form onSubmit={handleSearch} className="mt-3 flex flex-col gap-2.5 sm:flex-row">
         <label htmlFor="ai-nl-search" className="sr-only">
-          Doğal dilde influencer arayın
+          Aradığınız influencer özelliklerini yazın
         </label>
         <input
           id="ai-nl-search"
@@ -67,15 +64,15 @@ export function AiNaturalLanguageSearchBox({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Örn: Adana'da otomobil içerikleri paylaşan, 10.000 TL bütçeme uygun Instagram influencer'ları bul."
-          className={`flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-2xs focus:border-indigo-600 ${focusRing}`}
+          placeholder="Örn: İstanbul'da moda ve kozmetik videoları çeken influencer bul..."
+          className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-600"
         />
         <button
           type="submit"
           disabled={loading}
-          className={`rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-60 ${focusRing}`}
+          className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:opacity-60"
         >
-          {loading ? "Profiller eşleştiriliyor…" : "Uygun Profilleri Öner"}
+          {loading ? "Aranıyor…" : "Uygun Profilleri Bul"}
         </button>
       </form>
 
@@ -87,9 +84,9 @@ export function AiNaturalLanguageSearchBox({
               "Adana'da otomobil içerikleri paylaşan, 10.000 TL bütçeme uygun Instagram influencer'ları bul."
             )
           }
-          className={`rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300 ${focusRing}`}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300"
         >
-          Adana Otomotiv (≤ 10.000 TL)
+          Adana Otomotiv
         </button>
         <button
           type="button"
@@ -98,7 +95,7 @@ export function AiNaturalLanguageSearchBox({
               "İstanbul'da moda ve kozmetik kategorisinde UGC reklam videosu üreten influencer'ları bul."
             )
           }
-          className={`rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300 ${focusRing}`}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300"
         >
           İstanbul Moda & UGC
         </button>
@@ -109,7 +106,7 @@ export function AiNaturalLanguageSearchBox({
               "Ankara'da teknoloji ve yazılım tanıtımı yapan YouTube içerik üreticileri bul."
             )
           }
-          className={`rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300 ${focusRing}`}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:border-indigo-300"
         >
           Ankara Teknoloji YouTube
         </button>
@@ -127,17 +124,14 @@ export function AiNaturalLanguageSearchBox({
           aria-live="polite"
           aria-busy={loading}
         >
-          <p className="text-xs font-semibold text-slate-700">
-            Eşleşen onaylı profil sayısı: {result.recommendations.length}
-          </p>
           {result.recommendations.length === 0 ? (
             <p className="text-xs text-slate-600">
-              Bu kriterlere uyan profil bulunamadı.{" "}
+              Bu aramaya uygun profil bulunamadı.{" "}
               <Link
                 href={localizedPath(locale, "creators")}
-                className={`font-semibold text-indigo-600 underline ${focusRing}`}
+                className="font-semibold text-indigo-600 underline"
               >
-                Tüm filtreleri inceleyin
+                Tüm profilleri görüntüleyin
               </Link>
               .
             </p>
@@ -151,24 +145,25 @@ export function AiNaturalLanguageSearchBox({
                   <div className="flex items-center justify-between">
                     <Link
                       href={creatorProfilePath(locale, rec.creator.username)}
-                      className={`text-sm font-bold text-slate-900 hover:text-indigo-600 ${focusRing}`}
+                      className="text-sm font-bold text-slate-900 hover:text-indigo-600"
                     >
                       {rec.creator.displayName} (@{rec.creator.username})
                     </Link>
                     <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                      %{rec.matchScore} Uyum
+                      {rec.creator.cityNameTr}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-slate-600">
-                    <strong>Eşleşme nedeni:</strong> {rec.explanationTr}
+                    {rec.explanationTr}
                   </p>
                   <div className="mt-2 flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-900">
-                      Başlangıç: {formatMinorUnits(rec.creator.startingPriceMinorUnits)}
+                      Başlangıç:{" "}
+                      {formatMinorUnits(rec.creator.startingPriceMinorUnits)}
                     </span>
                     <Link
                       href={creatorProfilePath(locale, rec.creator.username)}
-                      className={`font-semibold text-indigo-600 hover:underline ${focusRing}`}
+                      className="font-semibold text-indigo-600 hover:underline"
                     >
                       Profili İncele →
                     </Link>
