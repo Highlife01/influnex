@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  setDoc,
+} from "firebase/firestore";
 import {
   BriefcaseBusiness,
   CheckCircle2,
@@ -17,11 +24,13 @@ import {
   Globe,
   LayoutDashboard,
   LogOut,
+  Mail,
   Megaphone,
   Package,
   PlusCircle,
   ShieldCheck,
   Sparkles,
+  Trash2,
   TrendingUp,
   UserPlus,
   Users,
@@ -32,7 +41,11 @@ import {
   calculateCommissionBreakdown,
   formatMinorUnits,
 } from "@/lib/finance/commission";
-import { getInfluNexAuth } from "@/lib/firebase/client";
+import {
+  getInfluNexAuth,
+  getInfluNexFirestore,
+} from "@/lib/firebase/client";
+import { INFLUNEX_TENANT_ID } from "@/lib/firebase/isolation";
 import {
   INITIAL_CATEGORIES,
   INITIAL_CITIES,
@@ -42,7 +55,6 @@ import {
   INFLUNEX_SESSION_STORAGE_KEY,
   type StoredInfluNexSession,
 } from "@/components/auth/NavbarAuthActions";
-import { ThousandCreatorsCrmSection } from "./ThousandCreatorsCrmSection";
 
 type WorkspaceRole = UserRole;
 
@@ -51,10 +63,11 @@ interface RoleDashboardProps {
   role: WorkspaceRole;
 }
 
-interface CreatorDraftService {
+export interface RealCreatorServiceItem {
   id: string;
   title: string;
   creatorName: string;
+  creatorHandle: string;
   platform: "INSTAGRAM" | "TIKTOK" | "YOUTUBE" | "UGC";
   priceTl: number;
   deliveryDays: number;
@@ -62,21 +75,23 @@ interface CreatorDraftService {
   usageScope: string;
 }
 
-interface AdminVerificationItem {
+export interface RealCreatorItem {
   id: string;
   name: string;
   handle: string;
+  username: string;
   city: string;
   category: string;
   platform: "INSTAGRAM" | "TIKTOK" | "YOUTUBE" | "UGC";
-  followers: string;
-  er: string;
+  followers: number;
+  erPercent: number;
   isLeader: boolean;
-  badge: "Doğrulanmış Profil" | "Resmi Onaylı" | "İnceleme Bekliyor";
+  email: string;
+  socialUrl: string;
   status: "APPROVED" | "PENDING_REVIEW";
 }
 
-interface AdminLedgerOrder {
+export interface RealLedgerOrder {
   orderCode: string;
   brandName: string;
   creatorName: string;
@@ -85,10 +100,11 @@ interface AdminLedgerOrder {
   bankTransactionRef: string;
   state: "PAYMENT_REVIEW" | "PAID" | "COMPLETED" | "PAYOUT_COMPLETED";
   adDisclosureVerified: boolean;
+  publishUrl?: string;
   createdAt: string;
 }
 
-interface AdminCampaignItem {
+export interface RealCampaignItem {
   id: string;
   brandName: string;
   title: string;
@@ -98,180 +114,69 @@ interface AdminCampaignItem {
   budgetTl: number;
   proposalCount: number;
   status: "OPEN" | "COMPLETED";
+  createdAt: string;
 }
 
-const INITIAL_ADMIN_CREATORS: AdminVerificationItem[] = [
+export const REAL_STORAGE_KEYS = {
+  CREATORS: "influnex_real_creators_v1",
+  ORDERS: "influnex_real_orders_v1",
+  CAMPAIGNS: "influnex_real_campaigns_v1",
+  SERVICES: "influnex_real_services_v1",
+} as const;
+
+// Yalnızca gerçek doğrulanmış Instagram profili: Gül Koç (@guldkoc - https://www.instagram.com/guldkoc/)
+const VERIFIED_REAL_CREATORS: RealCreatorItem[] = [
   {
-    id: "cr-adana-guzellik-guldkoc",
+    id: "cr_adana_guzellik_guldkoc",
     name: "Gül Koç",
     handle: "@guldkoc",
+    username: "guldkoc",
     city: "Adana",
     category: "Güzellik & Kozmetik",
     platform: "INSTAGRAM",
-    followers: "10.398",
-    er: "%5.80",
+    followers: 10398,
+    erPercent: 5.8,
     isLeader: true,
-    badge: "Doğrulanmış Profil",
+    email: "",
+    socialUrl: "https://www.instagram.com/guldkoc/",
     status: "APPROVED",
   },
+];
+
+// Yalnızca gerçek doğrulanmış üretici (@guldkoc) hizmet paketleri
+const VERIFIED_REAL_SERVICES: RealCreatorServiceItem[] = [
   {
-    id: "cr-adana-oto-emre",
-    name: "Emre Toros",
-    handle: "@emretorosauto",
-    city: "Adana",
-    category: "Otomotiv",
+    id: "srv_guldkoc_reels",
+    title: "Instagram Reels Güzellik, Kombin & Yaşam Tarzı Tanıtımı",
+    creatorName: "Gül Koç",
+    creatorHandle: "@guldkoc",
     platform: "INSTAGRAM",
-    followers: "148.000",
-    er: "%4.25",
-    isLeader: false,
-    badge: "Doğrulanmış Profil",
-    status: "APPROVED",
+    priceTl: 3500,
+    deliveryDays: 3,
+    revisions: 2,
+    usageScope: "Organik sosyal medya hesaplarında 1 yıl paylaşım hakkı",
   },
   {
-    id: "cr-ist-moda-selin",
-    name: "Selin Aksoy",
-    handle: "@selinaksoystyle",
-    city: "İstanbul",
-    category: "Moda & Stil",
+    id: "srv_guldkoc_story",
+    title: "3 Kare Instagram Story + Ürün Linki & Etiket Paylaşımı",
+    creatorName: "Gül Koç",
+    creatorHandle: "@guldkoc",
     platform: "INSTAGRAM",
-    followers: "290.000",
-    er: "%4.38",
-    isLeader: false,
-    badge: "Resmi Onaylı",
-    status: "APPROVED",
+    priceTl: 2000,
+    deliveryDays: 2,
+    revisions: 1,
+    usageScope: "24 saat Story yayını + Öne Çıkanlar opsiyonu",
   },
   {
-    id: "cr-ank-tech-mert",
-    name: "Mert Kaya",
-    handle: "@mertkayatech",
-    city: "Ankara",
-    category: "Teknoloji",
-    platform: "YOUTUBE",
-    followers: "210.000",
-    er: "%5.12",
-    isLeader: false,
-    badge: "Doğrulanmış Profil",
-    status: "APPROVED",
-  },
-  {
-    id: "cr-izm-ugc-zeynep",
-    name: "Zeynep Demir",
-    handle: "@zeynepugcstudio",
-    city: "İzmir",
-    category: "UGC İçerik Üretimi",
+    id: "srv_guldkoc_ugc",
+    title: "UGC Güzellik & Moda Ürün Deneyim Videosu (9:16 Dikey Kreatif)",
+    creatorName: "Gül Koç",
+    creatorHandle: "@guldkoc",
     platform: "UGC",
-    followers: "42.500",
-    er: "%6.40",
-    isLeader: false,
-    badge: "İnceleme Bekliyor",
-    status: "PENDING_REVIEW",
-  },
-  {
-    id: "cr-bur-gastro-kaan",
-    name: "Kaan Şef",
-    handle: "@kaanseflezzet",
-    city: "Bursa",
-    category: "Yeme & İçme (Gastronomi)",
-    platform: "TIKTOK",
-    followers: "115.000",
-    er: "%5.95",
-    isLeader: false,
-    badge: "İnceleme Bekliyor",
-    status: "PENDING_REVIEW",
-  },
-];
-
-const INITIAL_LEDGER_ORDERS: AdminLedgerOrder[] = [
-  {
-    orderCode: "INF-2026-000001",
-    brandName: "Toros Auto Care",
-    creatorName: "Emre Toros",
-    serviceTitle: "1 Adet 60 sn Otomotiv Reels + 2 Story",
-    grossTl: 10000,
-    bankTransactionRef: "TR-FAST-9081421",
-    state: "PAID",
-    adDisclosureVerified: true,
-    createdAt: "Bugün 10:15",
-  },
-  {
-    orderCode: "INF-2026-000002",
-    brandName: "Natura Derm Kozmetik",
-    creatorName: "Gül Koç (@guldkoc)",
-    serviceTitle: "Instagram Reels + Hikâye Seti & 30 Gün Reklam İzni",
-    grossTl: 14500,
-    bankTransactionRef: "TR-EFT-7745120",
-    state: "PAYMENT_REVIEW",
-    adDisclosureVerified: false,
-    createdAt: "Bugün 11:40",
-  },
-  {
-    orderCode: "INF-2026-000003",
-    brandName: "NovaTech Türkiye",
-    creatorName: "Mert Kaya",
-    serviceTitle: "YouTube 90 sn Entegre Ürün İncelemesi",
-    grossTl: 18000,
-    bankTransactionRef: "TR-FAST-6629018",
-    state: "COMPLETED",
-    adDisclosureVerified: true,
-    createdAt: "Dün 16:20",
-  },
-  {
-    orderCode: "INF-2026-000004",
-    brandName: "Maison Luna Moda",
-    creatorName: "Selin Aksoy",
-    serviceTitle: "Yeni Sezon Kombin Reels + Linkli Story",
-    grossTl: 22000,
-    bankTransactionRef: "TR-FAST-5518044",
-    state: "PAYOUT_COMPLETED",
-    adDisclosureVerified: true,
-    createdAt: "2 Gün Önce",
-  },
-];
-
-const INITIAL_ADMIN_CAMPAIGNS: AdminCampaignItem[] = [
-  {
-    id: "cmp-1",
-    brandName: "Natura Derm Kozmetik",
-    title: "Cilt Bakım Serumu İçin 60 sn Instagram Reels & UGC Video",
-    city: "Adana",
-    category: "Güzellik & Kozmetik",
-    platform: "INSTAGRAM",
-    budgetTl: 15000,
-    proposalCount: 12,
-    status: "OPEN",
-  },
-  {
-    id: "cmp-2",
-    brandName: "Toros Auto Care",
-    title: "Seramik Kaplama & Araç Bakım Kiti Uygulama Videosu",
-    city: "Adana",
-    category: "Otomotiv",
-    platform: "INSTAGRAM",
-    budgetTl: 12000,
-    proposalCount: 8,
-    status: "OPEN",
-  },
-  {
-    id: "cmp-3",
-    brandName: "NovaTech Türkiye",
-    title: "Kablosuz Oyuncu Kulaklığı Kutu Açılımı & İnceleme",
-    city: "İstanbul",
-    category: "Teknoloji",
-    platform: "YOUTUBE",
-    budgetTl: 25000,
-    proposalCount: 19,
-    status: "OPEN",
-  },
-  {
-    id: "cmp-4",
-    brandName: "Anadolu Gurme Kahve",
-    title: "3. Nesil Kahve Demleme Kiti TikTok & Reels Tanıtımı",
-    city: "Ankara",
-    category: "Yeme & İçme (Gastronomi)",
-    platform: "TIKTOK",
-    budgetTl: 9500,
-    proposalCount: 14,
-    status: "OPEN",
+    priceTl: 2500,
+    deliveryDays: 3,
+    revisions: 2,
+    usageScope: "Organik ve Meta/TikTok ücretli reklamlarında 180 gün kullanım",
   },
 ];
 
@@ -284,115 +189,79 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
   const [activeViewRole, setActiveViewRole] = useState<WorkspaceRole>(role);
   const [activeTab, setActiveTab] = useState<string>("overview");
 
-  // SuperAdmin state
-  const [adminCreators, setAdminCreators] = useState<AdminVerificationItem[]>(
-    INITIAL_ADMIN_CREATORS
+  // Sadece gerçek veriler (Sıfır mock sipariş, sıfır mock kampanya, sıfır uydurma üretici!)
+  const [adminCreators, setAdminCreators] = useState<RealCreatorItem[]>(
+    VERIFIED_REAL_CREATORS
   );
-  const [ledgerOrders, setLedgerOrders] =
-    useState<AdminLedgerOrder[]>(INITIAL_LEDGER_ORDERS);
-  const [ ledgerFilter, setLedgerFilter ] = useState<string>("ALL");
-  const [adminCampaigns, setAdminCampaigns] = useState<AdminCampaignItem[]>(
-    INITIAL_ADMIN_CAMPAIGNS
-  );
+  const [ledgerOrders, setLedgerOrders] = useState<RealLedgerOrder[]>([]);
+  const [ledgerFilter, setLedgerFilter] = useState<string>("ALL");
+  const [adminCampaigns, setAdminCampaigns] = useState<RealCampaignItem[]>([]);
+  const [creatorServices, setCreatorServices] = useState<
+    RealCreatorServiceItem[]
+  >(VERIFIED_REAL_SERVICES);
   const [adminNotice, setAdminNotice] = useState<string>("");
-  const [activityLogs, setActivityLogs] = useState<string[]>([
-    "Süperadmin oturumu (cebrailkara@gmail.com) tam yetkiyle doğrulandı.",
-    "Türkiye 81 İl × 25 Kategori SEO dizini ve 1.000 onaylı profil aktif.",
-    "INF-2026-000002 siparişi için banka havale dekontu incelemeye alındı.",
-  ]);
+  const [activityLogs, setActivityLogs] = useState<string[]>([]);
 
-  // SuperAdmin: New Creator Form
+  // SuperAdmin: Yeni Gerçek Influencer Ekleme Formu
   const [newCrName, setNewCrName] = useState("");
   const [newCrHandle, setNewCrHandle] = useState("");
+  const [newCrEmail, setNewCrEmail] = useState("");
   const [newCrCity, setNewCrCity] = useState("Adana");
   const [newCrCategory, setNewCrCategory] = useState("Güzellik & Kozmetik");
   const [newCrPlatform, setNewCrPlatform] = useState<
     "INSTAGRAM" | "TIKTOK" | "YOUTUBE" | "UGC"
   >("INSTAGRAM");
-  const [newCrFollowers, setNewCrFollowers] = useState("45.000");
-  const [newCrEr, setNewCrEr] = useState("%4.90");
+  const [newCrFollowers, setNewCrFollowers] = useState<number>(10000);
+  const [newCrEr, setNewCrEr] = useState<number>(4.5);
   const [newCrIsLeader, setNewCrIsLeader] = useState(false);
 
-  // SuperAdmin: New Order Form
+  // SuperAdmin: Yeni Gerçek Sipariş Oluşturma Formu
   const [newOrdBrand, setNewOrdBrand] = useState("");
   const [newOrdCreator, setNewOrdCreator] = useState("Gül Koç (@guldkoc)");
   const [newOrdService, setNewOrdService] = useState(
-    "1 Adet 60 sn Instagram Reels + 2 Story"
+    "Instagram Reels Güzellik, Kombin & Yaşam Tarzı Tanıtımı"
   );
-  const [newOrdGrossTl, setNewOrdGrossTl] = useState(12500);
-  const [newOrdBankRef, setNewOrdBankRef] = useState(
-    `TR-FAST-${Math.floor(1000000 + Math.random() * 9000000)}`
-  );
+  const [newOrdGrossTl, setNewOrdGrossTl] = useState<number>(3500);
+  const [newOrdBankRef, setNewOrdBankRef] = useState("");
 
-  // SuperAdmin: New Campaign Form
+  // SuperAdmin: Yeni Gerçek Kampanya Formu
   const [newCmpBrand, setNewCmpBrand] = useState("");
   const [newCmpTitle, setNewCmpTitle] = useState("");
-  const [newCmpCity, setNewCmpCity] = useState("İstanbul");
+  const [newCmpCity, setNewCmpCity] = useState("Adana");
   const [newCmpCategory, setNewCmpCategory] = useState("Güzellik & Kozmetik");
   const [newCmpPlatform, setNewCmpPlatform] = useState<
     "INSTAGRAM" | "TIKTOK" | "YOUTUBE" | "UGC"
   >("INSTAGRAM");
-  const [newCmpBudgetTl, setNewCmpBudgetTl] = useState(15000);
+  const [newCmpBudgetTl, setNewCmpBudgetTl] = useState<number>(5000);
 
-  // SuperAdmin: 81 Province SEO Filter
+  // SuperAdmin: 81 İl SEO Filtresi
   const [seoRegionFilter, setSeoRegionFilter] = useState<string>("ALL");
 
-  // Creator state
-  const [creatorServices, setCreatorServices] = useState<CreatorDraftService[]>([
-    {
-      id: "srv-1",
-      title: "1 Adet 60 sn Instagram Reels + 2 Story (Organik #reklam)",
-      creatorName: "Gül Koç (@guldkoc)",
-      platform: "INSTAGRAM",
-      priceTl: 8500,
-      deliveryDays: 4,
-      revisions: 2,
-      usageScope: "Organik Paylaşım + 30 Gün Profilde Sabit",
-    },
-    {
-      id: "srv-2",
-      title: "UGC 9:16 Performans Reklam Videosu (3 Kanca Varyasyonlu)",
-      creatorName: "Gül Koç (@guldkoc)",
-      platform: "UGC",
-      priceTl: 5500,
-      deliveryDays: 3,
-      revisions: 2,
-      usageScope: "Marka Meta & TikTok Reklam Kullanımı (90 Gün)",
-    },
-    {
-      id: "srv-3",
-      title: "YouTube 90 sn Entegre Ürün İncelemesi + Açıklama Linki",
-      creatorName: "Mert Kaya (@mertkayatech)",
-      platform: "YOUTUBE",
-      priceTl: 18000,
-      deliveryDays: 5,
-      revisions: 2,
-      usageScope: "Organik YouTube Yayını + 60 Gün Dijital Hak",
-    },
-  ]);
+  // Hizmet Paketi Formu
   const [newPkgTitle, setNewPkgTitle] = useState("");
-  const [newPkgCreator, setNewPkgCreator] = useState("Gül Koç (@guldkoc)");
+  const [newPkgCreator, setNewPkgCreator] = useState("Gül Koç");
+  const [newPkgHandle, setNewPkgHandle] = useState("@guldkoc");
   const [newPkgPlatform, setNewPkgPlatform] = useState<
     "INSTAGRAM" | "TIKTOK" | "YOUTUBE" | "UGC"
   >("INSTAGRAM");
-  const [newPkgPriceTl, setNewPkgPriceTl] = useState(10000);
-  const [newPkgDeliveryDays, setNewPkgDeliveryDays] = useState(4);
-  const [newPkgRevisions, setNewPkgRevisions] = useState(2);
+  const [newPkgPriceTl, setNewPkgPriceTl] = useState<number>(3500);
+  const [newPkgDeliveryDays, setNewPkgDeliveryDays] = useState<number>(3);
+  const [newPkgRevisions, setNewPkgRevisions] = useState<number>(2);
   const [newPkgUsage, setNewPkgUsage] = useState(
     "Organik Paylaşım + 30 Gün Dijital Kullanım"
   );
-  const [creatorPublishUrl, setCreatorPublishUrl] = useState(
-    "https://www.instagram.com/guldkoc/reel/DdTk6LpOFws/?caption=%23reklam"
-  );
+
+  // Yayıncı Teslim Linki
+  const [selectedOrderCodeForDelivery, setSelectedOrderCodeForDelivery] =
+    useState<string>("");
+  const [creatorPublishUrl, setCreatorPublishUrl] = useState("");
   const [creatorDeliveryMsg, setCreatorDeliveryMsg] = useState("");
 
-  // Advertiser state
-  const [advBrandName, setAdvBrandName] = useState("Toros Auto Care");
-  const [advWebsite, setAdvWebsite] = useState("https://torosautocare.com.tr");
-  const [advBriefDesc, setAdvBriefDesc] = useState(
-    "Nano seramik hızlı cila ve su itici araç bakım kiti için 60 sn uygulama videosu"
-  );
-  const [advBudgetTl, setAdvBudgetTl] = useState(12000);
+  // Reklamveren Kampanya Taslağı Formu (Boş başlar, mock veri yok)
+  const [advBrandName, setAdvBrandName] = useState("");
+  const [advWebsite, setAdvWebsite] = useState("");
+  const [advBriefDesc, setAdvBriefDesc] = useState("");
+  const [advBudgetTl, setAdvBudgetTl] = useState<number>(5000);
   const [advAiResult, setAdvAiResult] = useState<Record<string, unknown> | null>(
     null
   );
@@ -404,7 +273,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
         hour: "2-digit",
         minute: "2-digit",
       })} — ${msg}`,
-      ...prev.slice(0, 9),
+      ...prev.slice(0, 14),
     ]);
   }
 
@@ -412,8 +281,195 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     setActiveViewRole(role);
   }, [role]);
 
+  // Gerçek verileri localStorage + Firestore (influnex-db) üzerinden yükle
   useEffect(() => {
-    // Read stored session from localStorage (supports direct email login with cebrailkara@gmail.com)
+    try {
+      const savedCreators = window.localStorage.getItem(
+        REAL_STORAGE_KEYS.CREATORS
+      );
+      if (savedCreators) {
+        const parsed = JSON.parse(savedCreators) as RealCreatorItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAdminCreators(parsed);
+        }
+      }
+
+      const savedOrders = window.localStorage.getItem(REAL_STORAGE_KEYS.ORDERS);
+      if (savedOrders) {
+        const parsed = JSON.parse(savedOrders) as RealLedgerOrder[];
+        if (Array.isArray(parsed)) {
+          setLedgerOrders(parsed);
+        }
+      }
+
+      const savedCampaigns = window.localStorage.getItem(
+        REAL_STORAGE_KEYS.CAMPAIGNS
+      );
+      if (savedCampaigns) {
+        const parsed = JSON.parse(savedCampaigns) as RealCampaignItem[];
+        if (Array.isArray(parsed)) {
+          setAdminCampaigns(parsed);
+        }
+      }
+
+      const savedServices = window.localStorage.getItem(
+        REAL_STORAGE_KEYS.SERVICES
+      );
+      if (savedServices) {
+        const parsed = JSON.parse(savedServices) as RealCreatorServiceItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCreatorServices(parsed);
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    // Firestore (influnex-db) üzerindeki gerçek koleksiyonları senkronize et
+    async function syncFromFirestore() {
+      try {
+        const db = getInfluNexFirestore();
+
+        const [ordersSnap, campaignsSnap, creatorsSnap, servicesSnap] =
+          await Promise.all([
+            getDocs(collection(db, "influnex_orders")).catch(() => null),
+            getDocs(collection(db, "influnex_campaigns")).catch(() => null),
+            getDocs(collection(db, "influnex_publicCreatorProfiles")).catch(
+              () => null
+            ),
+            getDocs(collection(db, "influnex_creatorServices")).catch(
+              () => null
+            ),
+          ]);
+
+        if (ordersSnap && !ordersSnap.empty) {
+          const fsOrders: RealLedgerOrder[] = [];
+          ordersSnap.forEach((d) => {
+            const data = d.data() as Partial<RealLedgerOrder>;
+            if (data.orderCode && data.brandName) {
+              fsOrders.push({
+                orderCode: data.orderCode,
+                brandName: data.brandName,
+                creatorName: data.creatorName || "Gül Koç (@guldkoc)",
+                serviceTitle: data.serviceTitle || "",
+                grossTl: Number(data.grossTl || 0),
+                bankTransactionRef: data.bankTransactionRef || "",
+                state: data.state || "PAYMENT_REVIEW",
+                adDisclosureVerified: Boolean(data.adDisclosureVerified),
+                publishUrl: data.publishUrl,
+                createdAt: data.createdAt || "",
+              });
+            }
+          });
+          if (fsOrders.length > 0) {
+            setLedgerOrders(fsOrders);
+            window.localStorage.setItem(
+              REAL_STORAGE_KEYS.ORDERS,
+              JSON.stringify(fsOrders)
+            );
+          }
+        }
+
+        if (campaignsSnap && !campaignsSnap.empty) {
+          const fsCampaigns: RealCampaignItem[] = [];
+          campaignsSnap.forEach((d) => {
+            const data = d.data() as Partial<RealCampaignItem>;
+            if (data.id && data.title) {
+              fsCampaigns.push({
+                id: data.id,
+                brandName: data.brandName || "",
+                title: data.title,
+                city: data.city || "Adana",
+                category: data.category || "Güzellik & Kozmetik",
+                platform: data.platform || "INSTAGRAM",
+                budgetTl: Number(data.budgetTl || 0),
+                proposalCount: Number(data.proposalCount || 0),
+                status: data.status || "OPEN",
+                createdAt: data.createdAt || "",
+              });
+            }
+          });
+          if (fsCampaigns.length > 0) {
+            setAdminCampaigns(fsCampaigns);
+            window.localStorage.setItem(
+              REAL_STORAGE_KEYS.CAMPAIGNS,
+              JSON.stringify(fsCampaigns)
+            );
+          }
+        }
+
+        if (creatorsSnap && !creatorsSnap.empty) {
+          const fsCreators: RealCreatorItem[] = [...VERIFIED_REAL_CREATORS];
+          creatorsSnap.forEach((d) => {
+            const data = d.data() as Partial<RealCreatorItem>;
+            if (
+              data.id &&
+              data.name &&
+              !fsCreators.some((existing) => existing.id === data.id)
+            ) {
+              fsCreators.push({
+                id: data.id,
+                name: data.name,
+                handle: data.handle || `@${data.username || "creator"}`,
+                username: data.username || data.id,
+                city: data.city || "Adana",
+                category: data.category || "Güzellik & Kozmetik",
+                platform: data.platform || "INSTAGRAM",
+                followers: Number(data.followers || 0),
+                erPercent: Number(data.erPercent || 0),
+                isLeader: Boolean(data.isLeader),
+                email: data.email || "",
+                socialUrl: data.socialUrl || "",
+                status: data.status || "APPROVED",
+              });
+            }
+          });
+          setAdminCreators(fsCreators);
+          window.localStorage.setItem(
+            REAL_STORAGE_KEYS.CREATORS,
+            JSON.stringify(fsCreators)
+          );
+        }
+
+        if (servicesSnap && !servicesSnap.empty) {
+          const fsServices: RealCreatorServiceItem[] = [
+            ...VERIFIED_REAL_SERVICES,
+          ];
+          servicesSnap.forEach((d) => {
+            const data = d.data() as Partial<RealCreatorServiceItem>;
+            if (
+              data.id &&
+              data.title &&
+              !fsServices.some((existing) => existing.id === data.id)
+            ) {
+              fsServices.push({
+                id: data.id,
+                title: data.title,
+                creatorName: data.creatorName || "Gül Koç",
+                creatorHandle: data.creatorHandle || "@guldkoc",
+                platform: data.platform || "INSTAGRAM",
+                priceTl: Number(data.priceTl || 0),
+                deliveryDays: Number(data.deliveryDays || 3),
+                revisions: Number(data.revisions || 1),
+                usageScope: data.usageScope || "",
+              });
+            }
+          });
+          setCreatorServices(fsServices);
+          window.localStorage.setItem(
+            REAL_STORAGE_KEYS.SERVICES,
+            JSON.stringify(fsServices)
+          );
+        }
+      } catch {
+        // Firestore read fallback to local state
+      }
+    }
+
+    syncFromFirestore();
+  }, []);
+
+  useEffect(() => {
     try {
       const raw = window.localStorage.getItem(INFLUNEX_SESSION_STORAGE_KEY);
       if (raw) {
@@ -423,7 +479,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
         }
       }
     } catch {
-      // ignore storage errors
+      // ignore
     }
 
     const auth = getInfluNexAuth();
@@ -472,7 +528,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
             }
           }
 
-          if (!superAdminMatch && role === "ADMIN" && effectiveRole !== "ADMIN") {
+          if (
+            !superAdminMatch &&
+            role === "ADMIN" &&
+            effectiveRole !== "ADMIN"
+          ) {
             const destination =
               effectiveRole === "CREATOR"
                 ? `/${locale}/yayinci/panel`
@@ -493,6 +553,54 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     );
   }, [locale, role, router]);
 
+  function persistCreators(next: RealCreatorItem[]) {
+    setAdminCreators(next);
+    try {
+      window.localStorage.setItem(
+        REAL_STORAGE_KEYS.CREATORS,
+        JSON.stringify(next)
+      );
+    } catch {
+      // ignore
+    }
+  }
+
+  function persistOrders(next: RealLedgerOrder[]) {
+    setLedgerOrders(next);
+    try {
+      window.localStorage.setItem(
+        REAL_STORAGE_KEYS.ORDERS,
+        JSON.stringify(next)
+      );
+    } catch {
+      // ignore
+    }
+  }
+
+  function persistCampaigns(next: RealCampaignItem[]) {
+    setAdminCampaigns(next);
+    try {
+      window.localStorage.setItem(
+        REAL_STORAGE_KEYS.CAMPAIGNS,
+        JSON.stringify(next)
+      );
+    } catch {
+      // ignore
+    }
+  }
+
+  function persistServices(next: RealCreatorServiceItem[]) {
+    setCreatorServices(next);
+    try {
+      window.localStorage.setItem(
+        REAL_STORAGE_KEYS.SERVICES,
+        JSON.stringify(next)
+      );
+    } catch {
+      // ignore
+    }
+  }
+
   function handleActivateSuperAdminInstant() {
     const profile: StoredInfluNexSession = {
       email: SUPER_ADMIN_EMAIL,
@@ -512,7 +620,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     setStoredSession(profile);
     setActiveViewRole("ADMIN");
     pushLog(
-      `Süperadmin (${SUPER_ADMIN_EMAIL}) tam erişim yetkisi aktifleştirildi.`
+      `Süperadmin (${SUPER_ADMIN_EMAIL}) tam erişim oturumu aktifleştirildi.`
     );
   }
 
@@ -528,80 +636,166 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     router.replace(`/${locale}/giris`);
   }
 
-  function handleAddCreatorPackage(e: React.FormEvent) {
+  async function handleAddCreatorPackage(e: React.FormEvent) {
     e.preventDefault();
     if (!newPkgTitle.trim()) return;
-    setCreatorServices((prev) => [
-      {
-        id: `srv-${Date.now()}`,
-        title: newPkgTitle.trim(),
-        creatorName: newPkgCreator.trim() || "Gül Koç (@guldkoc)",
-        platform: newPkgPlatform,
-        priceTl: Number(newPkgPriceTl),
-        deliveryDays: Number(newPkgDeliveryDays),
-        revisions: Number(newPkgRevisions),
-        usageScope: newPkgUsage,
-      },
-      ...prev,
-    ]);
+    const item: RealCreatorServiceItem = {
+      id: `srv_${Date.now()}`,
+      title: newPkgTitle.trim(),
+      creatorName: newPkgCreator.trim() || "Gül Koç",
+      creatorHandle: newPkgHandle.trim() || "@guldkoc",
+      platform: newPkgPlatform,
+      priceTl: Number(newPkgPriceTl),
+      deliveryDays: Number(newPkgDeliveryDays),
+      revisions: Number(newPkgRevisions),
+      usageScope: newPkgUsage,
+    };
+    const next = [item, ...creatorServices];
+    persistServices(next);
+    try {
+      const db = getInfluNexFirestore();
+      await setDoc(doc(db, "influnex_creatorServices", item.id), {
+        ...item,
+        tenantId: INFLUNEX_TENANT_ID,
+      });
+    } catch {
+      // local storage already updated
+    }
     pushLog(
-      `Yeni hizmet paketi eklendi: "${newPkgTitle.trim()}" (${newPkgPriceTl.toLocaleString("tr-TR")} TL).`
+      `Yeni hizmet paketi kaydedildi: "${item.title}" (${item.priceTl.toLocaleString("tr-TR")} TL).`
     );
     setNewPkgTitle("");
   }
 
-  function handleAddAdminCreator(e: React.FormEvent) {
+  async function handleDeleteServicePackage(id: string) {
+    const next = creatorServices.filter((s) => s.id !== id);
+    persistServices(next);
+    try {
+      const db = getInfluNexFirestore();
+      await deleteDoc(doc(db, "influnex_creatorServices", id));
+    } catch {
+      // ignore
+    }
+    pushLog("Hizmet paketi silindi.");
+  }
+
+  async function handleAddAdminCreator(e: React.FormEvent) {
     e.preventDefault();
     if (!newCrName.trim() || !newCrHandle.trim()) return;
-    const formattedHandle = newCrHandle.trim().startsWith("@")
-      ? newCrHandle.trim()
-      : `@${newCrHandle.trim()}`;
-    const newItem: AdminVerificationItem = {
-      id: `cr-custom-${Date.now()}`,
+    const cleanUsername = newCrHandle
+      .trim()
+      .replace(/^@/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]/g, "");
+    const formattedHandle = `@${cleanUsername}`;
+    const newItem: RealCreatorItem = {
+      id: `cr_${cleanUsername}_${Date.now()}`,
       name: newCrName.trim(),
       handle: formattedHandle,
+      username: cleanUsername,
       city: newCrCity,
       category: newCrCategory,
       platform: newCrPlatform,
-      followers: newCrFollowers.trim() || "25.000",
-      er: newCrEr.trim() || "%4.50",
+      followers: Number(newCrFollowers) || 0,
+      erPercent: Number(newCrEr) || 0,
       isLeader: newCrIsLeader,
-      badge: "Doğrulanmış Profil",
+      email: newCrEmail.trim(),
+      socialUrl: `https://www.instagram.com/${cleanUsername}/`,
       status: "APPROVED",
     };
-    setAdminCreators((prev) => [newItem, ...prev]);
+    const next = [newItem, ...adminCreators];
+    persistCreators(next);
+    try {
+      const db = getInfluNexFirestore();
+      await setDoc(doc(db, "influnex_publicCreatorProfiles", newItem.id), {
+        id: newItem.id,
+        tenantId: INFLUNEX_TENANT_ID,
+        name: newItem.name,
+        handle: newItem.handle,
+        username: newItem.username,
+        city: newItem.city,
+        category: newItem.category,
+        platform: newItem.platform,
+        followers: newItem.followers,
+        erPercent: newItem.erPercent,
+        isLeader: newItem.isLeader,
+        socialUrl: newItem.socialUrl,
+        status: newItem.status,
+      });
+    } catch {
+      // local storage already updated
+    }
     pushLog(
-      `${newItem.name} (${newItem.handle} • ${newItem.city}) doğrulanmış profil olarak vitrine eklendi.`
+      `Gerçek influencer profili eklendi: ${newItem.name} (${newItem.handle} • ${newItem.city}).`
     );
     setNewCrName("");
     setNewCrHandle("");
+    setNewCrEmail("");
   }
 
-  function handleApproveCreator(id: string) {
-    setAdminCreators((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: "APPROVED", badge: "Doğrulanmış Profil" }
-          : c
-      )
+  function handleUpdateCreatorEmail(id: string, email: string) {
+    const next = adminCreators.map((c) =>
+      c.id === id ? { ...c, email } : c
     );
-    pushLog("Influencer profili onaylandı ve vitrine açıldı.");
+    persistCreators(next);
   }
 
-  function handleToggleCreatorLeader(id: string) {
-    setAdminCreators((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, isLeader: !c.isLeader } : c
-      )
+  async function handleToggleCreatorLeader(id: string) {
+    const next = adminCreators.map((c) =>
+      c.id === id ? { ...c, isLeader: !c.isLeader } : c
     );
-    pushLog("Influencer Lideri (👑) rozet durumu güncellendi.");
+    persistCreators(next);
+    const updated = next.find((c) => c.id === id);
+    if (updated) {
+      try {
+        const db = getInfluNexFirestore();
+        await setDoc(
+          doc(db, "influnex_publicCreatorProfiles", id),
+          { isLeader: updated.isLeader, tenantId: INFLUNEX_TENANT_ID },
+          { merge: true }
+        );
+      } catch {
+        // ignore
+      }
+    }
+    pushLog("Influencer Lideri (👑) rozeti güncellendi.");
   }
 
-  function handleCreateAdminOrder(e: React.FormEvent) {
+  async function handleDeleteCreator(id: string) {
+    const target = adminCreators.find((c) => c.id === id);
+    const next = adminCreators.filter((c) => c.id !== id);
+    persistCreators(next);
+    try {
+      const db = getInfluNexFirestore();
+      await deleteDoc(doc(db, "influnex_publicCreatorProfiles", id));
+    } catch {
+      // ignore
+    }
+    pushLog(`${target?.name || id} profili listeden silindi.`);
+  }
+
+  async function handleCreateAdminOrder(e: React.FormEvent) {
     e.preventDefault();
-    if (!newOrdBrand.trim() || !newOrdCreator.trim()) return;
-    const nextCode = `INF-2026-00000${ledgerOrders.length + 1}`;
-    const item: AdminLedgerOrder = {
+    if (!newOrdBrand.trim() || !newOrdCreator.trim() || !newOrdBankRef.trim()) {
+      return;
+    }
+    if (
+      ledgerOrders.some(
+        (o) =>
+          o.bankTransactionRef.toLowerCase() ===
+          newOrdBankRef.trim().toLowerCase()
+      )
+    ) {
+      pushLog(
+        `Hata: "${newOrdBankRef.trim()}" banka referans numarası daha önce kullanılmış!`
+      );
+      return;
+    }
+
+    const nextCode = `INF-${new Date().getFullYear()}-${String(
+      ledgerOrders.length + 1
+    ).padStart(6, "0")}`;
+    const item: RealLedgerOrder = {
       orderCode: nextCode,
       brandName: newOrdBrand.trim(),
       creatorName: newOrdCreator.trim(),
@@ -610,50 +804,94 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       bankTransactionRef: newOrdBankRef.trim(),
       state: "PAYMENT_REVIEW",
       adDisclosureVerified: false,
-      createdAt: "Şimdi",
+      createdAt: new Date().toLocaleDateString("tr-TR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
-    setLedgerOrders((prev) => [item, ...prev]);
+    const next = [item, ...ledgerOrders];
+    persistOrders(next);
+    try {
+      const db = getInfluNexFirestore();
+      await setDoc(doc(db, "influnex_orders", item.orderCode), {
+        ...item,
+        tenantId: INFLUNEX_TENANT_ID,
+      });
+    } catch {
+      // ignore
+    }
     pushLog(
-      `Yeni sipariş oluşturuldu: ${nextCode} (${item.brandName} → ${item.creatorName}, ${item.grossTl.toLocaleString("tr-TR")} TL).`
+      `Gerçek sipariş kaydedildi: ${nextCode} (${item.brandName} → ${item.creatorName}, ${item.grossTl.toLocaleString("tr-TR")} TL).`
     );
     setNewOrdBrand("");
-    setNewOrdBankRef(
-      `TR-FAST-${Math.floor(1000000 + Math.random() * 9000000)}`
-    );
+    setNewOrdBankRef("");
   }
 
-  function handleAdvanceOrderState(orderCode: string) {
-    setLedgerOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.orderCode !== orderCode) return ord;
-        if (ord.state === "PAYMENT_REVIEW") {
-          pushLog(
-            `${orderCode} banka dekontu (${ord.bankTransactionRef}) onaylandı; tutar güvenli blokeye alındı.`
-          );
-          return { ...ord, state: "PAID" };
-        }
-        if (ord.state === "PAID") {
-          pushLog(
-            `${orderCode} içerik teslimi ve #reklam etiketi onaylandı; sipariş tamamlandı.`
-          );
-          return { ...ord, state: "COMPLETED", adDisclosureVerified: true };
-        }
-        if (ord.state === "COMPLETED") {
-          pushLog(
-            `${orderCode} için %85 üretici hakedişi (${(ord.grossTl * 0.85).toLocaleString("tr-TR")} TL) ödendi.`
-          );
-          return { ...ord, state: "PAYOUT_COMPLETED" };
-        }
-        return ord;
-      })
-    );
+  async function handleAdvanceOrderState(orderCode: string) {
+    let updatedItem: RealLedgerOrder | null = null;
+    const next = ledgerOrders.map((ord) => {
+      if (ord.orderCode !== orderCode) return ord;
+      if (ord.state === "PAYMENT_REVIEW") {
+        updatedItem = { ...ord, state: "PAID" };
+        pushLog(
+          `${orderCode} banka dekontu (${ord.bankTransactionRef}) onaylandı; tutar güvenli blokeye alındı.`
+        );
+        return updatedItem;
+      }
+      if (ord.state === "PAID") {
+        updatedItem = {
+          ...ord,
+          state: "COMPLETED",
+          adDisclosureVerified: true,
+        };
+        pushLog(
+          `${orderCode} içerik teslimi ve #reklam etiketi onaylandı; sipariş tamamlandı.`
+        );
+        return updatedItem;
+      }
+      if (ord.state === "COMPLETED") {
+        updatedItem = { ...ord, state: "PAYOUT_COMPLETED" };
+        pushLog(
+          `${orderCode} için %85 üretici hakedişi (${(ord.grossTl * 0.85).toLocaleString("tr-TR")} TL) ödendi.`
+        );
+        return updatedItem;
+      }
+      return ord;
+    });
+    persistOrders(next);
+    if (updatedItem) {
+      try {
+        const db = getInfluNexFirestore();
+        await setDoc(doc(db, "influnex_orders", orderCode), {
+          ...(updatedItem as RealLedgerOrder),
+          tenantId: INFLUNEX_TENANT_ID,
+        });
+      } catch {
+        // ignore
+      }
+    }
   }
 
-  function handleAddAdminCampaign(e: React.FormEvent) {
+  async function handleDeleteOrder(orderCode: string) {
+    const next = ledgerOrders.filter((o) => o.orderCode !== orderCode);
+    persistOrders(next);
+    try {
+      const db = getInfluNexFirestore();
+      await deleteDoc(doc(db, "influnex_orders", orderCode));
+    } catch {
+      // ignore
+    }
+    pushLog(`${orderCode} siparişi silindi.`);
+  }
+
+  async function handleAddAdminCampaign(e: React.FormEvent) {
     e.preventDefault();
     if (!newCmpBrand.trim() || !newCmpTitle.trim()) return;
-    const item: AdminCampaignItem = {
-      id: `cmp-${Date.now()}`,
+    const item: RealCampaignItem = {
+      id: `cmp_${Date.now()}`,
       brandName: newCmpBrand.trim(),
       title: newCmpTitle.trim(),
       city: newCmpCity,
@@ -662,33 +900,72 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
       budgetTl: Number(newCmpBudgetTl),
       proposalCount: 0,
       status: "OPEN",
+      createdAt: new Date().toLocaleDateString("tr-TR"),
     };
-    setAdminCampaigns((prev) => [item, ...prev]);
+    const next = [item, ...adminCampaigns];
+    persistCampaigns(next);
+    try {
+      const db = getInfluNexFirestore();
+      await setDoc(doc(db, "influnex_campaigns", item.id), {
+        ...item,
+        tenantId: INFLUNEX_TENANT_ID,
+      });
+    } catch {
+      // ignore
+    }
     pushLog(
-      `Yeni reklam kampanyası yayına alındı: "${item.title}" (${item.brandName} • ${item.budgetTl.toLocaleString("tr-TR")} TL).`
+      `Yeni reklam kampanyası yayınlandı: "${item.title}" (${item.brandName} • ${item.budgetTl.toLocaleString("tr-TR")} TL).`
     );
     setNewCmpBrand("");
     setNewCmpTitle("");
   }
 
-  function handleToggleCampaignStatus(id: string) {
-    setAdminCampaigns((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: c.status === "OPEN" ? "COMPLETED" : "OPEN" }
-          : c
-      )
+  async function handleToggleCampaignStatus(id: string) {
+    const next = adminCampaigns.map((c) =>
+      c.id === id
+        ? {
+            ...c,
+            status: (c.status === "OPEN" ? "COMPLETED" : "OPEN") as
+              | "OPEN"
+              | "COMPLETED",
+          }
+        : c
     );
-    pushLog("Kampanya yayın durumu güncellendi.");
+    persistCampaigns(next);
+    const updated = next.find((c) => c.id === id);
+    if (updated) {
+      try {
+        const db = getInfluNexFirestore();
+        await setDoc(doc(db, "influnex_campaigns", id), {
+          ...updated,
+          tenantId: INFLUNEX_TENANT_ID,
+        });
+      } catch {
+        // ignore
+      }
+    }
+    pushLog("Kampanya durumu güncellendi.");
+  }
+
+  async function handleDeleteCampaign(id: string) {
+    const next = adminCampaigns.filter((c) => c.id !== id);
+    persistCampaigns(next);
+    try {
+      const db = getInfluNexFirestore();
+      await deleteDoc(doc(db, "influnex_campaigns", id));
+    } catch {
+      // ignore
+    }
+    pushLog("Kampanya ilanı silindi.");
   }
 
   function handleExportLedgerCsv() {
     const header =
-      "\uFEFFSiparisKodu;Marka;Influencer;BrutTutarTL;Komisyon15TL;UreticiPayi85TL;BankaRef;Durum\n";
+      "\uFEFFSiparisKodu;Tarih;Marka;Influencer;Hizmet;BrutTutarTL;Komisyon15TL;UreticiPayi85TL;BankaRef;Durum\n";
     const rows = ledgerOrders
       .map((o) => {
         const b = calculateCommissionBreakdown(o.grossTl * 100, "TRY");
-        return `${o.orderCode};${o.brandName};${o.creatorName};${o.grossTl};${b.platformCommissionMinorUnits / 100};${b.creatorNetPayoutMinorUnits / 100};${o.bankTransactionRef};${o.state}`;
+        return `${o.orderCode};${o.createdAt};${o.brandName};${o.creatorName};${o.serviceTitle};${o.grossTl};${b.platformCommissionMinorUnits / 100};${b.creatorNetPayoutMinorUnits / 100};${o.bankTransactionRef};${o.state}`;
       })
       .join("\n");
     const blob = new Blob([header + rows], {
@@ -697,21 +974,67 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `influnex-muhasebe-defteri-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `influnex-gercek-muhasebe-defteri-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
+  function buildInviteGmailUrl(creator: RealCreatorItem) {
+    const subject =
+      "InfluNex Marka İş Birlikleri Daveti — %85 Üretici Payı & %0 Üyelik Ücreti";
+    const body = `Merhaba ${creator.name} (${creator.handle}),\n\n${creator.city} ve Türkiye genelinde ${creator.category} kategorisindeki içeriklerinizi beğeniyle takip ediyoruz.\n\nMarkalarla içerik üreticilerini şeffaf ve güvenli şekilde buluşturan pazaryerimiz InfluNex'te (https://www.influnex.com.tr) yerinizi almanız için sizi davet etmek istedik:\n• %0 Üyelik ve Listeleme Ücreti\n• Tamamlanan İş Birliklerinde %85 Üretici Payı\n• Güvenli Ödeme Koruması\n\nÜcretsiz profilinizi oluşturmak için:\nhttps://www.influnex.com.tr/tr/kayit?role=CREATOR\n\nSevgiler,\nInfluNex Yönetimi`;
+    return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+      creator.email
+    )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  async function handleCreatorDeliverySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedOrderCodeForDelivery || !creatorPublishUrl.trim()) return;
+    const next = ledgerOrders.map((o) =>
+      o.orderCode === selectedOrderCodeForDelivery
+        ? {
+            ...o,
+            state: "COMPLETED" as const,
+            adDisclosureVerified: true,
+            publishUrl: creatorPublishUrl.trim(),
+          }
+        : o
+    );
+    persistOrders(next);
+    const updated = next.find(
+      (o) => o.orderCode === selectedOrderCodeForDelivery
+    );
+    if (updated) {
+      try {
+        const db = getInfluNexFirestore();
+        await setDoc(doc(db, "influnex_orders", updated.orderCode), {
+          ...updated,
+          tenantId: INFLUNEX_TENANT_ID,
+        });
+      } catch {
+        // ignore
+      }
+    }
+    setCreatorDeliveryMsg(
+      `${selectedOrderCodeForDelivery} siparişi için yayın linki kaydedildi ve sipariş tamamlandı olarak işaretlendi.`
+    );
+    setCreatorPublishUrl("");
+  }
+
   async function handleGenerateAdvAiBrief(e: React.FormEvent) {
     e.preventDefault();
+    if (!advBrandName.trim() || !advWebsite.trim() || !advBriefDesc.trim()) {
+      return;
+    }
     try {
       const res = await fetch("/api/v1/campaigns/ai-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brandName: advBrandName,
-          brandWebsite: advWebsite,
-          productDescription: advBriefDesc,
+          brandName: advBrandName.trim(),
+          brandWebsite: advWebsite.trim(),
+          productDescription: advBriefDesc.trim(),
           budgetMinorUnits: Math.round(advBudgetTl * 100),
           locale: "tr",
         }),
@@ -723,6 +1046,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     }
   }
 
+  // Tüm finansal ve operasyonel metrikler %100 gerçek kayıtlardan dinamik hesaplanır
   const totalLedgerGrossMinor = ledgerOrders.reduce(
     (acc, o) => acc + o.grossTl * 100,
     0
@@ -731,6 +1055,58 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
     totalLedgerGrossMinor,
     "TRY"
   );
+
+  const completedCreatorPayoutMinor = ledgerOrders
+    .filter((o) => o.state === "COMPLETED" || o.state === "PAYOUT_COMPLETED")
+    .reduce(
+      (acc, o) =>
+        acc +
+        calculateCommissionBreakdown(o.grossTl * 100, "TRY")
+          .creatorNetPayoutMinorUnits,
+      0
+    );
+
+  const paidEscrowGrossMinor = ledgerOrders
+    .filter((o) => o.state === "PAID")
+    .reduce((acc, o) => acc + o.grossTl * 100, 0);
+
+  const paidEscrowCreatorMinor = ledgerOrders
+    .filter((o) => o.state === "PAID")
+    .reduce(
+      (acc, o) =>
+        acc +
+        calculateCommissionBreakdown(o.grossTl * 100, "TRY")
+          .creatorNetPayoutMinorUnits,
+      0
+    );
+
+  const channelBreakdown = useMemo(() => {
+    const total = Math.max(adminCreators.length, 1);
+    const counts = {
+      INSTAGRAM: adminCreators.filter((c) => c.platform === "INSTAGRAM").length,
+      TIKTOK: adminCreators.filter((c) => c.platform === "TIKTOK").length,
+      UGC: adminCreators.filter((c) => c.platform === "UGC").length,
+      YOUTUBE: adminCreators.filter((c) => c.platform === "YOUTUBE").length,
+    };
+    return {
+      INSTAGRAM: {
+        count: counts.INSTAGRAM,
+        pct: Math.round((counts.INSTAGRAM / total) * 100),
+      },
+      TIKTOK: {
+        count: counts.TIKTOK,
+        pct: Math.round((counts.TIKTOK / total) * 100),
+      },
+      UGC: {
+        count: counts.UGC,
+        pct: Math.round((counts.UGC / total) * 100),
+      },
+      YOUTUBE: {
+        count: counts.YOUTUBE,
+        pct: Math.round((counts.YOUTUBE / total) * 100),
+      },
+    };
+  }, [adminCreators]);
 
   const filteredLedgerOrders =
     ledgerFilter === "ALL"
@@ -770,7 +1146,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 font-bold text-emerald-300">
               <ShieldCheck size={13} />
-              Tam Yetki & Tüm Sayfalara Erişim Aktif
+              Sadece Gerçek Veriler • Sıfır Mock Veri
             </span>
             {activeEmail ? (
               <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-slate-200">
@@ -837,7 +1213,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
           </div>
         </div>
 
-        {/* Universal SuperAdmin All-Pages Quick Jump Strip ("heryere erişsin") */}
+        {/* Universal SuperAdmin All-Pages Quick Jump Strip */}
         <div className="border-t border-white/10 bg-slate-900/90">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-1.5 px-4 py-2 text-[11px] sm:px-6 lg:px-8">
             <span className="mr-1 font-extrabold uppercase tracking-wider text-amber-300">
@@ -859,7 +1235,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
               href={`/${locale}/admin`}
               className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold text-slate-200 hover:bg-white/20"
             >
-              Muhasebe & SEO Denetimi
+              Veritabanı & SEO Denetimi
             </Link>
             <Link
               href={`/${locale}/yayinci/panel`}
@@ -877,13 +1253,13 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
               href={`/${locale}/panel`}
               className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold text-slate-200 hover:bg-white/20"
             >
-              15 Aşamalı Sipariş Odası
+              Sipariş & Bloke Rehberi
             </Link>
             <Link
               href={`/${locale}/influencer`}
               className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold text-slate-200 hover:bg-white/20"
             >
-              1.000+ Influencer Vitrin
+              Influencer Vitrin
             </Link>
             <Link
               href={`/${locale}/influencer/turkiye`}
@@ -957,7 +1333,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <Users size={17} />
-                  2. 1.000 Influencer & Tanıtım
+                  2. Gerçek Influencerlar ({adminCreators.length})
                 </button>
                 <button
                   type="button"
@@ -969,7 +1345,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <CreditCard size={17} />
-                  3. Sipariş, Dekont & %85 Ödeme
+                  3. Siparişler & Muhasebe ({ledgerOrders.length})
                 </button>
                 <button
                   type="button"
@@ -1032,7 +1408,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <PlusCircle size={17} />
-                  Hizmet Paketlerim (%85 Pay)
+                  Hizmet Paketlerim ({creatorServices.length})
                 </button>
                 <button
                   type="button"
@@ -1044,7 +1420,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   }`}
                 >
                   <FileCheck2 size={17} />
-                  Sipariş Odası & #reklam Teslimi
+                  Siparişlerim & Teslim ({ledgerOrders.length})
                 </button>
                 <Link
                   href={`/${locale}/kampanyalar`}
@@ -1099,7 +1475,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 {isCurrentUserSuperAdmin ? "Süperadmin" : activeViewRole}
               </span>
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold text-emerald-900">
-                Tam Yetki
+                Gerçek Veri Modu
               </span>
             </div>
             <p className="mt-1 truncate text-xs font-extrabold text-slate-900">
@@ -1152,36 +1528,36 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
                         <Database size={13} />
-                        İzole Veritabanı: influnex-db
+                        Canlı Veritabanı: influnex-db (Sıfır Mock Veri)
                       </span>
                     </div>
                     <h1 className="mt-2.5 text-2xl font-black tracking-tight sm:text-3xl">
                       InfluNex Süperadmin Yönetim ve Kontrol Merkezi
                     </h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-300">
-                      1.000 onaylı influencer ve tanıtım gönderimi, sipariş ve
-                      banka dekont onayları, %15 platform komisyonu / %85
-                      üretici ödemeleri, marka kampanyaları ve 81 il SEO
-                      sayfalarını tek ekrandan yönetin.
+                      Bu panelde hiçbir örnek veya sahte veri yer almaz. Tüm
+                      rakamlar yalnızca gerçek doğrulanmış üreticiler, gerçek
+                      oluşturulan siparişler ve gerçek kampanyalardan hesaplanır.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={handleExportLedgerCsv}
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-emerald-400"
+                      disabled={ledgerOrders.length === 0}
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-40"
                     >
                       <Download size={15} />
-                      Muhasebe Tablosunu İndir (CSV)
+                      Muhasebe Tablosunu İndir ({ledgerOrders.length} Kayıt)
                     </button>
                   </div>
                 </div>
 
-                {/* 6 Executive KPIs */}
+                {/* 6 Real Executive KPIs */}
                 <div className="mt-6 grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-slate-300">
-                      Toplam İşlem Hacmi
+                      Gerçek İşlem Hacmi
                     </span>
                     <p className="mt-1 text-xl font-black text-white">
                       {formatMinorUnits(
@@ -1189,7 +1565,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       )}
                     </p>
                     <span className="text-[11px] text-emerald-300">
-                      {ledgerOrders.length} Aktif Sipariş
+                      {ledgerOrders.length} Gerçek Sipariş
                     </span>
                   </div>
 
@@ -1209,7 +1585,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-emerald-300">
-                      %85 Üretici Ödemeleri
+                      %85 Üretici Hakedişi
                     </span>
                     <p className="mt-1 text-xl font-black text-emerald-400">
                       {formatMinorUnits(
@@ -1217,19 +1593,19 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       )}
                     </p>
                     <span className="text-[11px] text-slate-300">
-                      Influencer Hakediş Havuzu
+                      Influencer Payı
                     </span>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-amber-300">
-                      Kayıtlı Influencer
+                      Doğrulanmış Üretici
                     </span>
                     <p className="mt-1 text-xl font-black text-white">
-                      1.000+
+                      {adminCreators.length}
                     </p>
                     <span className="text-[11px] text-amber-300">
-                      4 Kanal • Onaylı Vitrin
+                      Gerçek Kayıtlı Profil
                     </span>
                   </div>
 
@@ -1245,7 +1621,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       İlan
                     </p>
                     <span className="text-[11px] text-cyan-300">
-                      Marka İş Birliği İlanı
+                      Gerçek Marka İlanı
                     </span>
                   </div>
 
@@ -1254,10 +1630,10 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       Türkiye İl Kapsamı
                     </span>
                     <p className="mt-1 text-xl font-black text-white">
-                      81 İl
+                      {INITIAL_CITIES.length} İl
                     </p>
                     <span className="text-[11px] text-purple-300">
-                      7 Bölge × 25 Kategori
+                      {INITIAL_CATEGORIES.length} Kategori
                     </span>
                   </div>
                 </div>
@@ -1279,18 +1655,18 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 </div>
               ) : null}
 
-              {/* Overview Quick Analytics & Activity Feed */}
+              {/* Overview Real Analytics & Activity Feed */}
               {activeTab === "overview" && (
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                  {/* Channel Distribution & Quick Actions */}
+                  {/* Real Channel Distribution & Quick Actions */}
                   <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs lg:col-span-7">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                          Kanal & İçerik Dağılımı
+                          Gerçek Kanal Dağılımı ({adminCreators.length} Kayıtlı Üretici)
                         </span>
                         <h2 className="mt-0.5 text-lg font-black text-slate-950">
-                          1.000 Influencer ve Sipariş Kanal Performansı
+                          Kayıtlı Influencer Kanal Dağılımı
                         </h2>
                       </div>
                       <TrendingUp className="text-indigo-600" size={20} />
@@ -1301,47 +1677,69 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                         <div className="flex justify-between font-bold text-slate-800">
                           <span>Instagram (Reels, Hikâye & Post)</span>
                           <span className="text-indigo-600">
-                            480 Üretici (%48)
+                            {channelBreakdown.INSTAGRAM.count} Üretici (%
+                            {channelBreakdown.INSTAGRAM.pct})
                           </span>
                         </div>
                         <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full w-[48%] rounded-full bg-indigo-600" />
+                          <div
+                            className="h-full rounded-full bg-indigo-600 transition-all"
+                            style={{
+                              width: `${channelBreakdown.INSTAGRAM.pct}%`,
+                            }}
+                          />
                         </div>
                       </div>
 
                       <div>
                         <div className="flex justify-between font-bold text-slate-800">
-                          <span>TikTok (Akım, Ürün Deneyimi & Spark Ads)</span>
+                          <span>TikTok</span>
                           <span className="text-emerald-600">
-                            240 Üretici (%24)
+                            {channelBreakdown.TIKTOK.count} Üretici (%
+                            {channelBreakdown.TIKTOK.pct})
                           </span>
                         </div>
                         <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full w-[24%] rounded-full bg-emerald-500" />
+                          <div
+                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            style={{
+                              width: `${channelBreakdown.TIKTOK.pct}%`,
+                            }}
+                          />
                         </div>
                       </div>
 
                       <div>
                         <div className="flex justify-between font-bold text-slate-800">
-                          <span>UGC Video (Markaya Özel Reklam Kreatifi)</span>
+                          <span>UGC Video</span>
                           <span className="text-amber-600">
-                            160 Üretici (%16)
+                            {channelBreakdown.UGC.count} Üretici (%
+                            {channelBreakdown.UGC.pct})
                           </span>
                         </div>
                         <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full w-[16%] rounded-full bg-amber-500" />
+                          <div
+                            className="h-full rounded-full bg-amber-500 transition-all"
+                            style={{ width: `${channelBreakdown.UGC.pct}%` }}
+                          />
                         </div>
                       </div>
 
                       <div>
                         <div className="flex justify-between font-bold text-slate-800">
-                          <span>YouTube (Detaylı İnceleme & Shorts)</span>
+                          <span>YouTube</span>
                           <span className="text-rose-600">
-                            120 Üretici (%12)
+                            {channelBreakdown.YOUTUBE.count} Üretici (%
+                            {channelBreakdown.YOUTUBE.pct})
                           </span>
                         </div>
                         <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full w-[12%] rounded-full bg-rose-500" />
+                          <div
+                            className="h-full rounded-full bg-rose-500 transition-all"
+                            style={{
+                              width: `${channelBreakdown.YOUTUBE.pct}%`,
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -1357,7 +1755,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                           size={15}
                           className="mb-1 text-indigo-600"
                         />
-                        + Yeni Influencer Ekle
+                        + Gerçek Influencer Ekle
                       </button>
                       <button
                         type="button"
@@ -1368,7 +1766,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                           size={15}
                           className="mb-1 text-emerald-600"
                         />
-                        + Yeni Sipariş / Dekont
+                        + Gerçek Sipariş Kaydet
                       </button>
                       <button
                         type="button"
@@ -1379,47 +1777,295 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                           size={15}
                           className="mb-1 text-amber-600"
                         />
-                        + Yeni Kampanya Aç
+                        + Gerçek Kampanya Aç
                       </button>
                     </div>
                   </div>
 
-                  {/* Live Activity Log */}
+                  {/* Real Live Activity Log */}
                   <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs lg:col-span-5">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                      Canlı İşlem Kayıtları
+                      Gerçek İşlem Kayıtları
                     </span>
                     <h2 className="mt-0.5 text-lg font-black text-slate-950">
-                      Son Süperadmin Hareketleri
+                      Bu Oturumda Yapılan İşlemler
                     </h2>
-                    <ul className="mt-4 space-y-2.5 text-xs">
-                      {activityLogs.map((item, idx) => (
-                        <li
-                          key={`${idx}-${item}`}
-                          className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-slate-700"
-                        >
-                          <CheckCircle2
-                            size={14}
-                            className="mt-0.5 shrink-0 text-emerald-600"
-                          />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {activityLogs.length === 0 ? (
+                      <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-xs text-slate-500">
+                        Henüz bu oturumda yeni bir işlem kaydı yok. Yeni bir
+                        influencer, sipariş, hizmet paketi veya kampanya
+                        eklediğinizde işlemleriniz gerçek zamanlı olarak burada
+                        listelenir.
+                      </div>
+                    ) : (
+                      <ul className="mt-4 space-y-2.5 text-xs">
+                        {activityLogs.map((item, idx) => (
+                          <li
+                            key={`${idx}-${item}`}
+                            className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-slate-700"
+                          >
+                            <CheckCircle2
+                              size={14}
+                              className="mt-0.5 shrink-0 text-emerald-600"
+                            />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* SuperAdmin Section: Order Escrow, Bank Ref Verification & 85% Payout Table */}
+              {/* SuperAdmin Section: Real Creators & Real Email Outreach */}
+              {(activeTab === "overview" || activeTab === "verifications") && (
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                        Gerçek Influencer & Tanıtım Yönetimi
+                      </span>
+                      <h2 className="mt-0.5 text-lg font-black text-slate-950">
+                        Doğrulanmış Gerçek Influencer Profilleri ({adminCreators.length})
+                      </h2>
+                    </div>
+                    <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
+                      Sıfır Sahte Profil • Firestore influnex-db Senkron
+                    </span>
+                  </div>
+
+                  {/* Add New Real Influencer Form */}
+                  <form
+                    onSubmit={handleAddAdminCreator}
+                    className="mt-4 grid grid-cols-1 gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 text-xs sm:grid-cols-3 lg:grid-cols-9"
+                  >
+                    <input
+                      type="text"
+                      required
+                      value={newCrName}
+                      onChange={(e) => setNewCrName(e.target.value)}
+                      placeholder="Ad Soyad"
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={newCrHandle}
+                      onChange={(e) => setNewCrHandle(e.target.value)}
+                      placeholder="@kullaniciadi"
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2"
+                    />
+                    <input
+                      type="email"
+                      value={newCrEmail}
+                      onChange={(e) => setNewCrEmail(e.target.value)}
+                      placeholder="Gerçek E-Posta (Opsiyonel)"
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2"
+                    />
+                    <select
+                      value={newCrCity}
+                      onChange={(e) => setNewCrCity(e.target.value)}
+                      aria-label="Şehir"
+                      className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
+                    >
+                      {INITIAL_CITIES.map((city) => (
+                        <option key={city.slug} value={city.nameTr}>
+                          {city.plateCode} - {city.nameTr}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={newCrCategory}
+                      onChange={(e) => setNewCrCategory(e.target.value)}
+                      aria-label="Kategori"
+                      className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
+                    >
+                      {INITIAL_CATEGORIES.map((cat) => (
+                        <option key={cat.slugTr} value={cat.nameTr}>
+                          {cat.nameTr}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={newCrPlatform}
+                      onChange={(e) =>
+                        setNewCrPlatform(
+                          e.target.value as
+                            | "INSTAGRAM"
+                            | "TIKTOK"
+                            | "YOUTUBE"
+                            | "UGC"
+                        )
+                      }
+                      aria-label="Kanal"
+                      className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
+                    >
+                      <option value="INSTAGRAM">Instagram</option>
+                      <option value="TIKTOK">TikTok</option>
+                      <option value="YOUTUBE">YouTube</option>
+                      <option value="UGC">UGC Video</option>
+                    </select>
+                    <input
+                      type="number"
+                      min={100}
+                      value={newCrFollowers}
+                      onChange={(e) =>
+                        setNewCrFollowers(Number(e.target.value))
+                      }
+                      placeholder="Takipçi Sayısı"
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2"
+                    />
+                    <label className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-2 font-bold text-amber-950">
+                      <input
+                        type="checkbox"
+                        checked={newCrIsLeader}
+                        onChange={(e) => setNewCrIsLeader(e.target.checked)}
+                      />
+                      👑 Lider
+                    </label>
+                    <button
+                      type="submit"
+                      className="rounded-xl bg-emerald-600 px-3 py-2 font-black text-white hover:bg-emerald-700"
+                    >
+                      + Kaydet
+                    </button>
+                  </form>
+
+                  {/* Real Creator Table */}
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50 uppercase text-slate-500">
+                          <th className="px-3 py-2.5">Influencer</th>
+                          <th className="px-3 py-2.5">Şehir & Kategori</th>
+                          <th className="px-3 py-2.5">Takipçi & Etkileşim</th>
+                          <th className="px-3 py-2.5">Gerçek E-Posta Adresi</th>
+                          <th className="px-3 py-2.5">Davet & Rozet İşlemleri</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {adminCreators.map((cr) => {
+                          const hasValidEmail =
+                            cr.email.includes("@") && cr.email.includes(".");
+                          return (
+                            <tr key={cr.id} className="hover:bg-slate-50/80">
+                              <td className="px-3 py-3">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <strong className="text-sm font-black text-slate-950">
+                                    {cr.name}
+                                  </strong>
+                                  {cr.isLeader ? (
+                                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-900">
+                                      👑 Influencer Lideri
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <div className="mt-0.5 flex items-center gap-2 text-indigo-600">
+                                  <a
+                                    href={cr.socialUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-mono font-bold hover:underline"
+                                  >
+                                    {cr.handle} ↗
+                                  </a>
+                                  <span className="text-slate-400">•</span>
+                                  <span className="font-semibold text-slate-600">
+                                    {cr.platform}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3">
+                                <strong className="text-slate-900">
+                                  {cr.city}
+                                </strong>
+                                <span className="block text-slate-500">
+                                  {cr.category}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3">
+                                <strong className="text-slate-900">
+                                  {cr.followers.toLocaleString("tr-TR")}
+                                </strong>
+                                <span className="block font-bold text-emerald-700">
+                                  %{cr.erPercent.toFixed(2)} Etkileşim
+                                </span>
+                              </td>
+                              <td className="px-3 py-3">
+                                <input
+                                  type="email"
+                                  value={cr.email}
+                                  onChange={(e) =>
+                                    handleUpdateCreatorEmail(
+                                      cr.id,
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Kendi gerçek mailini girin..."
+                                  className="w-56 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs"
+                                />
+                              </td>
+                              <td className="px-3 py-3">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {hasValidEmail ? (
+                                    <a
+                                      href={buildInviteGmailUrl(cr)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 font-bold text-white hover:bg-emerald-700"
+                                    >
+                                      <Mail size={12} />
+                                      Gmail ile Tanıtım Yolla
+                                    </a>
+                                  ) : null}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleToggleCreatorLeader(cr.id)
+                                    }
+                                    className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 font-bold text-amber-900 hover:bg-amber-100"
+                                  >
+                                    {cr.isLeader
+                                      ? "👑 Lider Kaldır"
+                                      : "👑 Lider Yap"}
+                                  </button>
+                                  <Link
+                                    href={`/${locale}/influencer/${cr.username}`}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-bold text-indigo-700 hover:border-indigo-400"
+                                  >
+                                    Vitrin <ExternalLink size={12} />
+                                  </Link>
+                                  {cr.username !== "guldkoc" ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCreator(cr.id)}
+                                      className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-700 hover:bg-red-100"
+                                      title="Profili Sil"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  ) : null}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* SuperAdmin Section: Real Orders & Bank Reference Accounting */}
               {(activeTab === "overview" || activeTab === "ledger") && (
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                        Havale / EFT / FAST Dekont & Hakediş Yönetimi
+                        Gerçek Siparişler, Banka Dekontu & %85 Hakediş Defteri
                       </span>
                       <h2 className="mt-0.5 text-lg font-black text-slate-950">
-                        Siparişler, Güvenli Ödeme Blokesi ve %85 Influencer Ödeme Tablosu
+                        Kayıtlı Siparişler ({ledgerOrders.length})
                       </h2>
                     </div>
 
@@ -1448,7 +2094,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     </div>
                   </div>
 
-                  {/* Add New Order Form */}
+                  {/* Create Real Order Form */}
                   <form
                     onSubmit={handleCreateAdminOrder}
                     className="mt-4 grid grid-cols-1 gap-2.5 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 text-xs sm:grid-cols-6"
@@ -1458,7 +2104,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       required
                       value={newOrdBrand}
                       onChange={(e) => setNewOrdBrand(e.target.value)}
-                      placeholder="Marka Adı (Örn: Lumi Kozmetik)"
+                      placeholder="Gerçek Marka Adı"
                       className="rounded-xl border border-slate-300 bg-white px-3 py-2"
                     />
                     <input
@@ -1481,6 +2127,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       type="number"
                       min={500}
                       step={250}
+                      required
                       value={newOrdGrossTl}
                       onChange={(e) => setNewOrdGrossTl(Number(e.target.value))}
                       placeholder="Brüt Tutar (TL)"
@@ -1491,324 +2138,162 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       required
                       value={newOrdBankRef}
                       onChange={(e) => setNewOrdBankRef(e.target.value)}
-                      placeholder="Banka Dekont Ref"
+                      placeholder="Gerçek Banka Dekont Ref No"
                       className="rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono"
                     />
                     <button
                       type="submit"
                       className="rounded-xl bg-indigo-600 px-3 py-2 font-black text-white hover:bg-indigo-700"
                     >
-                      + Yeni Sipariş Ekle
+                      + Gerçek Sipariş Kaydet
                     </button>
                   </form>
 
-                  <div className="mt-4 overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200 uppercase text-slate-500">
-                          <th className="py-2.5">Sipariş Kodu</th>
-                          <th className="py-2.5">Marka & Influencer</th>
-                          <th className="py-2.5">Brüt Tutar</th>
-                          <th className="py-2.5">%15 Komisyon</th>
-                          <th className="py-2.5">%85 Üretici Payı</th>
-                          <th className="py-2.5">Banka Referansı</th>
-                          <th className="py-2.5">Durum</th>
-                          <th className="py-2.5">Süperadmin İşlemi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredLedgerOrders.map((ord) => {
-                          const b = calculateCommissionBreakdown(
-                            ord.grossTl * 100,
-                            "TRY"
-                          );
-                          const statusLabel =
-                            ord.state === "PAYMENT_REVIEW"
-                              ? "Dekont İnceleniyor"
-                              : ord.state === "PAID"
-                                ? "Ödeme Bloke Edildi"
-                                : ord.state === "COMPLETED"
-                                  ? "Teslim Onaylandı"
-                                  : "%85 Ödeme Yapıldı";
-                          return (
-                            <tr key={ord.orderCode}>
-                              <td className="py-3 font-mono font-bold text-indigo-950">
-                                {ord.orderCode}
-                                <span className="block font-sans text-[10px] font-normal text-slate-400">
-                                  {ord.createdAt}
-                                </span>
-                              </td>
-                              <td className="py-3">
-                                <strong className="block text-slate-900">
-                                  {ord.brandName} → {ord.creatorName}
-                                </strong>
-                                <span className="text-[11px] text-slate-500">
-                                  {ord.serviceTitle}
-                                </span>
-                              </td>
-                              <td className="py-3 font-bold text-slate-900">
-                                {formatMinorUnits(b.grossAmountMinorUnits)}
-                              </td>
-                              <td className="py-3 font-bold text-indigo-700">
-                                {formatMinorUnits(
-                                  b.platformCommissionMinorUnits
-                                )}
-                              </td>
-                              <td className="py-3 font-extrabold text-emerald-700">
-                                {formatMinorUnits(b.creatorNetPayoutMinorUnits)}
-                              </td>
-                              <td className="py-3 font-mono text-[11px] text-slate-600">
-                                {ord.bankTransactionRef}
-                              </td>
-                              <td className="py-3">
-                                <span
-                                  className={`inline-flex rounded-full px-2.5 py-0.5 font-bold ${
-                                    ord.state === "PAYOUT_COMPLETED"
-                                      ? "bg-emerald-100 text-emerald-900"
-                                      : ord.state === "COMPLETED"
-                                        ? "bg-indigo-100 text-indigo-900"
-                                        : ord.state === "PAID"
-                                          ? "bg-cyan-100 text-cyan-900"
-                                          : "bg-amber-100 text-amber-900"
-                                  }`}
-                                >
-                                  {statusLabel}
-                                </span>
-                              </td>
-                              <td className="py-3">
-                                {ord.state !== "PAYOUT_COMPLETED" ? (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleAdvanceOrderState(ord.orderCode)
-                                    }
-                                    className="rounded-lg bg-indigo-600 px-3 py-1.5 font-bold text-white hover:bg-indigo-700"
-                                  >
-                                    {ord.state === "PAYMENT_REVIEW"
-                                      ? "Dekontu Onayla"
-                                      : ord.state === "PAID"
-                                        ? "#reklam & Teslim Onayla"
-                                        : "%85 Hakedişi Öde"}
-                                  </button>
-                                ) : (
-                                  <span className="font-bold text-emerald-700">
-                                    ✓ Hakediş Aktarıldı
+                  {filteredLedgerOrders.length === 0 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-xs text-slate-600">
+                      <strong className="block text-sm font-black text-slate-900">
+                        Henüz Kayıtlı Sipariş Bulunmuyor (0,00 TL)
+                      </strong>
+                      <p className="mt-1">
+                        Tüm mock/örnek siparişler temizlendi. Yukarıdaki formdan
+                        gerçek bir sipariş ve banka dekont referansı
+                        girdiğinizde burada listelenir.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200 uppercase text-slate-500">
+                            <th className="py-2.5">Sipariş Kodu</th>
+                            <th className="py-2.5">Marka & Influencer</th>
+                            <th className="py-2.5">Brüt Tutar</th>
+                            <th className="py-2.5">%15 Komisyon</th>
+                            <th className="py-2.5">%85 Üretici Payı</th>
+                            <th className="py-2.5">Banka Referansı</th>
+                            <th className="py-2.5">Durum</th>
+                            <th className="py-2.5">İşlem</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredLedgerOrders.map((ord) => {
+                            const b = calculateCommissionBreakdown(
+                              ord.grossTl * 100,
+                              "TRY"
+                            );
+                            const statusLabel =
+                              ord.state === "PAYMENT_REVIEW"
+                                ? "Dekont İnceleniyor"
+                                : ord.state === "PAID"
+                                  ? "Ödeme Bloke Edildi"
+                                  : ord.state === "COMPLETED"
+                                    ? "Teslim Onaylandı"
+                                    : "%85 Ödeme Yapıldı";
+                            return (
+                              <tr key={ord.orderCode}>
+                                <td className="py-3 font-mono font-bold text-indigo-950">
+                                  {ord.orderCode}
+                                  <span className="block font-sans text-[10px] font-normal text-slate-400">
+                                    {ord.createdAt}
                                   </span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                                </td>
+                                <td className="py-3">
+                                  <strong className="block text-slate-900">
+                                    {ord.brandName} → {ord.creatorName}
+                                  </strong>
+                                  <span className="text-[11px] text-slate-500">
+                                    {ord.serviceTitle}
+                                  </span>
+                                </td>
+                                <td className="py-3 font-bold text-slate-900">
+                                  {formatMinorUnits(b.grossAmountMinorUnits)}
+                                </td>
+                                <td className="py-3 font-bold text-indigo-700">
+                                  {formatMinorUnits(
+                                    b.platformCommissionMinorUnits
+                                  )}
+                                </td>
+                                <td className="py-3 font-extrabold text-emerald-700">
+                                  {formatMinorUnits(
+                                    b.creatorNetPayoutMinorUnits
+                                  )}
+                                </td>
+                                <td className="py-3 font-mono text-[11px] text-slate-600">
+                                  {ord.bankTransactionRef}
+                                </td>
+                                <td className="py-3">
+                                  <span
+                                    className={`inline-flex rounded-full px-2.5 py-0.5 font-bold ${
+                                      ord.state === "PAYOUT_COMPLETED"
+                                        ? "bg-emerald-100 text-emerald-900"
+                                        : ord.state === "COMPLETED"
+                                          ? "bg-indigo-100 text-indigo-900"
+                                          : ord.state === "PAID"
+                                            ? "bg-cyan-100 text-cyan-900"
+                                            : "bg-amber-100 text-amber-900"
+                                    }`}
+                                  >
+                                    {statusLabel}
+                                  </span>
+                                </td>
+                                <td className="py-3">
+                                  <div className="flex items-center gap-1.5">
+                                    {ord.state !== "PAYOUT_COMPLETED" ? (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleAdvanceOrderState(ord.orderCode)
+                                        }
+                                        className="rounded-lg bg-indigo-600 px-3 py-1.5 font-bold text-white hover:bg-indigo-700"
+                                      >
+                                        {ord.state === "PAYMENT_REVIEW"
+                                          ? "Dekontu Onayla"
+                                          : ord.state === "PAID"
+                                            ? "Teslimi Onayla"
+                                            : "%85 Hakedişi Öde"}
+                                      </button>
+                                    ) : (
+                                      <span className="font-bold text-emerald-700">
+                                        ✓ Ödendi
+                                      </span>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDeleteOrder(ord.orderCode)
+                                      }
+                                      className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-700 hover:bg-red-100"
+                                      title="Siparişi Sil"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* SuperAdmin Section: Add New Creator + Creator Verification Queue + 1,000 Creator Outreach CRM */}
-              {(activeTab === "overview" || activeTab === "verifications") && (
-                <>
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                          Influencer & Rozet Yönetimi
-                        </span>
-                        <h2 className="mt-0.5 text-lg font-black text-slate-950">
-                          Yeni Influencer Vitrine Ekle & Rozet Onay Kuyruğu
-                        </h2>
-                      </div>
-                      <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
-                        Kişisel İletişim & IBAN Verileri İzole Korunur
-                      </span>
-                    </div>
-
-                    {/* Add New Influencer Form */}
-                    <form
-                      onSubmit={handleAddAdminCreator}
-                      className="mt-4 grid grid-cols-1 gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 text-xs sm:grid-cols-4 lg:grid-cols-8"
-                    >
-                      <input
-                        type="text"
-                        required
-                        value={newCrName}
-                        onChange={(e) => setNewCrName(e.target.value)}
-                        placeholder="Ad Soyad"
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2"
-                      />
-                      <input
-                        type="text"
-                        required
-                        value={newCrHandle}
-                        onChange={(e) => setNewCrHandle(e.target.value)}
-                        placeholder="@kullaniciadi"
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2"
-                      />
-                      <select
-                        value={newCrCity}
-                        onChange={(e) => setNewCrCity(e.target.value)}
-                        aria-label="Şehir"
-                        className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
-                      >
-                        {INITIAL_CITIES.map((city) => (
-                          <option key={city.slug} value={city.nameTr}>
-                            {city.plateCode} - {city.nameTr}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={newCrCategory}
-                        onChange={(e) => setNewCrCategory(e.target.value)}
-                        aria-label="Kategori"
-                        className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
-                      >
-                        {INITIAL_CATEGORIES.map((cat) => (
-                          <option key={cat.slugTr} value={cat.nameTr}>
-                            {cat.nameTr}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={newCrPlatform}
-                        onChange={(e) =>
-                          setNewCrPlatform(
-                            e.target.value as
-                              | "INSTAGRAM"
-                              | "TIKTOK"
-                              | "YOUTUBE"
-                              | "UGC"
-                          )
-                        }
-                        aria-label="Kanal"
-                        className="rounded-xl border border-slate-300 bg-white px-2.5 py-2"
-                      >
-                        <option value="INSTAGRAM">Instagram</option>
-                        <option value="TIKTOK">TikTok</option>
-                        <option value="YOUTUBE">YouTube</option>
-                        <option value="UGC">UGC Video</option>
-                      </select>
-                      <input
-                        type="text"
-                        value={newCrFollowers}
-                        onChange={(e) => setNewCrFollowers(e.target.value)}
-                        placeholder="Takipçi (Örn: 65.000)"
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2"
-                      />
-                      <label className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-2 font-bold text-amber-950">
-                        <input
-                          type="checkbox"
-                          checked={newCrIsLeader}
-                          onChange={(e) => setNewCrIsLeader(e.target.checked)}
-                        />
-                        👑 Lider Rozeti
-                      </label>
-                      <button
-                        type="submit"
-                        className="rounded-xl bg-emerald-600 px-3 py-2 font-black text-white hover:bg-emerald-700"
-                      >
-                        + Vitrine Ekle
-                      </button>
-                    </form>
-
-                    {/* Creator Cards Queue */}
-                    <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {adminCreators.map((cr) => (
-                        <div
-                          key={cr.id}
-                          className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <strong className="text-sm font-black text-slate-950">
-                                  {cr.name}
-                                </strong>
-                                {cr.isLeader ? (
-                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-900">
-                                    👑 Influencer Lideri
-                                  </span>
-                                ) : null}
-                              </div>
-                              <p className="text-xs font-semibold text-indigo-600">
-                                {cr.handle} • {cr.platform}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-600">
-                                {cr.city} • {cr.category}
-                              </p>
-                              <p className="mt-0.5 text-xs text-slate-600">
-                                Takipçi: <strong>{cr.followers}</strong> •
-                                Etkileşim:{" "}
-                                <strong className="text-emerald-700">
-                                  {cr.er}
-                                </strong>
-                              </p>
-                            </div>
-                            <span
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                                cr.status === "APPROVED"
-                                  ? "bg-emerald-100 text-emerald-900"
-                                  : "bg-amber-100 text-amber-900"
-                              }`}
-                            >
-                              {cr.badge}
-                            </span>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-3 text-xs">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleCreatorLeader(cr.id)}
-                              className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 font-bold text-amber-900 hover:bg-amber-100"
-                            >
-                              {cr.isLeader
-                                ? "👑 Lider Rozetini Kaldır"
-                                : "👑 Lider Rozeti Ver"}
-                            </button>
-                            {cr.status === "PENDING_REVIEW" ? (
-                              <button
-                                type="button"
-                                onClick={() => handleApproveCreator(cr.id)}
-                                className="rounded-lg bg-emerald-600 px-3 py-1 font-bold text-white hover:bg-emerald-700"
-                              >
-                                Onayla & Vitrine Aç
-                              </button>
-                            ) : (
-                              <span className="font-bold text-emerald-700">
-                                ✓ Vitrinde Yayında
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 1,000 Influencer Outreach & Directory */}
-                  <ThousandCreatorsCrmSection locale={locale} />
-                </>
-              )}
-
-              {/* SuperAdmin Section: Brand Campaigns Manager */}
+              {/* SuperAdmin Section: Real Brand Campaigns Manager */}
               {(activeTab === "overview" || activeTab === "campaigns") && (
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                        Marka İlanları & Teklif Havuzu
+                        Gerçek Marka İlanları
                       </span>
                       <h2 className="mt-0.5 text-lg font-black text-slate-950">
-                        Marka Kampanyaları ve Yeni İlan Yayınlama Merkezi
+                        Marka Kampanyaları ({adminCampaigns.length})
                       </h2>
                     </div>
-                    <Link
-                      href={`/${locale}/kampanyalar`}
-                      className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
-                    >
-                      Canlı Kampanyalar Sayfasını Gör <ExternalLink size={13} />
-                    </Link>
                   </div>
 
-                  {/* Create Campaign Form */}
+                  {/* Create Real Campaign Form */}
                   <form
                     onSubmit={handleAddAdminCampaign}
                     className="mt-4 grid grid-cols-1 gap-2.5 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 text-xs sm:grid-cols-3 lg:grid-cols-6"
@@ -1818,7 +2303,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       required
                       value={newCmpBrand}
                       onChange={(e) => setNewCmpBrand(e.target.value)}
-                      placeholder="Marka Adı"
+                      placeholder="Gerçek Marka Adı"
                       className="rounded-xl border border-slate-300 bg-white px-3 py-2"
                     />
                     <input
@@ -1872,72 +2357,93 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     </button>
                   </form>
 
-                  <div className="mt-4 grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                    {adminCampaigns.map((cmp) => (
-                      <div
-                        key={cmp.id}
-                        className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-extrabold text-indigo-700">
-                              {cmp.brandName} • {cmp.city}
-                            </span>
-                            <span
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                                cmp.status === "OPEN"
-                                  ? "bg-emerald-100 text-emerald-900"
-                                  : "bg-slate-200 text-slate-700"
-                              }`}
-                            >
-                              {cmp.status === "OPEN"
-                                ? "Başvuruya Açık"
-                                : "Tamamlandı"}
-                            </span>
-                          </div>
-                          <h3 className="mt-1.5 text-sm font-black text-slate-950">
-                            {cmp.title}
-                          </h3>
-                          <p className="mt-1 text-slate-600">
-                            Kategori: <strong>{cmp.category}</strong> • Kanal:{" "}
-                            <strong>{cmp.platform}</strong>
-                          </p>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+                  {adminCampaigns.length === 0 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-xs text-slate-600">
+                      <strong className="block text-sm font-black text-slate-900">
+                        Henüz Yayınlanmış Kampanya İlanı Bulunmuyor (0 İlan)
+                      </strong>
+                      <p className="mt-1">
+                        Tüm mock/örnek kampanya ilanları kaldırıldı. Yukarıdaki
+                        formdan gerçek bir marka kampanyası yayınlayabilirsiniz.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4 grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                      {adminCampaigns.map((cmp) => (
+                        <div
+                          key={cmp.id}
+                          className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
+                        >
                           <div>
-                            <span className="text-slate-500">Bütçe: </span>
-                            <strong className="text-sm font-black text-slate-950">
-                              {cmp.budgetTl.toLocaleString("tr-TR")} TL
-                            </strong>
-                            <span className="ml-2 text-emerald-700">
-                              ({cmp.proposalCount} Başvuru)
-                            </span>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-extrabold text-indigo-700">
+                                {cmp.brandName} • {cmp.city}
+                              </span>
+                              <span
+                                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                                  cmp.status === "OPEN"
+                                    ? "bg-emerald-100 text-emerald-900"
+                                    : "bg-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {cmp.status === "OPEN"
+                                  ? "Başvuruya Açık"
+                                  : "Tamamlandı"}
+                              </span>
+                            </div>
+                            <h3 className="mt-1.5 text-sm font-black text-slate-950">
+                              {cmp.title}
+                            </h3>
+                            <p className="mt-1 text-slate-600">
+                              Kategori: <strong>{cmp.category}</strong> • Kanal:{" "}
+                              <strong>{cmp.platform}</strong>
+                            </p>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCampaignStatus(cmp.id)}
-                            className="rounded-lg border border-slate-300 bg-white px-3 py-1 font-bold text-slate-700 hover:bg-slate-100"
-                          >
-                            {cmp.status === "OPEN"
-                              ? "İlanı Kapat"
-                              : "Tekrar Yayına Aç"}
-                          </button>
+                          <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+                            <div>
+                              <span className="text-slate-500">Bütçe: </span>
+                              <strong className="text-sm font-black text-slate-950">
+                                {cmp.budgetTl.toLocaleString("tr-TR")} TL
+                              </strong>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleToggleCampaignStatus(cmp.id)
+                                }
+                                className="rounded-lg border border-slate-300 bg-white px-3 py-1 font-bold text-slate-700 hover:bg-slate-100"
+                              >
+                                {cmp.status === "OPEN"
+                                  ? "İlanı Kapat"
+                                  : "Yayına Aç"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCampaign(cmp.id)}
+                                className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-700 hover:bg-red-100"
+                                title="Kampanyayı Sil"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* SuperAdmin Section: Service Packages Management */}
+              {/* SuperAdmin Section: Real Service Packages Management */}
               {activeTab === "packages" && (
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs lg:col-span-7">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                      Vitrin Hizmet Paketleri
+                      Gerçek Vitrin Hizmet Paketleri
                     </span>
                     <h2 className="mt-1 text-lg font-black text-slate-950">
-                      Yayındaki Hazır Hizmet Paketleri ({creatorServices.length})
+                      Yayındaki Hizmet Paketleri ({creatorServices.length})
                     </h2>
                     <div className="mt-4 space-y-3">
                       {creatorServices.map((srv) => {
@@ -1956,8 +2462,8 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                                   <span className="rounded-md bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-900">
                                     {srv.platform}
                                   </span>
-                                  <span className="text-xs font-bold text-slate-600">
-                                    {srv.creatorName}
+                                  <span className="text-xs font-bold text-slate-700">
+                                    {srv.creatorName} ({srv.creatorHandle})
                                   </span>
                                 </div>
                                 <h3 className="mt-1.5 text-sm font-black text-slate-950">
@@ -1968,19 +2474,31 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                                   {srv.revisions} Revizyon • {srv.usageScope}
                                 </p>
                               </div>
-                              <div className="text-right">
-                                <span className="block text-[11px] text-slate-500">
-                                  Marka Ödemesi
-                                </span>
-                                <strong className="text-base font-black text-slate-950">
-                                  {formatMinorUnits(b.grossAmountMinorUnits)}
-                                </strong>
-                                <span className="mt-0.5 block text-xs font-extrabold text-emerald-700">
-                                  %85 Üretici Payı:{" "}
-                                  {formatMinorUnits(
-                                    b.creatorNetPayoutMinorUnits
-                                  )}
-                                </span>
+                              <div className="flex items-start gap-2 text-right">
+                                <div>
+                                  <span className="block text-[11px] text-slate-500">
+                                    Marka Ödemesi
+                                  </span>
+                                  <strong className="text-base font-black text-slate-950">
+                                    {formatMinorUnits(b.grossAmountMinorUnits)}
+                                  </strong>
+                                  <span className="mt-0.5 block text-xs font-extrabold text-emerald-700">
+                                    %85 Üretici Payı:{" "}
+                                    {formatMinorUnits(
+                                      b.creatorNetPayoutMinorUnits
+                                    )}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleDeleteServicePackage(srv.id)
+                                  }
+                                  className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-700 hover:bg-red-100"
+                                  title="Paketi Sil"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1991,7 +2509,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
 
                   <div className="rounded-3xl border border-emerald-200 bg-white p-6 shadow-2xs lg:col-span-5">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                      Süperadmin Paket Ekleme
+                      Gerçek Paket Ekleme
                     </span>
                     <h2 className="mt-1 text-lg font-black text-slate-950">
                       Yeni Hizmet Paketi Oluştur
@@ -2000,17 +2518,31 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       onSubmit={handleAddCreatorPackage}
                       className="mt-4 space-y-3 text-xs"
                     >
-                      <div>
-                        <label className="block font-bold text-slate-700">
-                          Influencer / Üretici
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={newPkgCreator}
-                          onChange={(e) => setNewPkgCreator(e.target.value)}
-                          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
-                        />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block font-bold text-slate-700">
+                            Influencer Adı
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newPkgCreator}
+                            onChange={(e) => setNewPkgCreator(e.target.value)}
+                            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700">
+                            Kullanıcı Adı
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newPkgHandle}
+                            onChange={(e) => setNewPkgHandle(e.target.value)}
+                            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block font-bold text-slate-700">
@@ -2083,7 +2615,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                         type="submit"
                         className="w-full rounded-xl bg-emerald-600 py-2.5 font-bold text-white hover:bg-emerald-700"
                       >
-                        + Hizmet Paketini Yayınla
+                        + Hizmet Paketini Kaydet
                       </button>
                     </form>
                   </div>
@@ -2186,7 +2718,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
           ) : null}
 
           {/* ================================================================
-              2. CREATOR / INFLUENCER & UGC COCKPIT (%85 Payout)
+              2. CREATOR / INFLUENCER & UGC COCKPIT (%85 Payout - Sadece Gerçek Veri)
              ================================================================ */}
           {activeViewRole === "CREATOR" ? (
             <>
@@ -2198,12 +2730,11 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       👑 Influencer Lideri: Gül Koç (@guldkoc) • %85 Net Üretici Payı
                     </span>
                     <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-                      Hoş Geldin Gül Koç, Influencer & UGC Üretici Paneli
+                      Influencer & UGC Üretici Paneli (Gerçek Veriler)
                     </h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-emerald-100">
-                      Hizmet paketlerini oluştur, kendi fiyatını ve kullanım
-                      süresini belirle. Marka ödemesi güvenceye alınmadan çekime
-                      başlama riski olmadan %85 net hakedişle kazan.
+                      Hizmet paketlerinizi yönetin ve gerçek siparişlerinizin
+                      teslim süreçlerini takip edin.
                     </p>
                   </div>
                   <Link
@@ -2215,27 +2746,36 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   </Link>
                 </div>
 
+                {/* Real Computed Creator KPIs */}
                 <div className="mt-6 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-emerald-200">
                       Tamamlanan İş Kazancı (%85)
                     </span>
                     <p className="mt-1 text-2xl font-black text-emerald-300">
-                      23.800,00 TL
+                      {formatMinorUnits(completedCreatorPayoutMinor)}
                     </p>
                     <span className="text-[11px] text-slate-300">
-                      Toplam 28.000 TL iş hacminden
+                      {
+                        ledgerOrders.filter(
+                          (o) =>
+                            o.state === "COMPLETED" ||
+                            o.state === "PAYOUT_COMPLETED"
+                        ).length
+                      }{" "}
+                      Tamamlanan Sipariş
                     </span>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-cyan-200">
-                      Güvencedeki Aktif Sipariş
+                      Bloke Güvencedeki Hakediş
                     </span>
                     <p className="mt-1 text-2xl font-black text-white">
-                      8.500,00 TL
+                      {formatMinorUnits(paidEscrowCreatorMinor)}
                     </p>
                     <span className="text-[11px] text-cyan-300">
-                      INF-2026-000001 (Ödemesi Hazır)
+                      {ledgerOrders.filter((o) => o.state === "PAID").length}{" "}
+                      Aktif Sipariş
                     </span>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -2246,16 +2786,18 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       {creatorServices.length} Paket
                     </p>
                     <span className="text-[11px] text-slate-300">
-                      Instagram & UGC Video
+                      Canlı Vitrinde Yayında
                     </span>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-indigo-200">
-                      Ortalama Etkileşim Oranı
+                      Doğrulanmış Takipçi
                     </span>
-                    <p className="mt-1 text-2xl font-black text-white">%5.80</p>
+                    <p className="mt-1 text-2xl font-black text-white">
+                      10.398
+                    </p>
                     <span className="text-[11px] text-emerald-300">
-                      Doğrulanmış Profil Rozetli
+                      @guldkoc • %5.80 Etkileşim
                     </span>
                   </div>
                 </div>
@@ -2266,10 +2808,10 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs lg:col-span-7">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                      Vitrin Hizmet Paketlerim
+                      Gerçek Vitrin Hizmet Paketlerim
                     </span>
                     <h2 className="mt-1 text-lg font-black text-slate-950">
-                      Aktif Influencer & UGC Paketlerim
+                      Aktif Influencer & UGC Paketlerim ({creatorServices.length})
                     </h2>
                     <div className="mt-4 space-y-3">
                       {creatorServices.map((srv) => {
@@ -2341,7 +2883,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                           required
                           value={newPkgTitle}
                           onChange={(e) => setNewPkgTitle(e.target.value)}
-                          placeholder="Örn: 1 Adet 60 sn TikTok + Reklam Kullanım İzni"
+                          placeholder="Örn: 1 Adet 60 sn Instagram Reels + 2 Story"
                           className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
                         />
                       </div>
@@ -2478,40 +3020,57 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                 </div>
               )}
 
-              {/* Creator Order Room & #reklam Disclosure Submission */}
+              {/* Creator Order Room — Only Real Orders */}
               {(activeTab === "overview" || activeTab === "delivery") && (
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
                   <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-                    Aktif Sipariş Odası • INF-2026-000001 (Güvencede: 10.000 TL)
+                    Gerçek Sipariş Odası ({ledgerOrders.length} Kayıt)
                   </span>
                   <h2 className="mt-1 text-lg font-black text-slate-950">
                     İçerik Teslimi ve #reklam Paylaşım Linki Gönderimi
                   </h2>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Yayın bağlantınızda <code>#reklam</code> veya{" "}
-                    <code>#işbirliği</code> etiketi doğrulandığında sipariş
-                    tamamlanır ve <strong>8.500,00 TL (%85)</strong> kazancınız
-                    hesabınıza aktarılır.
-                  </p>
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                    <input
-                      type="url"
-                      value={creatorPublishUrl}
-                      onChange={(e) => setCreatorPublishUrl(e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2 text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCreatorDeliveryMsg(
-                          "Yayın bağlantısı ve #reklam etiketi doğrulandı! 8.500,00 TL (%85) hakedişiniz ödeme sırasına alındı."
-                        )
-                      }
-                      className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"
+                  {ledgerOrders.length === 0 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-xs text-slate-600">
+                      Henüz adınıza açılmış aktif bir sipariş bulunmuyor.
+                      Markalar hizmet paketlerinizi satın aldığında gerçek
+                      siparişleriniz burada listelenir.
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={handleCreatorDeliverySubmit}
+                      className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-3"
                     >
-                      Paylaşım Linkini Gönder & Onayla
-                    </button>
-                  </div>
+                      <select
+                        required
+                        value={selectedOrderCodeForDelivery}
+                        onChange={(e) =>
+                          setSelectedOrderCodeForDelivery(e.target.value)
+                        }
+                        className="rounded-xl border border-slate-300 bg-white px-3 py-2"
+                      >
+                        <option value="">Teslim Edilecek Siparişi Seçin</option>
+                        {ledgerOrders.map((o) => (
+                          <option key={o.orderCode} value={o.orderCode}>
+                            {o.orderCode} — {o.brandName} ({o.grossTl} TL)
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="url"
+                        required
+                        value={creatorPublishUrl}
+                        onChange={(e) => setCreatorPublishUrl(e.target.value)}
+                        placeholder="https://www.instagram.com/reel/... (#reklam)"
+                        className="rounded-xl border border-slate-300 px-3.5 py-2"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-indigo-600 px-5 py-2.5 font-bold text-white hover:bg-indigo-700"
+                      >
+                        Paylaşım Linkini Gönder & Tamamla
+                      </button>
+                    </form>
+                  )}
                   {creatorDeliveryMsg ? (
                     <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-900">
                       ✓ {creatorDeliveryMsg}
@@ -2523,7 +3082,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
           ) : null}
 
           {/* ================================================================
-              3. ADVERTISER / BRAND COCKPIT
+              3. ADVERTISER / BRAND COCKPIT (Sadece Gerçek Veri)
              ================================================================ */}
           {activeViewRole === "ADVERTISER" ? (
             <>
@@ -2532,15 +3091,15 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   <div>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-400/20 px-3 py-1 text-xs font-bold text-indigo-200">
                       <BriefcaseBusiness size={14} />
-                      Marka & Ajans Paneli • Ücretsiz İlan & Kampanya Yönetimi
+                      Marka & Ajans Paneli • Gerçek Kampanya & Sipariş Yönetimi
                     </span>
                     <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-                      Reklamveren Kampanya, Teklif ve Sipariş Merkezi
+                      Reklamveren Kampanya ve Sipariş Merkezi
                     </h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-indigo-100">
-                      Saniyeler içinde kampanya ilanı oluşturun, influencer
-                      tekliflerini karşılaştırın ve içerik onaylanana kadar
-                      güvenli ödeme korumasıyla çalışın.
+                      Gerçek kampanya ilanlarınızı oluşturun, doğrulanmış
+                      influencer profilleriyle güvenli ödeme blokesi altında
+                      çalışın.
                     </p>
                   </div>
                   <Link
@@ -2552,25 +3111,37 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   </Link>
                 </div>
 
+                {/* Real Computed Advertiser KPIs */}
                 <div className="mt-6 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-indigo-200">
                       Aktif Kampanyalarım
                     </span>
-                    <p className="mt-1 text-2xl font-black text-white">3 İlan</p>
+                    <p className="mt-1 text-2xl font-black text-white">
+                      {
+                        adminCampaigns.filter((c) => c.status === "OPEN")
+                          .length
+                      }{" "}
+                      İlan
+                    </p>
                     <span className="text-[11px] text-emerald-300">
-                      14 Influencer Başvurusu
+                      {adminCampaigns.reduce(
+                        (acc, c) => acc + c.proposalCount,
+                        0
+                      )}{" "}
+                      Gerçek Başvuru
                     </span>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-cyan-200">
-                      Güvencedeki Sipariş
+                      Bloke Güvencedeki Sipariş
                     </span>
                     <p className="mt-1 text-2xl font-black text-white">
-                      10.000,00 TL
+                      {formatMinorUnits(paidEscrowGrossMinor)}
                     </p>
                     <span className="text-[11px] text-cyan-300">
-                      INF-2026-000001 (Çekim Aşamasında)
+                      {ledgerOrders.filter((o) => o.state === "PAID").length}{" "}
+                      Aktif Sipariş
                     </span>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -2586,25 +3157,25 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <span className="text-[11px] font-semibold text-amber-200">
-                      Kullanım & Telif Güvencesi
+                      Toplam Sipariş Sayısı
                     </span>
                     <p className="mt-1 text-2xl font-black text-white">
-                      Net Sözleşme
+                      {ledgerOrders.length}
                     </p>
                     <span className="text-[11px] text-amber-300">
-                      Sipariş Anında Kayıtlı
+                      Gerçek Kayıtlı İşlem
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Advertiser AI Campaign Brief Assistant */}
+              {/* Advertiser Campaign Brief Assistant (Empty initial state, no mock brand) */}
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs">
                 <span className="text-xs font-bold uppercase tracking-wider text-violet-700">
-                  Akıllı Kampanya İlan Asistanı
+                  Kampanya İlan Asistanı
                 </span>
                 <h2 className="mt-1 text-lg font-black text-slate-950">
-                  Hızlı Kampanya İlanı ve İçerik Senaryosu Oluşturucu
+                  Yeni Kampanya İlanı ve Çekim Senaryosu Oluşturucu
                 </h2>
                 <form
                   onSubmit={handleGenerateAdvAiBrief}
@@ -2615,13 +3186,15 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       htmlFor="adv-brand"
                       className="block font-bold text-slate-700"
                     >
-                      Marka Adı
+                      Marka Adınız
                     </label>
                     <input
                       id="adv-brand"
                       type="text"
+                      required
                       value={advBrandName}
                       onChange={(e) => setAdvBrandName(e.target.value)}
+                      placeholder="Marka adını girin..."
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
                     />
                   </div>
@@ -2630,13 +3203,15 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       htmlFor="adv-url"
                       className="block font-bold text-slate-700"
                     >
-                      Web Sitesi (HTTPS)
+                      Web Siteniz (HTTPS)
                     </label>
                     <input
                       id="adv-url"
                       type="url"
+                      required
                       value={advWebsite}
                       onChange={(e) => setAdvWebsite(e.target.value)}
+                      placeholder="https://markaniz.com.tr"
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
                     />
                   </div>
@@ -2651,6 +3226,7 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                       id="adv-budget"
                       type="number"
                       min={1000}
+                      required
                       value={advBudgetTl}
                       onChange={(e) => setAdvBudgetTl(Number(e.target.value))}
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
@@ -2666,8 +3242,10 @@ export function RoleDashboard({ locale, role }: RoleDashboardProps) {
                     <input
                       id="adv-desc"
                       type="text"
+                      required
                       value={advBriefDesc}
                       onChange={(e) => setAdvBriefDesc(e.target.value)}
+                      placeholder="Ürün veya hizmetinizi kısaca açıklayın..."
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
                     />
                   </div>
