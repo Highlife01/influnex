@@ -45,6 +45,13 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir="ltr">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var h=window.location.hostname.toLowerCase();if(h==="influnex.web.app"||h==="influnex.firebaseapp.com"||h==="influnex.com.tr"||h.endsWith(".web.app")||h.endsWith(".firebaseapp.com")){window.location.replace("https://www.influnex.com.tr"+window.location.pathname+window.location.search+window.location.hash);}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-white text-slate-900 antialiased">
         {children}
         <WhatsAppButton />
